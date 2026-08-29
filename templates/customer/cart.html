@@ -1,56 +1,217 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>Cart</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Your Cart</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+        color: #222;
+      }
+
+      .container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 0 16px;
+      }
+
+      .top {
+        margin-bottom: 25px;
+      }
+
+      .top h1 {
+        margin-bottom: 5px;
+      }
+
+      .table-info {
+        color: #666;
+      }
+
+      .cart-item {
+        background: white;
+        padding: 18px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+      }
+
+      .cart-item h3 {
+        margin-bottom: 8px;
+      }
+
+      .price {
+        color: #666;
+        margin-bottom: 14px;
+      }
+
+      .quantity-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .quantity-button {
+        display: inline-block;
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        background: #eee;
+        color: #111;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: bold;
+      }
+
+      .quantity {
+        font-weight: bold;
+      }
+
+      .subtotal {
+        margin-bottom: 12px;
+      }
+
+      .remove {
+        color: #d32f2f;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .summary {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+      }
+
+      .total {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 18px;
+      }
+
+      .checkout-button {
+        display: block;
+        width: 100%;
+        background: #111;
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        padding: 14px;
+        border-radius: 10px;
+        font-weight: bold;
+      }
+
+      .back-button {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #555;
+        text-decoration: none;
+      }
+
+      .empty-cart {
+        background: white;
+        padding: 35px;
+        text-align: center;
+        border-radius: 12px;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          margin-top: 25px;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <h1>Your Cart</h1>
+    <div class="container">
+      <div class="top">
+        <h1>Your Cart</h1>
+        <p class="table-info">
+          {{ restaurant.name }} · Table {{ table.table_number }}
+        </p>
+      </div>
 
-    <p>{{ restaurant.name }} - Table {{ table.table_number }}</p>
+      {% if cart %} {% for item_id, item in cart.items %}
 
-    <hr />
+      <div class="cart-item">
+        <h3>{{ item.name }}</h3>
 
-    {% for key, item in cart.items %}
+        <p class="price">৳{{ item.price }} each</p>
 
-    <h3>{{ item.name }}</h3>
+        <div class="quantity-row">
+          <a
+            href="{% url 'decrease_cart_item' restaurant.id table.id item_id %}"
+            class="quantity-button"
+          >
+            −
+          </a>
 
-    <p>Price: ৳{{ item.price }}</p>
+          <span class="quantity"> {{ item.quantity }} </span>
 
-    <p>
-      Quantity:
+          <a
+            href="{% url 'increase_cart_item' restaurant.id table.id item_id %}"
+            class="quantity-button"
+          >
+            +
+          </a>
+        </div>
 
-      <a href="{% url 'decrease_cart_item' restaurant.id table.id key %}">
-        <button>-</button>
+        <p class="subtotal">
+          <strong>Subtotal:</strong>
+          ৳{{ item.subtotal }}
+        </p>
+
+        <a
+          href="{% url 'remove_cart_item' restaurant.id table.id item_id %}"
+          class="remove"
+        >
+          Remove
+        </a>
+      </div>
+
+      {% endfor %}
+
+      <div class="summary">
+        <p class="total">Total: ৳{{ total }}</p>
+
+        <a
+          href="{% url 'checkout' restaurant.id table.id %}"
+          class="checkout-button"
+        >
+          Proceed to Checkout
+        </a>
+      </div>
+
+      {% else %}
+
+      <div class="empty-cart">
+        <h2>Your cart is empty</h2>
+        <p>Add some food from the menu.</p>
+      </div>
+
+      {% endif %}
+
+      <a
+        href="{% url 'customer_menu' restaurant.id table.id %}"
+        class="back-button"
+      >
+        ← Back to Menu
       </a>
-
-      {{ item.quantity }}
-
-      <a href="{% url 'increase_cart_item' restaurant.id table.id key %}">
-        <button>+</button>
-      </a>
-    </p>
-
-    <p>Subtotal: ৳{{ item.subtotal }}</p>
-
-    <a href="{% url 'remove_cart_item' restaurant.id table.id key %}">
-      <button>Remove</button>
-    </a>
-
-    <hr />
-
-    {% empty %}
-
-    <p>Your cart is empty.</p>
-
-    {% endfor %} {% if cart %}
-
-    <h2>Total: ৳{{ total }}</h2>
-
-    <a href="{% url 'checkout' restaurant.id table.id %}">
-      <button>Proceed to Checkout</button>
-    </a>
-
-    {% endif %}
+    </div>
   </body>
 </html>

@@ -1,43 +1,199 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <a href="{% url 'cart' restaurant.id table.id %}"> View Cart </a>
-    <title>{{ restaurant.name }}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{{ restaurant.name }} Menu</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+        color: #222;
+      }
+
+      .header {
+        background: #ffffff;
+        padding: 20px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .header h1 {
+        margin-bottom: 6px;
+      }
+
+      .table-info {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 25px auto;
+        padding: 0 16px 100px;
+      }
+
+      .category {
+        margin-bottom: 35px;
+      }
+
+      .category h2 {
+        margin-bottom: 15px;
+        font-size: 22px;
+      }
+
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+
+      .food-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .food-image {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 12px;
+      }
+
+      .food-card h3 {
+        margin-bottom: 8px;
+      }
+
+      .description {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 12px;
+        line-height: 1.5;
+      }
+
+      .price {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 12px;
+      }
+
+      .add-button {
+        display: inline-block;
+        text-decoration: none;
+        background: #111;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+      }
+
+      .add-button:hover {
+        opacity: 0.85;
+      }
+
+      .cart-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        padding: 14px 20px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .cart-button {
+        display: inline-block;
+        width: 100%;
+        max-width: 500px;
+        background: #111;
+        color: white;
+        text-decoration: none;
+        padding: 14px;
+        border-radius: 10px;
+        font-weight: bold;
+      }
+
+      @media (max-width: 600px) {
+        .header h1 {
+          font-size: 24px;
+        }
+
+        .container {
+          margin-top: 18px;
+        }
+
+        .menu-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <h1>{{ restaurant.name }}</h1>
-
-    <p>Table: {{ table.table_number }}</p>
-
-    <hr />
-
-    {% for category in categories %}
-
-    <h2>{{ category.name }}</h2>
-
-    {% for item in category.items.all %} {% if item.is_available %}
-
-    <div>
-      <h3>{{ item.name }}</h3>
-
-      <p>{{ item.description }}</p>
-
-      <strong>৳{{ item.price }}</strong>
-
-      <br /><br />
-
-      <a href="{% url 'add_to_cart' restaurant.id table.id item.id %}">
-        <button>Add to Cart</button>
-      </a>
-
-      <hr />
+    <div class="header">
+      <h1>{{ restaurant.name }}</h1>
+      <p class="table-info">Table {{ table.table_number }}</p>
     </div>
 
-    {% endif %} {% empty %}
+    <div class="container">
+      {% for category in categories %}
 
-    <p>No food available.</p>
+      <div class="category">
+        <h2>{{ category.name }}</h2>
 
-    {% endfor %} {% endfor %}
+        <div class="menu-grid">
+          {% for item in category.items.all %} {% if item.is_available %}
+
+          <div class="food-card">
+            {% if item.image %}
+            <img
+              src="{{ item.image.url }}"
+              alt="{{ item.name }}"
+              class="food-image"
+            />
+            {% endif %}
+
+            <h3>{{ item.name }}</h3>
+
+            {% if item.description %}
+            <p class="description">{{ item.description }}</p>
+            {% endif %}
+
+            <p class="price">৳{{ item.price }}</p>
+
+            <a
+              href="{% url 'add_to_cart' restaurant.id table.id item.id %}"
+              class="add-button"
+            >
+              Add to Cart
+            </a>
+          </div>
+
+          {% endif %} {% endfor %}
+        </div>
+      </div>
+
+      {% endfor %}
+    </div>
+
+    <div class="cart-bar">
+      <a href="{% url 'cart' restaurant.id table.id %}" class="cart-button">
+        View Cart
+      </a>
+    </div>
   </body>
 </html>

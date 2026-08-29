@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Kitchen Dashboard</title>
+  </head>
+
+  <body>
+    <h1>Kitchen Dashboard</h1>
+
+    {% for order in orders %}
+
+    <hr />
+
+    <h2>Order #{{ order.id }}</h2>
+
+    <p>
+      <strong>Table:</strong>
+      {{ order.table.table_number }}
+    </p>
+
+    <p>
+      <strong>Order Type:</strong>
+      {{ order.get_order_type_display }}
+    </p>
+
+    <p>
+      <strong>Status:</strong>
+      {{ order.get_status_display }}
+    </p>
+
+    <h3>Items:</h3>
+
+    <ul>
+      {% for item in order.items.all %}
+      <li>{{ item.menu_item.name }} × {{ item.quantity }}</li>
+      {% endfor %}
+    </ul>
+
+    <p>
+      <strong>Total:</strong>
+      ৳{{ order.total_amount }}
+    </p>
+    {% if order.status == 'NEW' %}
+
+    <form method="POST" action="{% url 'update_order_status' order.id %}">
+      {% csrf_token %}
+      <button type="submit">Accept Order</button>
+    </form>
+
+    {% elif order.status == 'ACCEPTED' %}
+
+    <form method="POST" action="{% url 'update_order_status' order.id %}">
+      {% csrf_token %}
+      <button type="submit">Start Preparing</button>
+    </form>
+
+    {% elif order.status == 'PREPARING' %}
+
+    <form method="POST" action="{% url 'update_order_status' order.id %}">
+      {% csrf_token %}
+      <button type="submit">Mark as Ready</button>
+    </form>
+
+    {% elif order.status == 'READY' %}
+
+    <p><strong>Food is Ready!</strong></p>
+
+    {% endif %} {% empty %}
+
+    <p>No active orders.</p>
+
+    {% endfor %}
+  </body>
+</html>

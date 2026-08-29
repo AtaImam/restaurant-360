@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Order Confirmed</title>
+  </head>
+
+  <body>
+    <h1>Order Confirmed ✅</h1>
+
+    <h2>Order #{{ order.id }}</h2>
+
+    <p>Type: {{ order.get_order_type_display }}</p>
+
+    <p>Status: {{ order.get_status_display }}</p>
+
+    <p>Total: ৳{{ order.total_amount }}</p>
+  </body>
+</html>

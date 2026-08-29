@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Checkout</title>
+  </head>
+
+  <body>
+    <h1>Checkout</h1>
+
+    <p>{{ restaurant.name }}</p>
+    <p>Table: {{ table.table_number }}</p>
+
+    <hr />
+
+    {% for key, item in cart.items %}
+
+    <p>{{ item.name }} x {{ item.quantity }} = ৳{{ item.subtotal }}</p>
+
+    {% endfor %}
+
+    <hr />
+
+    <h2>Total: ৳{{ total }}</h2>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <h3>Order Type</h3>
+
+      <label>
+        <input type="radio" name="order_type" value="DINE_IN" checked />
+        Dine In
+      </label>
+
+      <br /><br />
+
+      <label>
+        <input type="radio" name="order_type" value="TAKEAWAY" />
+        Takeaway
+      </label>
+
+      <br /><br />
+
+      <button type="submit">Place Order</button>
+    </form>
+  </body>
+</html>

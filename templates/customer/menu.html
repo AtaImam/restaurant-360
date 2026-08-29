@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <head>
+    <a href="{% url 'cart' restaurant.id table.id %}"> View Cart </a>
+    <title>{{ restaurant.name }}</title>
+  </head>
+
+  <body>
+    <h1>{{ restaurant.name }}</h1>
+
+    <p>Table: {{ table.table_number }}</p>
+
+    <hr />
+
+    {% for category in categories %}
+
+    <h2>{{ category.name }}</h2>
+
+    {% for item in category.items.all %} {% if item.is_available %}
+
+    <div>
+      <h3>{{ item.name }}</h3>
+
+      <p>{{ item.description }}</p>
+
+      <strong>৳{{ item.price }}</strong>
+
+      <br /><br />
+
+      <a href="{% url 'add_to_cart' restaurant.id table.id item.id %}">
+        <button>Add to Cart</button>
+      </a>
+
+      <hr />
+    </div>
+
+    {% endif %} {% empty %}
+
+    <p>No food available.</p>
+
+    {% endfor %} {% endfor %}
+  </body>
+</html>

@@ -1,18 +1,153 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Order Confirmed</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+        color: #222;
+
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        padding: 20px;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 500px;
+
+        background: white;
+        border-radius: 16px;
+        padding: 35px 25px;
+
+        text-align: center;
+
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .success-icon {
+        width: 70px;
+        height: 70px;
+
+        background: #e8f5e9;
+        color: #2e7d32;
+
+        border-radius: 50%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 35px;
+        font-weight: bold;
+
+        margin: 0 auto 20px;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      .message {
+        color: #666;
+        margin-bottom: 25px;
+      }
+
+      .order-info {
+        background: #f7f7f7;
+        border-radius: 12px;
+        padding: 18px;
+
+        text-align: left;
+        margin-bottom: 22px;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e5e5;
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        color: #666;
+      }
+
+      .status {
+        font-weight: bold;
+        color: #e67e22;
+      }
+
+      .kitchen-message {
+        padding: 14px;
+
+        background: #fff8e1;
+        border-radius: 10px;
+
+        font-size: 14px;
+        line-height: 1.5;
+      }
+    </style>
   </head>
 
   <body>
-    <h1>Order Confirmed ✅</h1>
+    <div class="card">
+      <div class="success-icon">✓</div>
 
-    <h2>Order #{{ order.id }}</h2>
+      <h1>Order Confirmed!</h1>
 
-    <p>Type: {{ order.get_order_type_display }}</p>
+      <p class="message">Your order has been sent to the kitchen.</p>
 
-    <p>Status: {{ order.get_status_display }}</p>
+      <div class="order-info">
+        <div class="info-row">
+          <span class="label">Order Number</span>
+          <strong>#{{ order.id }}</strong>
+        </div>
 
-    <p>Total: ৳{{ order.total_amount }}</p>
+        <div class="info-row">
+          <span class="label">Order Type</span>
+          <strong>{{ order.get_order_type_display }}</strong>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Table</span>
+          <strong>Table {{ order.table.table_number }}</strong>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Status</span>
+          <span class="status"> {{ order.get_status_display }} </span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Total</span>
+          <strong>৳{{ order.total_amount }}</strong>
+        </div>
+      </div>
+
+      <div class="kitchen-message">
+        The kitchen will start preparing your order shortly.
+      </div>
+    </div>
   </body>
 </html>

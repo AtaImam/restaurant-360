@@ -1,74 +1,294 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Kitchen Dashboard</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f5f7;
+        color: #222;
+      }
+
+      .header {
+        background: white;
+        padding: 20px 30px;
+        border-bottom: 1px solid #ddd;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+
+      .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+
+      .order-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+      }
+
+      .order-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        margin-bottom: 15px;
+      }
+
+      .order-number {
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .status {
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .status-new {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-accepted {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .status-preparing {
+        background: #e2d9f3;
+        color: #4a2c72;
+      }
+
+      .status-ready {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .order-info {
+        margin-bottom: 15px;
+        line-height: 1.8;
+        color: #555;
+      }
+
+      .items-title {
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+
+      .items-list {
+        list-style: none;
+        margin-bottom: 18px;
+      }
+
+      .items-list li {
+        background: #f7f7f7;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 7px;
+      }
+
+      .total {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+
+      .action-button {
+        width: 100%;
+        border: none;
+        background: #111;
+        color: white;
+
+        padding: 12px;
+        border-radius: 9px;
+
+        font-size: 14px;
+        font-weight: bold;
+
+        cursor: pointer;
+      }
+
+      .action-button:hover {
+        opacity: 0.85;
+      }
+
+      .ready-message {
+        background: #e8f5e9;
+        color: #2e7d32;
+
+        padding: 12px;
+        border-radius: 9px;
+
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .empty {
+        background: white;
+        padding: 50px;
+        border-radius: 14px;
+        text-align: center;
+        color: #666;
+      }
+
+      @media (max-width: 600px) {
+        .header {
+          padding: 18px;
+        }
+
+        .header h1 {
+          font-size: 22px;
+        }
+
+        .container {
+          margin-top: 20px;
+        }
+
+        .orders-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <h1>Kitchen Dashboard</h1>
+    <div class="header">
+      <div>
+        <h1>Kitchen Dashboard</h1>
+        <p>Active restaurant orders</p>
+      </div>
+    </div>
 
-    {% for order in orders %}
+    <div class="container">
+      {% if orders %}
 
-    <hr />
+      <div class="orders-grid">
+        {% for order in orders %}
 
-    <h2>Order #{{ order.id }}</h2>
+        <div class="order-card">
+          <div class="order-top">
+            <span class="order-number"> Order #{{ order.id }} </span>
 
-    <p>
-      <strong>Table:</strong>
-      {{ order.table.table_number }}
-    </p>
+            {% if order.status == 'NEW' %}
+            <span class="status status-new"> NEW </span>
 
-    <p>
-      <strong>Order Type:</strong>
-      {{ order.get_order_type_display }}
-    </p>
+            {% elif order.status == 'ACCEPTED' %}
+            <span class="status status-accepted"> ACCEPTED </span>
 
-    <p>
-      <strong>Status:</strong>
-      {{ order.get_status_display }}
-    </p>
+            {% elif order.status == 'PREPARING' %}
+            <span class="status status-preparing"> PREPARING </span>
 
-    <h3>Items:</h3>
+            {% elif order.status == 'READY' %}
+            <span class="status status-ready"> READY </span>
+            {% endif %}
+          </div>
 
-    <ul>
-      {% for item in order.items.all %}
-      <li>{{ item.menu_item.name }} × {{ item.quantity }}</li>
-      {% endfor %}
-    </ul>
+          <div class="order-info">
+            <p>
+              <strong>Table:</strong>
+              {{ order.table.table_number }}
+            </p>
 
-    <p>
-      <strong>Total:</strong>
-      ৳{{ order.total_amount }}
-    </p>
-    {% if order.status == 'NEW' %}
+            <p>
+              <strong>Order Type:</strong>
+              {{ order.get_order_type_display }}
+            </p>
 
-    <form method="POST" action="{% url 'update_order_status' order.id %}">
-      {% csrf_token %}
-      <button type="submit">Accept Order</button>
-    </form>
+            <p>
+              <strong>Time:</strong>
+              {{ order.created_at|date:"h:i A" }}
+            </p>
+          </div>
 
-    {% elif order.status == 'ACCEPTED' %}
+          <h3 class="items-title">Items</h3>
 
-    <form method="POST" action="{% url 'update_order_status' order.id %}">
-      {% csrf_token %}
-      <button type="submit">Start Preparing</button>
-    </form>
+          <ul class="items-list">
+            {% for item in order.items.all %}
+            <li>{{ item.menu_item.name }} × {{ item.quantity }}</li>
+            {% endfor %}
+          </ul>
 
-    {% elif order.status == 'PREPARING' %}
+          <p class="total">Total: ৳{{ order.total_amount }}</p>
 
-    <form method="POST" action="{% url 'update_order_status' order.id %}">
-      {% csrf_token %}
-      <button type="submit">Mark as Ready</button>
-    </form>
+          {% if order.status == 'NEW' %}
 
-    {% elif order.status == 'READY' %}
+          <form method="POST" action="{% url 'update_order_status' order.id %}">
+            {% csrf_token %}
 
-    <p><strong>Food is Ready!</strong></p>
+            <button type="submit" class="action-button">Accept Order</button>
+          </form>
 
-    {% endif %} {% empty %}
+          {% elif order.status == 'ACCEPTED' %}
 
-    <p>No active orders.</p>
+          <form method="POST" action="{% url 'update_order_status' order.id %}">
+            {% csrf_token %}
 
-    {% endfor %}
+            <button type="submit" class="action-button">Start Preparing</button>
+          </form>
+
+          {% elif order.status == 'PREPARING' %}
+
+          <form method="POST" action="{% url 'update_order_status' order.id %}">
+            {% csrf_token %}
+
+            <button type="submit" class="action-button">Mark as Ready</button>
+          </form>
+
+          {% elif order.status == 'READY' %}
+
+          <div class="ready-message">Food is Ready!</div>
+
+          {% endif %}
+        </div>
+
+        {% endfor %}
+      </div>
+
+      {% else %}
+
+      <div class="empty">
+        <h2>No Active Orders</h2>
+        <p>New customer orders will appear here.</p>
+      </div>
+
+      {% endif %}
+    </div>
   </body>
 </html>

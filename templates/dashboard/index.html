@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant 360 | Owner Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --secondary: #1f2937;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+
+            --purple: #9333ea;
+            --purple-light: #faf5ff;
+
+            --red: #dc2626;
+            --red-light: #fef2f2;
+
+            --yellow: #ca8a04;
+            --yellow-light: #fefce8;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary);
+            color: white;
+
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 10px;
+        }
+
+        .brand {
+            height: 78px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 22px;
+
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: var(--accent);
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .brand h2 {
+            font-size: 17px;
+            line-height: 1.2;
+        }
+
+        .brand p {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .sidebar-menu {
+            padding: 18px 14px 30px;
+        }
+
+        .menu-section {
+            margin-bottom: 22px;
+        }
+
+        .menu-title {
+            padding: 0 12px;
+            margin-bottom: 8px;
+
+            font-size: 10px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #6b7280;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 11px 13px;
+            margin-bottom: 4px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            color: #d1d5db;
+
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 23px;
+            display: flex;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .menu-text {
+            flex: 1;
+        }
+
+        .menu-badge {
+            background: #374151;
+            color: #d1d5db;
+
+            font-size: 9px;
+            padding: 3px 6px;
+            border-radius: 20px;
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .main {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* =========================
+           TOPBAR
+        ========================== */
+
+        .topbar {
+            height: 78px;
+            background: var(--white);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+            border-bottom: 1px solid var(--border);
+
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            border: none;
+            background: none;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .restaurant-info h3 {
+            font-size: 15px;
+            margin-bottom: 3px;
+        }
+
+        .restaurant-info p {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .top-icon {
+            width: 38px;
+            height: 38px;
+
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 10px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            cursor: pointer;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-avatar {
+            width: 39px;
+            height: 39px;
+
+            background: var(--accent);
+            color: white;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .profile-info h4 {
+            font-size: 12px;
+        }
+
+        .profile-info p {
+            margin-top: 2px;
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        /* =========================
+           CONTENT
+        ========================== */
+
+        .content {
+            padding: 30px;
+            max-width: 1700px;
+            margin: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            margin-bottom: 26px;
+        }
+
+        .page-title h1 {
+            font-size: 25px;
+            margin-bottom: 7px;
+        }
+
+        .page-title p {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+
+            padding: 10px 15px;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* =========================
+           STAT CARDS
+        ========================== */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            min-height: 128px;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 12px;
+            font-weight: 500;
+
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 25px;
+            font-weight: 750;
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 10px;
+            color: var(--green);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+            font-size: 20px;
+        }
+
+        .orange {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .blue {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .green {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .purple {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        /* =========================
+           GENERAL CARD
+        ========================== */
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .card-header {
+            min-height: 62px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 20px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .card-title p {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .view-link {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* =========================
+           CHART SECTION
+        ========================== */
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+
+            margin-bottom: 22px;
+        }
+
+        .chart-body {
+            height: 285px;
+            padding: 20px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .chart-placeholder {
+            flex: 1;
+
+            border-left: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+
+            position: relative;
+
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+
+            padding: 20px 10px 0;
+        }
+
+        .chart-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+
+            border-top: 1px dashed #e5e7eb;
+        }
+
+        .chart-line:nth-child(1) {
+            top: 20%;
+        }
+
+        .chart-line:nth-child(2) {
+            top: 40%;
+        }
+
+        .chart-line:nth-child(3) {
+            top: 60%;
+        }
+
+        .chart-line:nth-child(4) {
+            top: 80%;
+        }
+
+        .fake-bar {
+            flex: 1;
+            max-width: 38px;
+
+            background: #fed7aa;
+            border-radius: 5px 5px 0 0;
+
+            position: relative;
+            z-index: 2;
+        }
+
+        .fake-bar:nth-of-type(5) {
+            height: 30%;
+        }
+
+        .fake-bar:nth-of-type(6) {
+            height: 48%;
+        }
+
+        .fake-bar:nth-of-type(7) {
+            height: 40%;
+        }
+
+        .fake-bar:nth-of-type(8) {
+            height: 68%;
+        }
+
+        .fake-bar:nth-of-type(9) {
+            height: 57%;
+        }
+
+        .fake-bar:nth-of-type(10) {
+            height: 78%;
+        }
+
+        .fake-bar:nth-of-type(11) {
+            height: 64%;
+        }
+
+        .fake-bar:nth-of-type(12) {
+            height: 86%;
+            background: var(--accent);
+        }
+
+        .chart-note {
+            margin-top: 13px;
+            font-size: 10px;
+            text-align: center;
+            color: var(--text-light);
+        }
+
+        /* =========================
+           ORDER STATUS
+        ========================== */
+
+        .status-body {
+            padding: 22px;
+        }
+
+        .donut-placeholder {
+            width: 150px;
+            height: 150px;
+
+            border-radius: 50%;
+
+            margin: 8px auto 22px;
+
+            background:
+                conic-gradient(#f97316 0deg 120deg,
+                    #2563eb 120deg 205deg,
+                    #16a34a 205deg 280deg,
+                    #9333ea 280deg 330deg,
+                    #e5e7eb 330deg 360deg);
+
+            position: relative;
+        }
+
+        .donut-placeholder::after {
+            content: "Orders";
+
+            width: 88px;
+            height: 88px;
+
+            background: white;
+            border-radius: 50%;
+
+            position: absolute;
+            top: 31px;
+            left: 31px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .status-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            font-size: 11px;
+        }
+
+        .status-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* =========================
+           MID SECTION
+        ========================== */
+
+        .middle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+
+            margin-bottom: 22px;
+        }
+
+        /* =========================
+           TOP ITEMS
+        ========================== */
+
+        .item-list {
+            padding: 4px 20px 15px;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 14px 0;
+
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-rank {
+            width: 28px;
+            height: 28px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 8px;
+
+            background: var(--accent-light);
+            color: var(--accent);
+
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-info h4 {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .item-info p {
+            color: var(--text-light);
+            font-size: 10px;
+        }
+
+        .item-amount {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* =========================
+           ORDER TYPE
+        ========================== */
+
+        .order-type-body {
+            padding: 20px;
+        }
+
+        .order-type-box {
+            margin-bottom: 18px;
+        }
+
+        .type-top {
+            display: flex;
+            justify-content: space-between;
+
+            margin-bottom: 8px;
+
+            font-size: 11px;
+        }
+
+        .progress {
+            height: 8px;
+            background: #f3f4f6;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 20px;
+        }
+
+        .progress-orange {
+            width: 72%;
+            background: var(--accent);
+        }
+
+        .progress-blue {
+            width: 28%;
+            background: var(--blue);
+        }
+
+        /* =========================
+           TABLE
+        ========================== */
+
+        .table-card {
+            margin-bottom: 22px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+
+            padding: 13px 18px;
+
+            background: #fafafa;
+            color: var(--text-light);
+
+            font-size: 10px;
+            font-weight: 700;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 15px 18px;
+
+            border-bottom: 1px solid #f1f1f1;
+
+            font-size: 11px;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .order-id {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .badge-new {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .badge-accepted {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .badge-preparing {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .badge-ready {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .badge-served {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .badge-completed {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        /* =========================
+           QUICK ACTIONS
+        ========================== */
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .quick-action {
+            background: white;
+            border: 1px solid var(--border);
+
+            padding: 18px;
+
+            border-radius: 12px;
+
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+            border-color: #fdba74;
+        }
+
+        .quick-icon {
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: var(--accent-light);
+            color: var(--accent);
+
+            font-size: 18px;
+        }
+
+        .quick-action h4 {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .quick-action p {
+            font-size: 9px;
+            color: var(--text-light);
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 950px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .analytics-grid,
+            .middle-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .content {
+                padding: 18px;
+            }
+
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .profile-info {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-logo">
+                R
+            </div>
+
+            <div>
+                <h2>Restaurant 360</h2>
+                <p>Restaurant Management</p>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+
+            <div class="menu-section">
+
+                <a href="{% url 'owner_dashboard' %}" class="menu-item active">
+
+                    <span class="menu-icon">▦</span>
+                    <span class="menu-text">Dashboard</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    OPERATIONS
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🧾</span>
+                    <span class="menu-text">Orders</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">💳</span>
+                    <span class="menu-text">POS</span>
+
+                </a>
+
+                <a href="{% url 'kitchen_dashboard' %}" class="menu-item">
+
+                    <span class="menu-icon">🍳</span>
+                    <span class="menu-text">Kitchen Display</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">👨‍🍳</span>
+                    <span class="menu-text">Waiter Panel</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    MENU MANAGEMENT
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▤</span>
+                    <span class="menu-text">Categories</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🍔</span>
+                    <span class="menu-text">Menu Items</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">＋</span>
+                    <span class="menu-text">Addons</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">%</span>
+                    <span class="menu-text">Coupons & Offers</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    BRANCH MANAGEMENT
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🏢</span>
+                    <span class="menu-text">Branches</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▥</span>
+                    <span class="menu-text">Floors</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▣</span>
+                    <span class="menu-text">Tables & QR</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    CUSTOMERS
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">👥</span>
+                    <span class="menu-text">Customers</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">★</span>
+                    <span class="menu-text">Feedback</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📅</span>
+                    <span class="menu-text">Reservations</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    STAFF MANAGEMENT
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Employees</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">✓</span>
+                    <span class="menu-text">Attendance</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📆</span>
+                    <span class="menu-text">Leave</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">৳</span>
+                    <span class="menu-text">Payroll</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    INVENTORY
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📦</span>
+                    <span class="menu-text">Ingredients</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▧</span>
+                    <span class="menu-text">Stock</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🗑</span>
+                    <span class="menu-text">Wastage</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🚚</span>
+                    <span class="menu-text">Suppliers</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🛒</span>
+                    <span class="menu-text">Purchase Orders</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    FINANCE & REPORTS
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">💰</span>
+                    <span class="menu-text">Expenses</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Sales Report</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📈</span>
+                    <span class="menu-text">Item Sales</span>
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📉</span>
+                    <span class="menu-text">Profit & Loss</span>
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    SYSTEM
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">⚙</span>
+                    <span class="menu-text">Settings</span>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button class="mobile-menu-btn">
+                    ☰
+                </button>
+
+                <div class="restaurant-info">
+
+                    <h3>
+                        FoodHub
+                    </h3>
+
+                    <p>
+                        Main Branch • Dhaka
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="top-icon">
+                    🔔
+                </div>
+
+                <div class="profile">
+
+                    <div class="profile-avatar">
+                        A
+                    </div>
+
+                    <div class="profile-info">
+
+                        <h4>
+                            Administrator
+                        </h4>
+
+                        <p>
+                            Restaurant Owner
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- CONTENT -->
+
+        <div class="content">
+
+            <!-- PAGE HEADER -->
+
+            <div class="page-header">
+
+                <div class="page-title">
+
+                    <h1>
+                        Dashboard
+                    </h1>
+
+                    <p>
+                        Welcome back. Here's what's happening with your restaurant today.
+                    </p>
+
+                </div>
+
+                <div class="header-actions">
+
+                    <button class="btn btn-outline">
+                        📊 View Reports
+                    </button>
+
+                    <button class="btn btn-primary">
+                        ＋ New Order
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- STATISTICS -->
+
+            <section class="stats-grid">
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <div class="stat-label">
+                            Today's Revenue
+                        </div>
+
+                        <div class="stat-value">
+                            ৳{{ today_revenue|floatformat:2 }}
+                        </div>
+
+                        <div class="stat-change">
+                            ↑ Revenue generated today
+                        </div>
+
+                    </div>
+
+                    <div class="stat-icon orange">
+                        ৳
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <div class="stat-label">
+                            Today's Orders
+                        </div>
+
+                        <div class="stat-value">
+                            {{ total_orders }}
+                        </div>
+
+                        <div class="stat-change">
+                            Today's total orders
+                        </div>
+
+                    </div>
+
+                    <div class="stat-icon blue">
+                        🧾
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <div class="stat-label">
+                            Active Orders
+                        </div>
+
+                        <div class="stat-value">
+                            {{ active_orders }}
+                        </div>
+
+                        <div class="stat-change">
+                            Orders currently in progress
+                        </div>
+
+                    </div>
+
+                    <div class="stat-icon green">
+                        ⏱
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <div class="stat-label">
+                            Avg. Order Value
+                        </div>
+
+                        <div class="stat-value">
+                            ৳{{ average_order_value|floatformat:2 }}
+                        </div>
+
+                        <div class="stat-change">
+                            Average value today
+                        </div>
+
+                    </div>
+
+                    <div class="stat-icon purple">
+                        📈
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ANALYTICS -->
+
+            <section class="analytics-grid">
+
+                <!-- SALES TREND -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+
+                            <h3>
+                                Sales Trend
+                            </h3>
+
+                            <p>
+                                Revenue performance
+                            </p>
+
+                        </div>
+
+                        <a href="#" class="view-link">
+
+                            Last 7 Days
+
+                        </a>
+
+                    </div>
+
+                    <div class="chart-body">
+
+                        <div class="chart-placeholder">
+
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+                            <div class="chart-line"></div>
+
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+                            <div class="fake-bar"></div>
+
+                        </div>
+
+                        <div class="chart-note">
+                            Live sales chart will be connected later
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ORDER STATUS -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+
+                            <h3>
+                                Order Status
+                            </h3>
+
+                            <p>
+                                Current order distribution
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="status-body">
+
+                        <div class="donut-placeholder"></div>
+
+                        <div class="status-list">
+
+                            <div class="status-row">
+
+                                <div class="status-name">
+                                    <span class="status-dot" style="background:#f97316;"></span>
+
+                                    New Orders
+                                </div>
+
+                                <strong>--</strong>
+
+                            </div>
+
+                            <div class="status-row">
+
+                                <div class="status-name">
+                                    <span class="status-dot" style="background:#2563eb;"></span>
+
+                                    Preparing
+                                </div>
+
+                                <strong>--</strong>
+
+                            </div>
+
+                            <div class="status-row">
+
+                                <div class="status-name">
+                                    <span class="status-dot" style="background:#16a34a;"></span>
+
+                                    Ready
+                                </div>
+
+                                <strong>--</strong>
+
+                            </div>
+
+                            <div class="status-row">
+
+                                <div class="status-name">
+                                    <span class="status-dot" style="background:#9333ea;"></span>
+
+                                    Completed
+                                </div>
+
+                                <strong>--</strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- TOP ITEMS & ORDER TYPE -->
+
+            <section class="middle-grid">
+
+                <!-- TOP SELLING -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+
+                            <h3>
+                                Top Selling Items
+                            </h3>
+
+                            <p>
+                                Best performing menu items
+                            </p>
+
+                        </div>
+
+                        <a href="#" class="view-link">
+
+                            View Report
+
+                        </a>
+
+                    </div>
+
+                    <div class="item-list">
+
+                        <div class="top-item">
+
+                            <div class="item-rank">
+                                1
+                            </div>
+
+                            <div class="item-info">
+
+                                <h4>
+                                    Chicken Burger
+                                </h4>
+
+                                <p>
+                                    Burger
+                                </p>
+
+                            </div>
+
+                            <div class="item-amount">
+                                --
+                            </div>
+
+                        </div>
+
+                        <div class="top-item">
+
+                            <div class="item-rank">
+                                2
+                            </div>
+
+                            <div class="item-info">
+
+                                <h4>
+                                    Beef Burger
+                                </h4>
+
+                                <p>
+                                    Burger
+                                </p>
+
+                            </div>
+
+                            <div class="item-amount">
+                                --
+                            </div>
+
+                        </div>
+
+                        <div class="top-item">
+
+                            <div class="item-rank">
+                                3
+                            </div>
+
+                            <div class="item-info">
+
+                                <h4>
+                                    BBQ Pizza
+                                </h4>
+
+                                <p>
+                                    Pizza
+                                </p>
+
+                            </div>
+
+                            <div class="item-amount">
+                                --
+                            </div>
+
+                        </div>
+
+                        <div class="top-item">
+
+                            <div class="item-rank">
+                                4
+                            </div>
+
+                            <div class="item-info">
+
+                                <h4>
+                                    Mojo
+                                </h4>
+
+                                <p>
+                                    Drinks
+                                </p>
+
+                            </div>
+
+                            <div class="item-amount">
+                                --
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ORDER TYPE -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+
+                            <h3>
+                                Sales by Order Type
+                            </h3>
+
+                            <p>
+                                Dine-in vs takeaway performance
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="order-type-body">
+
+                        <div class="order-type-box">
+
+                            <div class="type-top">
+
+                                <span>
+                                    🍽 Dine In
+                                </span>
+
+                                <strong>
+                                    --
+                                </strong>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div class="progress-bar progress-orange"></div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="order-type-box">
+
+                            <div class="type-top">
+
+                                <span>
+                                    🛍 Takeaway
+                                </span>
+
+                                <strong>
+                                    --
+                                </strong>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div class="progress-bar progress-blue"></div>
+
+                            </div>
+
+                        </div>
+
+                        <div style="
+                            background:#fafafa;
+                            border-radius:10px;
+                            padding:17px;
+                            margin-top:25px;
+                        ">
+
+                            <p style="
+                                font-size:10px;
+                                color:#6b7280;
+                                margin-bottom:7px;
+                            ">
+                                Total Order Types
+                            </p>
+
+                            <h3 style="font-size:20px;">
+                                Dine In + Takeaway
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- RECENT ORDERS -->
+
+            <section class="card table-card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <h3>
+                            Recent Orders
+                        </h3>
+
+                        <p>
+                            Latest customer orders
+                        </p>
+
+                    </div>
+
+                    <a href="#" class="view-link">
+
+                        View All Orders
+
+                    </a>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    ORDER
+                                </th>
+
+                                <th>
+                                    TYPE
+                                </th>
+
+                                <th>
+                                    TABLE
+                                </th>
+
+                                <th>
+                                    AMOUNT
+                                </th>
+
+                                <th>
+                                    STATUS
+                                </th>
+
+                                <th>
+                                    TIME
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for order in recent_orders %}
+
+                            <tr>
+
+                                <td class="order-id">
+                                    #{{ order.id }}
+                                </td>
+
+                                <td>
+                                    {{ order.get_order_type_display }}
+                                </td>
+
+                                <td>
+
+                                    {% if order.table %}
+
+                                    Table {{ order.table.table_number }}
+
+                                    {% else %}
+
+                                    -
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    ৳{{ order.total_amount|floatformat:2 }}
+                                </td>
+
+                                <td>
+
+                                    {% if order.status == "NEW" %}
+
+                                    <span class="badge badge-new">
+                                        New
+                                    </span>
+
+                                    {% elif order.status == "ACCEPTED" %}
+
+                                    <span class="badge badge-accepted">
+                                        Accepted
+                                    </span>
+
+                                    {% elif order.status == "PREPARING" %}
+
+                                    <span class="badge badge-preparing">
+                                        Preparing
+                                    </span>
+
+                                    {% elif order.status == "READY" %}
+
+                                    <span class="badge badge-ready">
+                                        Ready
+                                    </span>
+
+                                    {% elif order.status == "SERVED" %}
+
+                                    <span class="badge badge-served">
+                                        Served
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="badge badge-completed">
+                                        {{ order.get_status_display }}
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ order.created_at|date:"h:i A" }}
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td colspan="6" style="
+                                            text-align:center;
+                                            padding:35px;
+                                            color:#6b7280;
+                                        ">
+
+                                    No orders found.
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <!-- QUICK ACTIONS -->
+
+            <section>
+
+                <div style="margin-bottom:14px;">
+
+                    <h3 style="
+                        font-size:14px;
+                        margin-bottom:4px;
+                    ">
+                        Quick Actions
+                    </h3>
+
+                    <p style="
+                        font-size:10px;
+                        color:#6b7280;
+                    ">
+                        Frequently used restaurant operations
+                    </p>
+
+                </div>
+
+                <div class="quick-actions">
+
+                    <div class="quick-action">
+
+                        <div class="quick-icon">
+                            ＋
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Create Order
+                            </h4>
+
+                            <p>
+                                Start a new POS order
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="quick-action">
+
+                        <div class="quick-icon">
+                            🍔
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Add Menu Item
+                            </h4>
+
+                            <p>
+                                Create new food item
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="quick-action">
+
+                        <div class="quick-icon">
+                            📦
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Update Stock
+                            </h4>
+
+                            <p>
+                                Manage inventory stock
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <a href="{% url 'kitchen_dashboard' %}" class="quick-action">
+
+                        <div class="quick-icon">
+                            🍳
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Open Kitchen
+                            </h4>
+
+                            <p>
+                                View active kitchen orders
+                            </p>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

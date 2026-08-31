@@ -1,0 +1,493 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{{ ingredient.name }} | Restaurant 360{% endblock %}
+{% block page_title %}{{ ingredient.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+            --background: #f6f7fb;
+            --white: white;
+            --border: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+            --yellow: #ca8a04;
+            --yellow-light: #fefce8;
+            --red: #dc2626;
+            --red-light: #fef2f2;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .content {
+            max-width: 1350px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-orange {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .btn-light {
+            background: white;
+            border: 1px solid var(--border);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat,
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .stat {
+            padding: 18px;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 750;
+        }
+
+        .status {
+            display: inline-flex;
+            padding: 6px 9px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .status-ok {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .status-low {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .status-out {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .status-inactive {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .card {
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .card-body {
+            padding: 18px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 10px;
+        }
+
+        .info-row span:first-child {
+            color: var(--muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 11px 12px;
+            text-align: left;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 9px;
+        }
+
+        th {
+            background: #fafafa;
+            color: var(--muted);
+        }
+
+        @media (max-width: 900px) {
+            .stats,
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+
+        <div class="header">
+
+            <div>
+
+                <h1>
+                    {{ ingredient.name }}
+                </h1>
+
+                <p>
+                    SKU {{ ingredient.sku }} • {{ ingredient.category.name }}
+                </p>
+
+            </div>
+
+            <div class="actions">
+
+                <a href="{% url 'ingredient_list' %}" class="btn btn-light">
+                    ← Inventory Items
+                </a>
+
+                <a href="{% url 'ingredient_edit' ingredient.id %}" class="btn btn-orange">
+                    Edit Item
+                </a>
+
+                <form
+                    method="POST"
+                    action="{% url 'ingredient_toggle_active' ingredient.id %}"
+                >
+
+                    {% csrf_token %}
+
+                    <button type="submit" class="btn btn-light">
+
+                        {% if ingredient.is_active %}
+
+                            Deactivate
+
+                        {% else %}
+
+                            Activate
+
+                        {% endif %}
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <div class="stats">
+
+            <div class="stat">
+                <div class="stat-label">CURRENT STOCK</div>
+
+                <div class="stat-value">
+                    {{ ingredient.current_stock|floatformat:3 }}
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">RESERVED</div>
+
+                <div class="stat-value">
+                    {{ reserved_stock|floatformat:3 }}
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">AVAILABLE</div>
+
+                <div class="stat-value">
+                    {{ available_stock|floatformat:3 }}
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">UNIT COST</div>
+
+                <div class="stat-value">
+                    ৳{{ unit_cost|floatformat:4 }}
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">STATUS</div>
+
+                <span class="status {{ status_class }}">
+                    {{ status_label }}
+                </span>
+            </div>
+
+        </div>
+
+        <div class="grid">
+
+            <div>
+
+                <div class="card">
+
+                    <div class="card-header">
+                        Item Information
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="info-row">
+                            <span>Restaurant</span>
+                            <strong>{{ ingredient.restaurant.name }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Ingredient Group</span>
+                            <strong>{{ ingredient.category.name }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Storage</span>
+
+                            <strong>
+
+                                {% if ingredient.storage_location %}
+
+                                    {{ ingredient.storage_location.name }}
+
+                                {% else %}
+
+                                    -
+
+                                {% endif %}
+
+                            </strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Base Unit</span>
+                            <strong>{{ ingredient.get_base_unit_display }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Pack Size</span>
+                            <strong>{{ ingredient.pack_size }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Pack Price</span>
+                            <strong>৳{{ ingredient.current_pack_price }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Minimum Level</span>
+                            <strong>{{ ingredient.minimum_level }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Target / Par Level</span>
+                            <strong>{{ ingredient.target_level }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span>Suggested Reorder</span>
+                            <strong>{{ reorder_quantity|floatformat:3 }}</strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <div class="card">
+
+                    <div class="card-header">
+                        Recent Stock Transactions
+                    </div>
+
+                    <div class="card-body">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>TYPE</th>
+                                    <th>QUANTITY</th>
+                                    <th>DATE</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for transaction in recent_transactions %}
+
+                                    <tr>
+
+                                        <td>
+                                            {{ transaction.get_transaction_type_display }}
+                                        </td>
+
+                                        <td>
+                                            {{ transaction.quantity }}
+                                        </td>
+
+                                        <td>
+                                            {{ transaction.created_at|date:"d M Y, h:i A" }}
+                                        </td>
+
+                                    </tr>
+
+                                {% empty %}
+
+                                    <tr>
+                                        <td colspan="3">
+                                            No stock transactions yet.
+                                        </td>
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-header">
+                        Price History
+                    </div>
+
+                    <div class="card-body">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>PACK PRICE</th>
+                                    <th>EFFECTIVE DATE</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for price in price_history %}
+
+                                    <tr>
+
+                                        <td>
+                                            ৳{{ price.pack_price }}
+                                        </td>
+
+                                        <td>
+                                            {{ price.effective_date|date:"d M Y" }}
+                                        </td>
+
+                                    </tr>
+
+                                {% empty %}
+
+                                    <tr>
+                                        <td colspan="2">
+                                            No price history available.
+                                        </td>
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+{% endblock %}

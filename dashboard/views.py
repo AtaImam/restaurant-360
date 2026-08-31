@@ -1,12 +1,14 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.core.paginator import Paginator
+from django.db.models import Avg, Q, Sum
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.db.models import Sum, Avg, Q
+
+from menu.models import Category
+from orders.models import Order
 from users.decorators import role_required
 
-from orders.models import Order
 
-
-@role_required('admin', 'owner', 'manager', 'waiter')
+@role_required("admin", "owner", "manager", "waiter")
 def owner_dashboard(request):
     today = timezone.localtime()
 
@@ -15,53 +17,57 @@ def owner_dashboard(request):
     )
 
     today_revenue = today_orders.aggregate(
-        total=Sum('total_amount')
-    )['total'] or 0
+        total=Sum("total_amount")
+    )["total"] or 0
 
     total_orders = today_orders.count()
 
     active_orders = Order.objects.filter(
         status__in=[
-            'NEW',
-            'ACCEPTED',
-            'PREPARING',
-            'READY'
+            "NEW",
+            "ACCEPTED",
+            "PREPARING",
+            "READY",
         ]
     ).count()
 
     average_order_value = today_orders.aggregate(
-        average=Avg('total_amount')
-    )['average'] or 0
+        average=Avg("total_amount")
+    )["average"] or 0
 
-    recent_orders = Order.objects.select_related(
-        'table'
-    ).order_by('-created_at')[:5]
+    recent_orders = (
+        Order.objects.select_related("table")
+        .order_by("-created_at")[:5]
+    )
 
     context = {
-        'today_revenue': today_revenue,
-        'total_orders': total_orders,
-        'active_orders': active_orders,
-        'average_order_value': average_order_value,
-        'recent_orders': recent_orders,
-        'user_role': request.user.get_role_display(),
+        "today_revenue": today_revenue,
+        "total_orders": total_orders,
+        "active_orders": active_orders,
+        "average_order_value": average_order_value,
+        "recent_orders": recent_orders,
+        "user_role": request.user.get_role_display(),
     }
 
     return render(
         request,
-        'dashboard/index.html',
-        context
+        "dashboard/index.html",
+        context,
     )
 
 
 def orders_list(request):
-    orders = Order.objects.select_related(
-        'restaurant',
-        'table'
-    ).order_by('-created_at')
+    orders = (
+        Order.objects.select_related(
+            "restaurant",
+            "table",
+        )
+        .order_by("-created_at")
+    )
 
-    search = request.GET.get('search', '').strip()
-    status = request.GET.get('status', '').strip()
-    order_type = request.GET.get('order_type', '').strip()
+    search = request.GET.get("search", "").strip()
+    status = request.GET.get("status", "").strip()
+    order_type = request.GET.get("order_type", "").strip()
 
     if search:
         if search.isdigit():
@@ -79,95 +85,197 @@ def orders_list(request):
 
     paginator = Paginator(orders, 10)
 
-    page_number = request.GET.get('page')
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     status_choices = [
         {
-            'value': value,
-            'label': label,
-            'selected': value == status
+            "value": value,
+            "label": label,
+            "selected": value == status,
         }
         for value, label in Order.STATUS_CHOICES
     ]
 
     order_type_choices = [
         {
-            'value': value,
-            'label': label,
-            'selected': value == order_type
+            "value": value,
+            "label": label,
+            "selected": value == order_type,
         }
         for value, label in Order.ORDER_TYPES
     ]
 
     context = {
-        'page_obj': page_obj,
-        'search': search,
-        'selected_status': status,
-        'selected_order_type': order_type,
-        'status_choices': status_choices,
-        'order_type_choices': order_type_choices,
+        "page_obj": page_obj,
+        "search": search,
+        "selected_status": status,
+        "selected_order_type": order_type,
+        "status_choices": status_choices,
+        "order_type_choices": order_type_choices,
     }
 
     return render(
         request,
-        'dashboard/orders.html',
-        context
+        "dashboard/orders.html",
+        context,
     )
 
 
 def order_detail(request, order_id):
     order = get_object_or_404(
         Order.objects.select_related(
-            'restaurant',
-            'table'
+            "restaurant",
+            "table",
         ).prefetch_related(
-            'items__menu_item'
+            "items__menu_item"
         ),
-        id=order_id
+        id=order_id,
     )
 
     owner_transitions = {
-        'NEW': [('ACCEPTED', 'Accept Order')],
-        'ACCEPTED': [],
-        'PREPARING': [],
-        'READY': [('SERVED', 'Mark Served')],
-        'SERVED': [('COMPLETED', 'Complete Order')],
-        'COMPLETED': [],
+        "NEW": [("ACCEPTED", "Accept Order")],
+        "ACCEPTED": [],
+        "PREPARING": [],
+        "READY": [("SERVED", "Mark Served")],
+        "SERVED": [("COMPLETED", "Complete Order")],
+        "COMPLETED": [],
     }
 
-    if request.method == 'POST':
-        new_status = request.POST.get('status')
+    if request.method == "POST":
+        new_status = request.POST.get("status")
 
         allowed_statuses = [
             value
             for value, label in owner_transitions.get(
                 order.status,
-                []
+                [],
             )
         ]
 
         if new_status in allowed_statuses:
             order.status = new_status
             order.save(
-                update_fields=['status']
+                update_fields=["status"]
             )
 
         return redirect(
-            'order_detail',
-            order_id=order.id
+            "order_detail",
+            order_id=order.id,
         )
 
     context = {
-        'order': order,
-        'status_choices': owner_transitions.get(
+        "order": order,
+        "status_choices": owner_transitions.get(
             order.status,
-            []
+            [],
         ),
     }
 
     return render(
         request,
-        'dashboard/order_detail.html',
-        context
+        "dashboard/order_detail.html",
+        context,
     )
+
+
+def category_list(request):
+    categories = (
+        Category.objects.select_related("restaurant")
+        .order_by("name")
+    )
+
+    return render(
+        request,
+        "dashboard/categories.html",
+        {
+            "categories": categories,
+        },
+    )
+
+
+def category_create(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        restaurant_id = request.POST.get("restaurant")
+
+        if name and restaurant_id:
+            Category.objects.create(
+                name=name,
+                restaurant_id=restaurant_id,
+            )
+
+            return redirect("category_list")
+
+    from restaurant.models import Restaurant
+
+    restaurants = [
+        {
+            "id": restaurant.id,
+            "name": restaurant.name,
+            "selected": False,
+        }
+        for restaurant in Restaurant.objects.all().order_by("name")
+    ]
+
+    return render(
+        request,
+        "dashboard/category_form.html",
+        {
+            "restaurants": restaurants,
+            "page_title": "Add Category",
+            "button_text": "Create Category",
+        },
+    )
+
+
+def category_edit(request, category_id):
+    category = get_object_or_404(
+        Category,
+        id=category_id,
+    )
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        restaurant_id = request.POST.get("restaurant")
+
+        if name and restaurant_id:
+            category.name = name
+            category.restaurant_id = restaurant_id
+            category.save()
+
+            return redirect("category_list")
+
+    from restaurant.models import Restaurant
+
+    restaurants = [
+        {
+            "id": restaurant.id,
+            "name": restaurant.name,
+            "selected": restaurant.id == category.restaurant_id,
+        }
+        for restaurant in Restaurant.objects.all().order_by("name")
+    ]
+
+    return render(
+        request,
+        "dashboard/category_form.html",
+        {
+            "category": category,
+            "restaurants": restaurants,
+            "page_title": "Edit Category",
+            "button_text": "Save Changes",
+        },
+    )
+
+
+def category_delete(request, category_id):
+    category = get_object_or_404(
+        Category,
+        id=category_id,
+    )
+
+    if request.method == "POST":
+        category.delete()
+
+    return redirect("category_list")

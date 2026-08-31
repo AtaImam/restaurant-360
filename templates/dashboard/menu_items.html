@@ -1,0 +1,850 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Menu Items | Restaurant 360{% endblock %}
+{% block page_title %}Menu Items{% endblock %}
+
+{% block extra_css %}
+<style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --secondary: #1f2937;
+
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+
+            --red: #dc2626;
+            --red-light: #fef2f2;
+
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+
+            --yellow: #ca8a04;
+            --yellow-light: #fefce8;
+
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        .menu-text {
+            flex: 1;
+        }
+
+        /* =========================
+           CONTENT
+        ========================== */
+
+        .content {
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin-bottom: 22px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 6px;
+
+            font-size: 27px;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+
+            font-size: 11px;
+        }
+
+        .btn {
+            min-height: 39px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 15px;
+
+            border: none;
+            border-radius: 8px;
+
+            font-size: 10px;
+            font-weight: 750;
+
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+
+            color: white;
+        }
+
+        /* =========================
+           STATS
+        ========================== */
+
+        .stats-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    4,
+                    1fr
+                );
+
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 18px;
+
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 13px;
+        }
+
+        .stat-label {
+            margin-bottom: 8px;
+
+            color: var(--text-light);
+
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .stat-note {
+            margin-top: 6px;
+
+            color: var(--text-light);
+
+            font-size: 9px;
+        }
+
+        /* =========================
+           TABLE
+        ========================== */
+
+        .card {
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 20px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            margin-bottom: 4px;
+
+            font-size: 14px;
+        }
+
+        .card-header p {
+            color: var(--text-light);
+
+            font-size: 9px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #fafafa;
+        }
+
+        th {
+            padding: 12px;
+
+            border-bottom: 1px solid var(--border);
+
+            color: var(--text-light);
+
+            text-align: left;
+
+            font-size: 8px;
+
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 12px;
+
+            border-bottom: 1px solid #f2f2f2;
+
+            font-size: 9px;
+
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fcfcfc;
+        }
+
+        .item-name {
+            font-size: 11px;
+
+            font-weight: 750;
+        }
+
+        .item-description {
+            max-width: 220px;
+
+            margin-top: 4px;
+
+            color: var(--text-light);
+
+            font-size: 8px;
+        }
+
+        .price {
+            font-size: 10px;
+
+            font-weight: 750;
+        }
+
+        .profit {
+            color: var(--green);
+
+            font-weight: 750;
+        }
+
+        .negative-profit {
+            color: var(--red);
+        }
+
+        /* =========================
+           BADGES
+        ========================== */
+
+        .badge {
+            display: inline-flex;
+
+            padding: 6px 9px;
+
+            border-radius: 20px;
+
+            font-size: 8px;
+            font-weight: 750;
+        }
+
+        .badge-green {
+            background: var(--green-light);
+
+            color: var(--green);
+        }
+
+        .badge-red {
+            background: var(--red-light);
+
+            color: var(--red);
+        }
+
+        .badge-blue {
+            background: var(--blue-light);
+
+            color: var(--blue);
+        }
+
+        .badge-yellow {
+            background: var(--yellow-light);
+
+            color: var(--yellow);
+        }
+
+        /* =========================
+           ACTION
+        ========================== */
+
+        .action-buttons {
+            display: flex;
+
+            gap: 6px;
+
+            white-space: nowrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 31px;
+
+            padding: 0 10px;
+
+            border-radius: 7px;
+
+            font-size: 8px;
+            font-weight: 750;
+        }
+
+        .action-edit {
+            background: var(--accent-light);
+
+            color: var(--accent);
+        }
+
+        .action-build {
+            background: var(--blue-light);
+
+            color: var(--blue);
+        }
+
+        .empty-state {
+            padding: 55px 20px;
+
+            text-align: center;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 7px;
+        }
+
+        .empty-state p {
+            color: var(--text-light);
+
+            font-size: 10px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 1100px) {
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        1fr
+                    );
+            }
+
+        }
+
+        @media (max-width: 650px) {
+
+            .content {
+                padding: 18px;
+            }
+
+            .page-header {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+
+
+            <!-- PAGE HEADER -->
+
+            <div class="page-header">
+
+
+                <div>
+
+                    <h1>
+                        Menu Items
+                    </h1>
+
+                    <p>
+                        Menu pricing, recipe costing,
+                        gross profit and inventory availability.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="{% url 'menu_item_create' %}"
+                    class="btn btn-primary"
+                >
+                    + Add Menu Item
+                </a>
+
+
+            </div>
+
+
+            <!-- =========================
+                 STATS
+            ========================== -->
+
+            <section class="stats-grid">
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        TOTAL ITEMS
+                    </div>
+
+                    <div class="stat-value">
+                        {{ total_items }}
+                    </div>
+
+                    <div class="stat-note">
+                        All menu items
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        AVAILABLE
+                    </div>
+
+                    <div class="stat-value">
+                        {{ available_count }}
+                    </div>
+
+                    <div class="stat-note">
+                        Customer menu enabled
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        UNAVAILABLE
+                    </div>
+
+                    <div class="stat-value">
+                        {{ unavailable_count }}
+                    </div>
+
+                    <div class="stat-note">
+                        Customer menu disabled
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        RECIPES BUILT
+                    </div>
+
+                    <div class="stat-value">
+                        {{ recipe_count }}
+                    </div>
+
+                    <div class="stat-note">
+                        Inventory connected
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =========================
+                 TABLE
+            ========================== -->
+
+            <section class="card">
+
+
+                <div class="card-header">
+
+                    <h3>
+                        Menu Costing Overview
+                    </h3>
+
+                    <p>
+                        Current recipe costs use the latest inventory prices.
+                    </p>
+
+                </div>
+
+
+                {% if rows %}
+
+
+                    <div class="table-wrapper">
+
+
+                        <table>
+
+
+                            <thead>
+
+
+                                <tr>
+
+                                    <th>
+                                        MENU ITEM
+                                    </th>
+
+                                    <th>
+                                        CATEGORY
+                                    </th>
+
+                                    <th>
+                                        PRICE
+                                    </th>
+
+                                    <th>
+                                        FOOD COST
+                                    </th>
+
+                                    <th>
+                                        COST %
+                                    </th>
+
+                                    <th>
+                                        GROSS PROFIT
+                                    </th>
+
+                                    <th>
+                                        POSSIBLE PORTIONS
+                                    </th>
+
+                                    <th>
+                                        STATUS
+                                    </th>
+
+                                    <th>
+                                        RECIPE
+                                    </th>
+
+                                    <th>
+                                        ACTION
+                                    </th>
+
+                                </tr>
+
+
+                            </thead>
+
+
+                            <tbody>
+
+
+                                {% for row in rows %}
+
+
+                                    <tr>
+
+
+                                        <!-- ITEM -->
+
+                                        <td>
+
+                                            <div class="item-name">
+                                                {{ row.item.name }}
+                                            </div>
+
+                                            <div class="item-description">
+                                                {{ row.item.description|default:"No description" }}
+                                            </div>
+
+                                        </td>
+
+
+                                        <!-- CATEGORY -->
+
+                                        <td>
+                                            {{ row.item.category.name }}
+                                        </td>
+
+
+                                        <!-- PRICE -->
+
+                                        <td>
+
+                                            <span class="price">
+                                                ৳{{ row.item.price|floatformat:2 }}
+                                            </span>
+
+                                        </td>
+
+
+                                        <!-- FOOD COST -->
+
+                                        <td>
+
+                                            {% if row.has_recipe %}
+
+                                                ৳{{ row.recipe_cost|floatformat:2 }}
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- COST % -->
+
+                                        <td>
+
+                                            {% if row.has_recipe %}
+
+                                                {{ row.food_cost_percentage|floatformat:1 }}%
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- PROFIT -->
+
+                                        <td>
+
+                                            {% if row.has_recipe %}
+
+                                                {% if row.gross_profit >= 0 %}
+
+                                                    <span class="profit">
+                                                        ৳{{ row.gross_profit|floatformat:2 }}
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="profit negative-profit">
+                                                        ৳{{ row.gross_profit|floatformat:2 }}
+                                                    </span>
+
+                                                {% endif %}
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- PORTIONS -->
+
+                                        <td>
+
+                                            {% if row.has_recipe %}
+
+                                                {% if row.possible_portions > 0 %}
+
+                                                    <span class="badge badge-green">
+                                                        {{ row.possible_portions }} portions
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="badge badge-red">
+                                                        Out of Stock
+                                                    </span>
+
+                                                {% endif %}
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- STATUS -->
+
+                                        <td>
+
+                                            {% if row.item.is_available %}
+
+                                                <span class="badge badge-green">
+                                                    Available
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="badge badge-red">
+                                                    Unavailable
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- RECIPE -->
+
+                                        <td>
+
+                                            {% if row.has_recipe %}
+
+                                                <span class="badge badge-blue">
+                                                    Recipe Built
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="badge badge-yellow">
+                                                    No Recipe
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- ACTION -->
+
+                                        <td>
+
+                                            <div class="action-buttons">
+
+
+                                                {% if row.has_recipe %}
+
+
+                                                    <a
+                                                        href="{% url 'recipe_builder' row.item.id %}"
+                                                        class="action-btn action-edit"
+                                                    >
+                                                        Edit Recipe
+                                                    </a>
+
+
+                                                {% else %}
+
+
+                                                    <a
+                                                        href="{% url 'recipe_builder' row.item.id %}"
+                                                        class="action-btn action-build"
+                                                    >
+                                                        Build Recipe
+                                                    </a>
+
+
+                                                {% endif %}
+
+
+                                            </div>
+
+                                        </td>
+
+
+                                    </tr>
+
+
+                                {% endfor %}
+
+
+                            </tbody>
+
+
+                        </table>
+
+
+                    </div>
+
+
+                {% else %}
+
+
+                    <div class="empty-state">
+
+                        <h3>
+                            No Menu Items Yet
+                        </h3>
+
+                        <p>
+                            Click Add Menu Item to create your first menu item.
+                        </p>
+
+                    </div>
+
+
+                {% endif %}
+
+
+            </section>
+
+
+        </div>
+{% endblock %}

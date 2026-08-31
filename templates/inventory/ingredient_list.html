@@ -1,0 +1,480 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Inventory Items | Restaurant 360{% endblock %}
+{% block page_title %}Inventory Items{% endblock %}
+
+{% block extra_css %}
+<style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+
+            --yellow: #ca8a04;
+            --yellow-light: #fefce8;
+
+            --red: #dc2626;
+            --red-light: #fef2f2;
+
+            --gray: #6b7280;
+            --gray-light: #f3f4f6;
+
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .avatar {
+            width: 39px;
+            height: 39px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .content {
+            max-width: 1700px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: var(--accent);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .summary-label {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: 750;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+            padding: 14px 17px;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            background: #fffbeb;
+            font-size: 11px;
+            color: #92400e;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #fafafa;
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 9px;
+            color: var(--text-light);
+        }
+
+        td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 10px;
+            vertical-align: middle;
+        }
+
+        .name {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .sku {
+            margin-top: 4px;
+            font-size: 9px;
+            color: var(--text-light);
+        }
+
+        .status {
+            display: inline-flex;
+            padding: 6px 9px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .status-ok {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .status-low {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .status-out {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .status-inactive {
+            background: var(--gray-light);
+            color: var(--gray);
+        }
+
+        .reorder {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .view-btn {
+            display: inline-flex;
+            padding: 7px 11px;
+            border-radius: 7px;
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .empty {
+            padding: 55px 20px;
+            text-align: center;
+        }
+
+        .empty h3 {
+            margin-bottom: 7px;
+            font-size: 15px;
+        }
+
+        .empty p {
+            margin-bottom: 15px;
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 1200px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Inventory Items
+                    </h1>
+
+                    <p>
+                        Ingredient database, stock levels, costing and availability.
+                    </p>
+
+                </div>
+
+                <a href="{% url 'ingredient_create' %}" class="btn-primary">
+                    + Add Inventory Item
+                </a>
+
+            </div>
+
+            {% if low_stock_count %}
+
+                <div class="alert">
+                    ⚠ {{ low_stock_count }} active inventory item{{ low_stock_count|pluralize }}
+                    currently below the minimum stock level.
+                </div>
+
+            {% endif %}
+
+            <div class="summary-grid">
+
+                <div class="summary-card">
+                    <div class="summary-label">TOTAL ITEMS</div>
+                    <div class="summary-value">{{ total_ingredients }}</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">STOCK OK</div>
+                    <div class="summary-value">{{ ok_stock_count }}</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">LOW STOCK</div>
+                    <div class="summary-value">{{ low_stock_count }}</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">OUT OF STOCK</div>
+                    <div class="summary-value">{{ out_of_stock_count }}</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">INACTIVE</div>
+                    <div class="summary-value">{{ inactive_count }}</div>
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-header">
+                    <h3>All Inventory Items</h3>
+                    <p>Live stock and ingredient cost overview</p>
+                </div>
+
+                {% if ingredient_rows %}
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>ITEM</th>
+                                    <th>GROUP</th>
+                                    <th>LOCATION</th>
+                                    <th>CURRENT</th>
+                                    <th>RESERVED</th>
+                                    <th>AVAILABLE</th>
+                                    <th>MINIMUM</th>
+                                    <th>PAR</th>
+                                    <th>UNIT COST</th>
+                                    <th>STATUS</th>
+                                    <th>REORDER</th>
+                                    <th>ACTION</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for row in ingredient_rows %}
+
+                                    <tr>
+
+                                        <td>
+                                            <div class="name">
+                                                {{ row.ingredient.name }}
+                                            </div>
+
+                                            <div class="sku">
+                                                {{ row.ingredient.sku }}
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {{ row.ingredient.category.name }}
+                                        </td>
+
+                                        <td>
+
+                                            {% if row.ingredient.storage_location %}
+
+                                                {{ row.ingredient.storage_location.name }}
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td>
+                                            {{ row.ingredient.current_stock|floatformat:3 }}
+                                            {{ row.ingredient.get_base_unit_display }}
+                                        </td>
+
+                                        <td>
+                                            {{ row.reserved_stock|floatformat:3 }}
+                                            {{ row.ingredient.get_base_unit_display }}
+                                        </td>
+
+                                        <td>
+                                            <strong>
+                                                {{ row.available_stock|floatformat:3 }}
+                                            </strong>
+
+                                            {{ row.ingredient.get_base_unit_display }}
+                                        </td>
+
+                                        <td>
+                                            {{ row.ingredient.minimum_level|floatformat:3 }}
+                                        </td>
+
+                                        <td>
+                                            {{ row.ingredient.target_level|floatformat:3 }}
+                                        </td>
+
+                                        <td>
+                                            ৳{{ row.unit_cost|floatformat:4 }}
+                                        </td>
+
+                                        <td>
+                                            <span class="status {{ row.status_class }}">
+                                                {{ row.status_label }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+
+                                            {% if row.reorder_quantity %}
+
+                                                <span class="reorder">
+                                                    {{ row.reorder_quantity|floatformat:3 }}
+                                                </span>
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td>
+                                            <a
+                                                href="{% url 'ingredient_detail' row.ingredient.id %}"
+                                                class="view-btn"
+                                            >
+                                                View
+                                            </a>
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="empty">
+
+                        <h3>No inventory items yet</h3>
+
+                        <p>
+                            Add your first ingredient to begin tracking stock and recipe costs.
+                        </p>
+
+                        <a href="{% url 'ingredient_create' %}" class="btn-primary">
+                            + Add Inventory Item
+                        </a>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+{% endblock %}

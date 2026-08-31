@@ -1,0 +1,327 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Categories | Restaurant 360{% endblock %}
+{% block page_title %}Menu Categories{% endblock %}
+
+{% block extra_css %}
+<style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+            --background: #f6f7fb;
+            --white: #ffffff;
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .restaurant-info h3 {
+            font-size: 15px;
+        }
+
+        .restaurant-info p {
+            margin-top: 3px;
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .content {
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: var(--accent);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            min-height: 64px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .count {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #fafafa;
+            color: var(--text-light);
+            text-align: left;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 18px;
+            font-size: 11px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .category-name {
+            font-weight: 700;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-btn,
+        .delete-btn {
+            border: none;
+            border-radius: 7px;
+            padding: 7px 11px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .delete-btn {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .empty-state {
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--text-light);
+        }
+
+        .empty-state h3 {
+            font-size: 15px;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .empty-state p {
+            font-size: 11px;
+        }
+
+        @media (max-width: 650px) {
+            .content {
+                padding: 18px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+
+            <div class="page-header">
+
+                <div>
+                    <h1>Categories</h1>
+                    <p>Create and manage menu categories for your restaurant.</p>
+                </div>
+
+                <a href="{% url 'category_create' %}" class="btn-primary">
+                    + Add Category
+                </a>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div>
+                        <h3>All Categories</h3>
+                        <p>Restaurant menu category list</p>
+                    </div>
+
+                    <div class="count">
+                        {{ categories.count }}
+                        categor{{ categories.count|pluralize:"y,ies" }}
+                    </div>
+
+                </div>
+
+                {% if categories %}
+
+                <div style="overflow-x:auto;">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>ID</th>
+                                <th>CATEGORY NAME</th>
+                                <th>RESTAURANT</th>
+                                <th>MENU ITEMS</th>
+                                <th>ACTION</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for category in categories %}
+
+                            <tr>
+
+                                <td>
+                                    #{{ category.id }}
+                                </td>
+
+                                <td class="category-name">
+                                    {{ category.name }}
+                                </td>
+
+                                <td>
+                                    {{ category.restaurant.name }}
+                                </td>
+
+                                <td>
+                                    {{ category.items.count }}
+                                </td>
+
+                                <td>
+
+                                    <div class="actions">
+
+                                        <a href="{% url 'category_edit' category.id %}" class="edit-btn">
+                                            Edit
+                                        </a>
+
+                                        <form method="POST" action="{% url 'category_delete' category.id %}"
+                                            onsubmit="return confirm('Delete this category?');">
+                                            {% csrf_token %}
+
+                                            <button type="submit" class="delete-btn">
+                                                Delete
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-state">
+
+                    <h3>No categories yet</h3>
+
+                    <p>
+                        Add your first menu category to get started.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+{% endblock %}

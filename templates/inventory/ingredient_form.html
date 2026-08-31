@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ page_title }} | Restaurant 360</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #111827;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+            --background: #f6f7fb;
+            --white: #ffffff;
+            --border: #e5e7eb;
+            --text-dark: #111827;
+            --text-light: #6b7280;
+            --red: #dc2626;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        input,
+        select,
+        textarea,
+        button {
+            font-family: inherit;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--primary);
+            color: white;
+            padding: 20px 14px;
+        }
+
+        .brand {
+            padding: 8px 10px 25px;
+        }
+
+        .brand h2 {
+            font-size: 18px;
+        }
+
+        .brand p {
+            margin-top: 4px;
+            color: #9ca3af;
+            font-size: 10px;
+        }
+
+        .section-title {
+            margin: 20px 10px 8px;
+            color: #6b7280;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 11px 12px;
+            border-radius: 8px;
+            color: #d1d5db;
+            font-size: 13px;
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .main {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 78px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar h3 {
+            font-size: 15px;
+        }
+
+        .topbar p {
+            margin-top: 4px;
+            color: var(--text-light);
+            font-size: 11px;
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        .page-header {
+            margin-bottom: 22px;
+        }
+
+        .page-header h1 {
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .error {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #fef2f2;
+            color: var(--red);
+            font-size: 11px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .card-body {
+            padding: 22px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .required {
+            color: var(--red);
+        }
+
+        .control {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            background: white;
+            font-size: 12px;
+        }
+
+        textarea.control {
+            min-height: 95px;
+            resize: vertical;
+        }
+
+        .control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .help {
+            margin-top: 6px;
+            color: var(--text-light);
+            font-size: 9px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h2>Restaurant 360</h2>
+            <p>Restaurant Management</p>
+        </div>
+
+        <div class="section-title">
+            INVENTORY
+        </div>
+
+        <a href="{% url 'inventory_category_list' %}" class="menu-item">
+            ▤ Ingredient Groups
+        </a>
+
+        <a href="{% url 'ingredient_list' %}" class="menu-item active">
+            📦 Inventory Items
+        </a>
+
+        <a href="#" class="menu-item">
+            ▧ Stock Transactions
+        </a>
+
+        <a href="#" class="menu-item">
+            🗑 Wastage
+        </a>
+
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+                <h3>FoodHub</h3>
+                <p>Inventory Management</p>
+            </div>
+
+            <div>
+                <h3>Administrator</h3>
+                <p>Restaurant Owner</p>
+            </div>
+
+        </header>
+
+        <div class="content">
+
+            <div class="page-header">
+
+                <h1>
+                    {{ page_title }}
+                </h1>
+
+                <p>
+                    Configure stock, costing, reorder levels and ingredient information.
+                </p>
+
+            </div>
+
+            {% if error_message %}
+
+                <div class="error">
+                    {{ error_message }}
+                </div>
+
+            {% endif %}
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <h3>Basic Information</h3>
+                        <p>Identify the inventory ingredient.</p>
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="grid">
+
+                            <div class="field">
+
+                                <label>
+                                    Product Name
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="name"
+                                    class="control"
+                                    value="{{ ingredient.name|default:'' }}"
+                                    placeholder="Chicken Breast"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    SKU
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="sku"
+                                    class="control"
+                                    value="{{ ingredient.sku|default:'' }}"
+                                    placeholder="CHK-001"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Restaurant
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    name="restaurant"
+                                    class="control"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select Restaurant
+                                    </option>
+
+                                    {% for restaurant in restaurant_rows %}
+
+                                        <option
+                                            value="{{ restaurant.id }}"
+                                            {% if restaurant.selected %}selected{% endif %}
+                                        >
+                                            {{ restaurant.name }}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Ingredient Group
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    name="category"
+                                    class="control"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select Ingredient Group
+                                    </option>
+
+                                    {% for category in category_rows %}
+
+                                        <option
+                                            value="{{ category.id }}"
+                                            {% if category.selected %}selected{% endif %}
+                                        >
+                                            {{ category.name }} — {{ category.restaurant_name }}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Storage Location
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="storage_location"
+                                    class="control"
+                                    value="{{ ingredient.storage_location.name|default:'' }}"
+                                    placeholder="Walk-in Cooler"
+                                >
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Allergens
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="allergens"
+                                    class="control"
+                                    value="{{ allergen_value|default:'' }}"
+                                    placeholder="Milk, Egg, Gluten"
+                                >
+
+                                <div class="help">
+                                    Separate multiple allergens with commas.
+                                </div>
+
+                            </div>
+
+                            <div class="field full">
+
+                                <label>
+                                    Description
+                                </label>
+
+                                <textarea
+                                    name="description"
+                                    class="control"
+                                    placeholder="Optional inventory item description"
+                                >{{ ingredient.description|default:'' }}</textarea>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <h3>Pack & Cost</h3>
+                        <p>Cost information used for recipe costing.</p>
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="grid">
+
+                            <div class="field">
+
+                                <label>
+                                    Base Unit
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    name="base_unit"
+                                    class="control"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select Unit
+                                    </option>
+
+                                    <option value="G">
+                                        Gram (g)
+                                    </option>
+
+                                    <option value="ML">
+                                        Millilitre (ml)
+                                    </option>
+
+                                    <option value="PCS">
+                                        Piece (pcs)
+                                    </option>
+
+                                </select>
+
+                                <div class="help">
+                                    Weight = gram, liquid = ml, countable items = pcs.
+                                </div>
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Pack Size
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.001"
+                                    min="0.001"
+                                    name="pack_size"
+                                    class="control"
+                                    value="{{ ingredient.pack_size|default:'' }}"
+                                    placeholder="5000"
+                                    required
+                                >
+
+                                <div class="help">
+                                    Example: 5 kg chicken = 5000 grams.
+                                </div>
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Current Price per Pack
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    name="current_pack_price"
+                                    class="control"
+                                    value="{{ ingredient.current_pack_price|default:'0' }}"
+                                    placeholder="2000"
+                                >
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Price Effective Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    name="effective_date"
+                                    class="control"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <h3>Stock Control</h3>
+                        <p>Configure current stock and low-stock thresholds.</p>
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="grid">
+
+                            <div class="field">
+
+                                <label>
+                                    Current Stock
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.001"
+                                    min="0"
+                                    name="current_stock"
+                                    class="control"
+                                    value="{{ ingredient.current_stock|default:'0' }}"
+                                >
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Minimum Level
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.001"
+                                    min="0"
+                                    name="minimum_level"
+                                    class="control"
+                                    value="{{ ingredient.minimum_level|default:'0' }}"
+                                >
+
+                                <div class="help">
+                                    Stock at or below this level becomes LOW.
+                                </div>
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Target / Par Level
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.001"
+                                    min="0"
+                                    name="target_level"
+                                    class="control"
+                                    value="{{ ingredient.target_level|default:'0' }}"
+                                >
+
+                                <div class="help">
+                                    Used to calculate suggested reorder quantity.
+                                </div>
+
+                            </div>
+
+                            <div class="field">
+
+                                <label>
+                                    Availability
+                                </label>
+
+                                <div class="checkbox-row">
+
+                         <input
+    type="checkbox"
+    name="is_active"
+    {% if ingredient %}
+        {% if ingredient.is_active %}checked{% endif %}
+    {% else %}
+        checked
+    {% endif %}
+>
+                                    Active inventory item
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="actions">
+
+                    <a
+                        href="{% url 'ingredient_list' %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        {{ button_text }}
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

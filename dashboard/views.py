@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Sum, Avg, Q
 from django.core.paginator import Paginator
+from menu.models import Category
 
 from orders.models import Order
 
@@ -169,3 +170,102 @@ def order_detail(request, order_id):
         'dashboard/order_detail.html',
         context
     )
+def category_list(request):
+    categories = Category.objects.select_related(
+        'restaurant'
+    ).order_by('name')
+
+    return render(
+        request,
+        'dashboard/categories.html',
+        {
+            'categories': categories
+        }
+    )
+
+
+def category_create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        restaurant_id = request.POST.get('restaurant')
+
+        if name and restaurant_id:
+            Category.objects.create(
+                name=name,
+                restaurant_id=restaurant_id
+            )
+
+            return redirect('category_list')
+
+    from restaurant.models import Restaurant
+
+    restaurants = Restaurant.objects.all().order_by('name')
+    restaurants = [
+    {
+        'id': restaurant.id,
+        'name': restaurant.name,
+        'selected': False,
+    }
+    for restaurant in Restaurant.objects.all().order_by('name')
+]
+    return render(
+        request,
+        'dashboard/category_form.html',
+        {
+            'restaurants': restaurants,
+            'page_title': 'Add Category',
+            'button_text': 'Create Category'
+        }
+    )
+
+
+def category_edit(request, category_id):
+    category = get_object_or_404(
+        Category,
+        id=category_id
+    )
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        restaurant_id = request.POST.get('restaurant')
+
+        if name and restaurant_id:
+            category.name = name
+            category.restaurant_id = restaurant_id
+            category.save()
+
+            return redirect('category_list')
+
+    from restaurant.models import Restaurant
+
+    restaurants = Restaurant.objects.all().order_by('name')
+    restaurants = [
+    {
+        'id': restaurant.id,
+        'name': restaurant.name,
+        'selected': restaurant.id == category.restaurant_id,
+    }
+    for restaurant in Restaurant.objects.all().order_by('name')
+]
+    return render(
+        request,
+        'dashboard/category_form.html',
+        {
+            'category': category,
+            'restaurants': restaurants,
+            'page_title': 'Edit Category',
+            'button_text': 'Save Changes'
+        }
+    )
+
+
+def category_delete(request, category_id):
+    category = get_object_or_404(
+        Category,
+        id=category_id
+    )
+
+    if request.method == 'POST':
+        category.delete()
+
+    return redirect('category_list')

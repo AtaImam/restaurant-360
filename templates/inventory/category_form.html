@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ page_title }} | Restaurant 360</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        /* ======================
+           SIDEBAR
+        ====================== */
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            background: var(--primary);
+            color: white;
+
+            overflow-y: auto;
+        }
+
+        .brand {
+            height: 78px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 0 22px;
+
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: var(--accent);
+
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .brand h2 {
+            font-size: 17px;
+        }
+
+        .brand p {
+            margin-top: 4px;
+
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .sidebar-menu {
+            padding: 18px 14px 30px;
+        }
+
+        .menu-section {
+            margin-bottom: 22px;
+        }
+
+        .menu-title {
+            padding: 0 12px;
+            margin-bottom: 8px;
+
+            font-size: 10px;
+            letter-spacing: 1px;
+            font-weight: 700;
+
+            color: #6b7280;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 11px 13px;
+            margin-bottom: 4px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            color: #d1d5db;
+        }
+
+        .menu-item:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 23px;
+            text-align: center;
+        }
+
+        /* ======================
+           MAIN
+        ====================== */
+
+        .main {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 78px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .restaurant-info h3 {
+            font-size: 15px;
+        }
+
+        .restaurant-info p {
+            margin-top: 3px;
+
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-avatar {
+            width: 39px;
+            height: 39px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: var(--accent);
+            color: white;
+
+            border-radius: 50%;
+
+            font-weight: 700;
+        }
+
+        .profile h4 {
+            font-size: 12px;
+        }
+
+        .profile p {
+            margin-top: 2px;
+
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        /* ======================
+           CONTENT
+        ====================== */
+
+        .content {
+            max-width: 1100px;
+            margin: auto;
+
+            padding: 30px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 6px;
+
+            font-size: 25px;
+        }
+
+        .page-header p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .card {
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            margin-bottom: 5px;
+
+            font-size: 15px;
+        }
+
+        .card-header p {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .form-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        .form-control {
+            width: 100%;
+
+            padding: 12px 13px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            background: white;
+
+            font-size: 12px;
+
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .help-text {
+            margin-top: 7px;
+
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+
+            padding: 18px 24px;
+
+            border-top: 1px solid var(--border);
+
+            background: #fafafa;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 10px 16px;
+
+            border-radius: 8px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: white;
+
+            border: 1px solid var(--border);
+
+            color: var(--text-dark);
+        }
+
+        .btn-primary {
+            border: none;
+
+            background: var(--accent);
+            color: white;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                R
+            </div>
+
+            <div>
+                <h2>Restaurant 360</h2>
+                <p>Restaurant Management</p>
+            </div>
+
+        </div>
+
+        <div class="sidebar-menu">
+
+            <div class="menu-section">
+
+                <a href="{% url 'owner_dashboard' %}"
+                   class="menu-item">
+
+                    <span class="menu-icon">▦</span>
+                    Dashboard
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    MENU MANAGEMENT
+                </div>
+
+                <a href="{% url 'category_list' %}"
+                   class="menu-item">
+
+                    <span class="menu-icon">▤</span>
+                    Menu Categories
+
+                </a>
+
+                <a href="#"
+                   class="menu-item">
+
+                    <span class="menu-icon">🍔</span>
+                    Menu Items
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    INVENTORY
+                </div>
+
+                <a href="{% url 'inventory_category_list' %}"
+                   class="menu-item active">
+
+                    <span class="menu-icon">▤</span>
+                    Ingredient Groups
+
+                </a>
+
+                <a href="{% url 'ingredient_list' %}"
+                   class="menu-item">
+
+                    <span class="menu-icon">📦</span>
+                    Inventory Items
+
+                </a>
+
+                <a href="#"
+                   class="menu-item">
+
+                    <span class="menu-icon">▧</span>
+                    Stock Transactions
+
+                </a>
+
+                <a href="#"
+                   class="menu-item">
+
+                    <span class="menu-icon">🗑</span>
+                    Wastage
+
+                </a>
+
+                <a href="#"
+                   class="menu-item">
+
+                    <span class="menu-icon">🚚</span>
+                    Suppliers
+
+                </a>
+
+                <a href="#"
+                   class="menu-item">
+
+                    <span class="menu-icon">🛒</span>
+                    Purchase Orders
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="restaurant-info">
+
+                <h3>
+                    FoodHub
+                </h3>
+
+                <p>
+                    Inventory Management
+                </p>
+
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <h4>
+                        Administrator
+                    </h4>
+
+                    <p>
+                        Restaurant Owner
+                    </p>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <div class="content">
+
+            <div class="page-header">
+
+                <h1>
+                    {{ page_title }}
+                </h1>
+
+                <p>
+                    Create or update an ingredient group used to organize inventory items.
+                </p>
+
+            </div>
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+                            Ingredient Group Information
+                        </h3>
+
+                        <p>
+                            Example groups: Proteins, Vegetables, Dairy, Dry Goods or Beverages.
+                        </p>
+
+                    </div>
+
+                    <div class="form-body">
+
+                        <div class="form-group">
+
+                            <label class="form-label">
+                                Group Name
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                placeholder="Example: Proteins"
+                                value="{{ category.name|default:'' }}"
+                                required
+                            >
+
+                            <div class="help-text">
+                                This group will be used when creating inventory items.
+                            </div>
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label class="form-label">
+                                Restaurant
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                name="restaurant"
+                                class="form-control"
+                                required
+                            >
+
+                                <option value="">
+                                    Select Restaurant
+                                </option>
+
+                                {% for restaurant in restaurants %}
+
+                                    <option
+                                        value="{{ restaurant.id }}"
+                                        {% if restaurant.selected %}selected{% endif %}
+                                    >
+                                        {{ restaurant.name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                            <div class="help-text">
+                                Select which restaurant owns this ingredient group.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+
+                        <a href="{% url 'inventory_category_list' %}"
+                           class="btn btn-secondary">
+
+                            Cancel
+
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+
+                            {{ button_text }}
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

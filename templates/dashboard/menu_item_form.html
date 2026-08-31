@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Add Menu Item | Restaurant 360
+    </title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --secondary: #1f2937;
+
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --red: #dc2626;
+            --red-light: #fef2f2;
+
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            overflow-y: auto;
+
+            background: var(--primary);
+            color: white;
+
+            z-index: 1000;
+        }
+
+        .brand {
+            height: 78px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 0 20px;
+
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: var(--accent);
+
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .brand h2 {
+            font-size: 17px;
+        }
+
+        .brand p {
+            margin-top: 4px;
+
+            color: #9ca3af;
+
+            font-size: 10px;
+        }
+
+        .sidebar-menu {
+            padding: 18px 14px;
+        }
+
+        .menu-section {
+            margin-bottom: 18px;
+        }
+
+        .menu-title {
+            padding: 0 11px;
+
+            margin-bottom: 7px;
+
+            color: #6b7280;
+
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            min-height: 41px;
+
+            padding: 9px 11px;
+
+            margin-bottom: 3px;
+
+            border-radius: 8px;
+
+            color: #d1d5db;
+
+            font-size: 11px;
+        }
+
+        .menu-item:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 22px;
+
+            display: flex;
+            justify-content: center;
+        }
+
+        .sub-menu {
+            margin-left: 22px;
+
+            padding-left: 10px;
+
+            border-left: 1px solid #374151;
+        }
+
+        .sub-item {
+            display: flex;
+
+            padding: 9px;
+
+            margin-bottom: 2px;
+
+            border-radius: 7px;
+
+            color: #bfc5cf;
+
+            font-size: 10px;
+        }
+
+        .sub-item:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .sub-item.active {
+            background: rgba(249, 115, 22, 0.15);
+
+            color: #fb923c;
+
+            font-weight: 700;
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .main {
+            min-height: 100vh;
+
+            margin-left: var(--sidebar-width);
+        }
+
+        .topbar {
+            height: 78px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar h3 {
+            font-size: 15px;
+        }
+
+        .topbar p {
+            margin-top: 4px;
+
+            color: var(--text-light);
+
+            font-size: 10px;
+        }
+
+        /* =========================
+           CONTENT
+        ========================== */
+
+        .content {
+            max-width: 1100px;
+
+            padding: 30px;
+
+            margin: auto;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin-bottom: 22px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 6px;
+
+            font-size: 27px;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+
+            font-size: 11px;
+        }
+
+        .back-btn {
+            padding: 10px 14px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            background: white;
+
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* =========================
+           FORM
+        ========================== */
+
+        .card {
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 20px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            margin-bottom: 4px;
+
+            font-size: 14px;
+        }
+
+        .card-header p {
+            color: var(--text-light);
+
+            font-size: 9px;
+        }
+
+        .card-body {
+            padding: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    2,
+                    minmax(0, 1fr)
+                );
+
+            gap: 18px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 10px;
+            font-weight: 750;
+        }
+
+        .required {
+            color: var(--accent);
+        }
+
+        .control {
+            width: 100%;
+            min-height: 42px;
+
+            padding: 10px 11px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            outline: none;
+
+            background: white;
+
+            font-size: 11px;
+        }
+
+        .control:focus {
+            border-color: var(--accent);
+
+            box-shadow:
+                0 0 0 3px
+                var(--accent-light);
+        }
+
+        textarea.control {
+            min-height: 105px;
+
+            resize: vertical;
+        }
+
+        .help {
+            margin-top: 5px;
+
+            color: var(--text-light);
+
+            font-size: 8px;
+        }
+
+        .checkbox-box {
+            min-height: 42px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 0 2px;
+
+            font-size: 10px;
+        }
+
+        .checkbox-box input {
+            width: 16px;
+            height: 16px;
+
+            accent-color: var(--accent);
+        }
+
+        /* =========================
+           ERROR
+        ========================== */
+
+        .error-message {
+            margin-bottom: 18px;
+
+            padding: 12px 14px;
+
+            border-radius: 8px;
+
+            background: var(--red-light);
+
+            color: var(--red);
+
+            font-size: 10px;
+        }
+
+        /* =========================
+           ACTION
+        ========================== */
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+
+            gap: 9px;
+
+            margin-top: 22px;
+        }
+
+        .btn {
+            min-height: 40px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 15px;
+
+            border: none;
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            font-size: 10px;
+            font-weight: 750;
+        }
+
+        .btn-secondary {
+            background: white;
+
+            border: 1px solid var(--border);
+
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+
+            color: white;
+        }
+
+        @media (max-width: 950px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .page-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                R
+            </div>
+
+            <div>
+
+                <h2>
+                    Restaurant 360
+                </h2>
+
+                <p>
+                    Restaurant Management
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-menu">
+
+            <div class="menu-section">
+
+                <a
+                    href="{% url 'owner_dashboard' %}"
+                    class="menu-item"
+                >
+
+                    <span class="menu-icon">
+                        ▦
+                    </span>
+
+                    Dashboard
+
+                </a>
+
+            </div>
+
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    OPERATIONS
+                </div>
+
+                <a
+                    href="{% url 'orders_list' %}"
+                    class="menu-item"
+                >
+
+                    <span class="menu-icon">
+                        🧾
+                    </span>
+
+                    Orders
+
+                </a>
+
+
+                <a
+                    href="{% url 'kitchen_dashboard' %}"
+                    class="menu-item"
+                >
+
+                    <span class="menu-icon">
+                        🍳
+                    </span>
+
+                    Kitchen Display
+
+                </a>
+
+            </div>
+
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    MENU MANAGEMENT
+                </div>
+
+
+                <div class="sub-menu">
+
+                    <a
+                        href="{% url 'category_list' %}"
+                        class="sub-item"
+                    >
+                        ▤ Menu Categories
+                    </a>
+
+
+                    <a
+                        href="{% url 'menu_item_list' %}"
+                        class="sub-item active"
+                    >
+                        🍔 Menu Items
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    INVENTORY
+                </div>
+
+
+                <a
+                    href="{% url 'inventory_category_list' %}"
+                    class="menu-item"
+                >
+                    ▤ Ingredient Groups
+                </a>
+
+
+                <a
+                    href="{% url 'ingredient_list' %}"
+                    class="menu-item"
+                >
+                    📦 Inventory Items
+                </a>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+
+                <h3>
+                    FoodHub
+                </h3>
+
+                <p>
+                    Menu Management
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Administrator
+                </h3>
+
+                <p>
+                    Restaurant Owner
+                </p>
+
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Add Menu Item
+                    </h1>
+
+                    <p>
+                        Create a customer-facing food or drink item.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="{% url 'menu_item_list' %}"
+                    class="back-btn"
+                >
+                    ← Back to Menu Items
+                </a>
+
+            </div>
+
+
+            {% if error_message %}
+
+                <div class="error-message">
+                    {{ error_message }}
+                </div>
+
+            {% endif %}
+
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                {% csrf_token %}
+
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+                            Menu Item Information
+                        </h3>
+
+                        <p>
+                            Basic information shown on the customer menu.
+                        </p>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="form-grid">
+
+
+                            <!-- NAME -->
+
+                            <div class="form-group">
+
+                                <label>
+                                    Item Name
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="name"
+                                    class="control"
+                                    value="{{ form_name }}"
+                                    placeholder="Chicken Burger"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <!-- CATEGORY -->
+
+                            <div class="form-group">
+
+                                <label>
+                                    Menu Category
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    name="category"
+                                    class="control"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select category
+                                    </option>
+
+
+                                    {% for category in categories %}
+
+                                        <option
+                                            value="{{ category.id }}"
+                                            {% if selected_category == category.id|stringformat:"s" %}
+                                                selected
+                                            {% endif %}
+                                        >
+
+                                            {{ category.name }}
+                                            -
+                                            {{ category.restaurant.name }}
+
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- PRICE -->
+
+                            <div class="form-group">
+
+                                <label>
+                                    Selling Price
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="price"
+                                    class="control"
+                                    value="{{ form_price }}"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="250.00"
+                                    required
+                                >
+
+                                <div class="help">
+                                    Customer selling price in BDT.
+                                </div>
+
+                            </div>
+
+
+                            <!-- AVAILABLE -->
+
+                            <div class="form-group">
+
+                                <label>
+                                    Availability
+                                </label>
+
+                                <div class="checkbox-box">
+
+                                    <input
+                                        type="checkbox"
+                                        name="is_available"
+                                        {% if form_available %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    Available on customer menu
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- IMAGE -->
+
+                            <div class="form-group full">
+
+                                <label>
+                                    Menu Image
+                                </label>
+
+                                <input
+                                    type="file"
+                                    name="image"
+                                    class="control"
+                                    accept="image/*"
+                                >
+
+                                <div class="help">
+                                    Optional menu item image.
+                                </div>
+
+                            </div>
+
+
+                            <!-- DESCRIPTION -->
+
+                            <div class="form-group full">
+
+                                <label>
+                                    Description
+                                </label>
+
+                                <textarea
+                                    name="description"
+                                    class="control"
+                                    placeholder="Crispy chicken, cheese, lettuce and signature sauce."
+                                >{{ form_description }}</textarea>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-actions">
+
+                            <a
+                                href="{% url 'menu_item_list' %}"
+                                class="btn btn-secondary"
+                            >
+                                Cancel
+                            </a>
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Save Menu Item
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </form>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

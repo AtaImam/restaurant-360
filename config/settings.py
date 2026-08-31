@@ -28,6 +28,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     '172.20.10.5',
+    'testserver',
 ]
 
 
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
     'restaurant',
     'menu',
     'orders',
@@ -132,4 +134,22 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+# Custom User Model
+AUTH_USER_MODEL = 'users.User'
+
+# Login URL
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'users:role_dashboard'
+LOGOUT_REDIRECT_URL = 'users:login'
+
+# Messages
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'error',
 }

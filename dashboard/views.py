@@ -1,13 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Sum, Avg, Q
-from django.core.paginator import Paginator
+from users.decorators import role_required
 
 from orders.models import Order
 
 
+@role_required('admin', 'owner', 'manager', 'waiter')
 def owner_dashboard(request):
-    today = timezone.localdate()
+    today = timezone.localtime()
 
     today_orders = Order.objects.filter(
         created_at__date=today
@@ -42,6 +43,7 @@ def owner_dashboard(request):
         'active_orders': active_orders,
         'average_order_value': average_order_value,
         'recent_orders': recent_orders,
+        'user_role': request.user.get_role_display(),
     }
 
     return render(

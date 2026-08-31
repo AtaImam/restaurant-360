@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-
+from users.decorators import kitchen_staff_required
 from orders.models import Order
 
 
+@kitchen_staff_required
 def kitchen_dashboard(request):
     orders = Order.objects.exclude(
         status__in=[
@@ -20,6 +21,7 @@ def kitchen_dashboard(request):
     )
 
 
+@kitchen_staff_required
 def update_order_status(request, order_id):
     order = get_object_or_404(
         Order,

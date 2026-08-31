@@ -1301,11 +1301,11 @@
                 <div class="restaurant-info">
 
                     <h3>
-                        FoodHub
+                        {{ user.restaurant.name|default:"Restaurant 360" }}
                     </h3>
 
                     <p>
-                        Main Branch • Dhaka
+                        {{ user.get_role_display }} • {{ user.restaurant.address|default:"Dashboard" }}
                     </p>
 
                 </div>
@@ -1321,22 +1321,40 @@
                 <div class="profile">
 
                     <div class="profile-avatar">
-                        A
+                        {{ user.username.0|upper }}
                     </div>
 
                     <div class="profile-info">
 
                         <h4>
-                            Administrator
+                            {{ user.get_full_name|default:user.username }}
                         </h4>
 
                         <p>
-                            Restaurant Owner
+                            {{ user.get_role_display }}
                         </p>
 
                     </div>
 
                 </div>
+
+                <!-- Logout Button -->
+                <form method="post" action="{% url 'users:logout' %}" style="display: inline; margin-left: 20px;">
+                    {% csrf_token %}
+                    <button type="submit" style="
+                        background: #dc2626;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 14px;
+                        transition: background 0.3s ease;
+                    " onmouseover="this.style.background='#991b1b'" onmouseout="this.style.background='#dc2626'">
+                        🚪 Logout
+                    </button>
+                </form>
 
             </div>
 
@@ -1357,16 +1375,16 @@
                     </h1>
 
                     <p>
-                        Welcome back. Here's what's happening with your restaurant today.
+                        Welcome back, {{ user.get_full_name|default:user.username }}! Here's what's happening with your restaurant today.
                     </p>
 
                 </div>
 
                 <div class="header-actions">
 
-                    <button class="btn btn-outline">
-                        📊 View Reports
-                    </button>
+                    <a href="{% url 'users:profile' %}" class="btn btn-outline" style="text-decoration: none;">
+                        👤 My Profile
+                    </a>
 
                     <button class="btn btn-primary">
                         ＋ New Order

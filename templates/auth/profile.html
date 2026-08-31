@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Restaurant 360</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --secondary: #1f2937;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+            --background: #f6f7fb;
+            --white: #ffffff;
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .user-role {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ea6317;
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .profile-header {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header-content {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent) 0%, #ea6317 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .profile-info h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .meta-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .meta-value {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Two Column Layout */
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        .profile-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .profile-field {
+            margin-bottom: 1.5rem;
+        }
+
+        .field-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .field-value {
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            background: var(--background);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .field-value.badge {
+            display: inline-block;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: none;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            border-radius: 0.25rem;
+        }
+
+        .field-value.badge.active {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-card {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .sidebar-card ul {
+            list-style: none;
+        }
+
+        .sidebar-card li {
+            padding: 0.75rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .sidebar-card a {
+            color: var(--accent);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-card a:hover {
+            color: #ea6317;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .quick-actions button {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .quick-actions .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .quick-actions .btn-primary:hover {
+            background: #ea6317;
+        }
+
+        .quick-actions .btn-secondary {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        .quick-actions .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        /* Permissions Grid */
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .permission-item {
+            background: var(--accent-light);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .permission-item.denied {
+            background: #fef2f2;
+            border-left-color: #dc2626;
+            color: #7f1d1d;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">🍽️ <span>Restaurant</span>360</div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="user-role">{{ user.get_role_display }}</div>
+                </div>
+                <form method="post" action="{% url 'users:logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary">Logout</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-avatar">👤</div>
+                <div class="profile-info">
+                    <h1>{{ user.get_full_name|default:user.username }}</h1>
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Role:</span>
+                            <span class="meta-value">{{ user.get_role_display }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Email:</span>
+                            <span class="meta-value">{{ user.email|default:"Not set" }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Phone:</span>
+                            <span class="meta-value">{{ user.phone|default:"Not set" }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Restaurant:</span>
+                            <span class="meta-value">{{ user.restaurant.name|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <!-- Main Content -->
+            <div>
+                <!-- Personal Information -->
+                <div class="profile-card">
+                    <div class="card-title">Personal Information</div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Username</label>
+                        <div class="field-value">{{ user.username }}</div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Email</label>
+                        <div class="field-value">{{ user.email|default:"Not set" }}</div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Full Name</label>
+                        <div class="field-value">{{ user.get_full_name|default:"Not set" }}</div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Phone Number</label>
+                        <div class="field-value">{{ user.phone|default:"Not set" }}</div>
+                    </div>
+                </div>
+
+                <!-- Role & Restaurant -->
+                <div class="profile-card">
+                    <div class="card-title">Role & Restaurant</div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Role</label>
+                        <div class="field-value badge">{{ user.get_role_display }}</div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Restaurant</label>
+                        <div class="field-value">{{ user.restaurant.name|default:"Not assigned" }}</div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Staff Status</label>
+                        <div class="field-value badge {% if user.is_active_staff %}active{% endif %}">
+                            {% if user.is_active_staff %}✓ Active{% else %}✗ Inactive{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="field-label">Account Status</label>
+                        <div class="field-value badge {% if user.is_active %}active{% endif %}">
+                            {% if user.is_active %}✓ Active{% else %}✗ Inactive{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permissions -->
+                <div class="profile-card">
+                    <div class="card-title">Permissions</div>
+                    <div class="permissions-grid">
+                        <div class="permission-item {% if user.can_access_dashboard %}{% else %}denied{% endif %}">
+                            📊 Dashboard Access: {% if user.can_access_dashboard %}✓ Yes{% else %}✗ No{% endif %}
+                        </div>
+                        <div class="permission-item {% if user.can_access_kitchen %}{% else %}denied{% endif %}">
+                            🍳 Kitchen Access: {% if user.can_access_kitchen %}✓ Yes{% else %}✗ No{% endif %}
+                        </div>
+                        <div class="permission-item {% if user.can_manage_staff %}{% else %}denied{% endif %}">
+                            👥 Staff Management: {% if user.can_manage_staff %}✓ Yes{% else %}✗ No{% endif %}
+                        </div>
+                        <div class="permission-item {% if user.can_view_reports %}{% else %}denied{% endif %}">
+                            📈 View Reports: {% if user.can_view_reports %}✓ Yes{% else %}✗ No{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Links -->
+                <div class="sidebar-card">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li>
+                            <a href="{{ user.get_dashboard_url }}">→ Go to Dashboard</a>
+                        </li>
+                        {% if user.can_access_dashboard %}
+                        <li>
+                            <a href="{% url 'users:landing' %}">→ Back to Home</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="sidebar-card">
+                    <h3>Actions</h3>
+                    <div class="quick-actions">
+                        <button class="btn-primary" onclick="alert('Feature coming soon!')">Edit Profile</button>
+                        <button class="btn-secondary" onclick="alert('Feature coming soon!')">Change Password</button>
+                        <form method="post" action="{% url 'users:logout' %}" style="width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-secondary" style="width: 100%;">Logout</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Account Info -->
+                <div class="sidebar-card">
+                    <h3>Account Info</h3>
+                    <div style="font-size: 0.9rem; color: var(--text-light);">
+                        <p style="margin-bottom: 0.75rem;">
+                            <strong>Joined:</strong><br>
+                            {{ user.date_joined|date:"M d, Y" }}
+                        </p>
+                        <p>
+                            <strong>Last Login:</strong><br>
+                            {% if user.last_login %}
+                            {{ user.last_login|date:"M d, Y H:i" }}
+                            {% else %}
+                            Never
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

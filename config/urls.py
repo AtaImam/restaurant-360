@@ -1,35 +1,18 @@
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 
 urlpatterns = [
-    path(
-        "admin/",
-        admin.site.urls,
-    ),
+    path("", RedirectView.as_view(url="auth/", permanent=False)),
+    path("auth/", include("users.urls", namespace="users")),
 
-    path(
-        "menu/",
-        include("menu.urls"),
-    ),
+    path("admin/", admin.site.urls),
 
-    path(
-        "kitchen/",
-        include("kitchen.urls"),
-    ),
+    path("menu/", include("menu.urls")),
+    path("kitchen/", include("kitchen.urls")),
+    path("dashboard/", include("dashboard.urls")),
 
-    path(
-        "dashboard/",
-        include("dashboard.urls"),
-    ),
-
-    path(
-        "inventory/",
-        include("inventory.urls"),
-    ),
-
-    path(
-        "menu-management/",
-        include("menu.management_urls"),
-    ),
+    path("inventory/", include("inventory.urls")),
+    path("menu-management/", include("menu.management_urls")),
 ]

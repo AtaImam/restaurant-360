@@ -1,13 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "dashboard/base_owner.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ingredient Groups | Restaurant 360</title>
+{% block title %}Ingredient Groups | Restaurant 360{% endblock %}
+{% block page_title %}Ingredient Groups{% endblock %}
 
-    <style>
-        * {
+{% block extra_css %}
+<style>
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -33,7 +31,6 @@
             --red: #dc2626;
             --red-light: #fef2f2;
 
-            --sidebar-width: 260px;
         }
 
         body {
@@ -57,134 +54,6 @@
             font-family: inherit;
         }
 
-        /* ======================
-           SIDEBAR
-        ====================== */
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-
-            position: fixed;
-            top: 0;
-            left: 0;
-
-            background: var(--primary);
-            color: white;
-
-            overflow-y: auto;
-        }
-
-        .brand {
-            height: 78px;
-
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            padding: 0 22px;
-
-            border-bottom: 1px solid #2d3748;
-        }
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 12px;
-
-            background: var(--accent);
-
-            font-size: 21px;
-            font-weight: 800;
-        }
-
-        .brand h2 {
-            font-size: 17px;
-        }
-
-        .brand p {
-            margin-top: 4px;
-
-            font-size: 10px;
-            color: #9ca3af;
-        }
-
-        .sidebar-menu {
-            padding: 18px 14px 30px;
-        }
-
-        .menu-section {
-            margin-bottom: 22px;
-        }
-
-        .menu-title {
-            padding: 0 12px;
-            margin-bottom: 8px;
-
-            font-size: 10px;
-            letter-spacing: 1px;
-            font-weight: 700;
-
-            color: #6b7280;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            padding: 11px 13px;
-            margin-bottom: 4px;
-
-            border-radius: 8px;
-
-            font-size: 13px;
-            color: #d1d5db;
-        }
-
-        .menu-item:hover {
-            background: #1f2937;
-            color: white;
-        }
-
-        .menu-item.active {
-            background: var(--accent);
-            color: white;
-        }
-
-        .menu-icon {
-            width: 23px;
-            text-align: center;
-        }
-
-        /* ======================
-           MAIN
-        ====================== */
-
-        .main {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-        }
-
-        .topbar {
-            height: 78px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 30px;
-
-            background: white;
-
-            border-bottom: 1px solid var(--border);
-        }
-
         .restaurant-info h3 {
             font-size: 15px;
         }
@@ -193,39 +62,6 @@
             margin-top: 3px;
 
             font-size: 11px;
-            color: var(--text-light);
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-avatar {
-            width: 39px;
-            height: 39px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background: var(--accent);
-            color: white;
-
-            border-radius: 50%;
-
-            font-weight: 700;
-        }
-
-        .profile h4 {
-            font-size: 12px;
-        }
-
-        .profile p {
-            margin-top: 2px;
-
-            font-size: 10px;
             color: var(--text-light);
         }
 
@@ -480,16 +316,6 @@
             color: var(--text-light);
         }
 
-        @media (max-width: 900px) {
-            .sidebar {
-                display: none;
-            }
-
-            .main {
-                margin-left: 0;
-            }
-        }
-
         @media (max-width: 650px) {
             .content {
                 padding: 18px;
@@ -500,198 +326,11 @@
                 gap: 15px;
             }
         }
-    </style>
-</head>
-
-<body>
-
-    <!-- SIDEBAR -->
-
-    <aside class="sidebar">
-
-        <div class="brand">
-
-            <div class="brand-logo">
-                R
-            </div>
-
-            <div>
-
-                <h2>
-                    Restaurant 360
-                </h2>
-
-                <p>
-                    Restaurant Management
-                </p>
-
-            </div>
-
-        </div>
-
-        <div class="sidebar-menu">
-
-            <div class="menu-section">
-
-                <a href="{% url 'owner_dashboard' %}"
-                   class="menu-item">
-
-                    <span class="menu-icon">▦</span>
-                    Dashboard
-
-                </a>
-
-            </div>
-
-            <div class="menu-section">
-
-                <div class="menu-title">
-                    OPERATIONS
-                </div>
-
-                <a href="{% url 'orders_list' %}"
-                   class="menu-item">
-
-                    <span class="menu-icon">🧾</span>
-                    Orders
-
-                </a>
-
-                <a href="{% url 'kitchen_dashboard' %}"
-                   class="menu-item">
-
-                    <span class="menu-icon">🍳</span>
-                    Kitchen Display
-
-                </a>
-
-            </div>
-
-            <div class="menu-section">
-
-                <div class="menu-title">
-                    MENU MANAGEMENT
-                </div>
-
-                <a href="{% url 'category_list' %}"
-                   class="menu-item">
-
-                    <span class="menu-icon">▤</span>
-                    Menu Categories
-
-                </a>
-
-                <a href="#"
-                   class="menu-item">
-
-                    <span class="menu-icon">🍔</span>
-                    Menu Items
-
-                </a>
-
-            </div>
-
-            <div class="menu-section">
-
-                <div class="menu-title">
-                    INVENTORY
-                </div>
-
-                <a href="{% url 'inventory_category_list' %}"
-                   class="menu-item active">
-
-                    <span class="menu-icon">▤</span>
-                    Ingredient Groups
-
-                </a>
-
-                <a href="{% url 'ingredient_list' %}"
-                   class="menu-item">
-
-                    <span class="menu-icon">📦</span>
-                    Inventory Items
-
-                </a>
-
-                <a href="#"
-                   class="menu-item">
-
-                    <span class="menu-icon">▧</span>
-                    Stock Transactions
-
-                </a>
-
-                <a href="#"
-                   class="menu-item">
-
-                    <span class="menu-icon">🗑</span>
-                    Wastage
-
-                </a>
-
-                <a href="#"
-                   class="menu-item">
-
-                    <span class="menu-icon">🚚</span>
-                    Suppliers
-
-                </a>
-
-                <a href="#"
-                   class="menu-item">
-
-                    <span class="menu-icon">🛒</span>
-                    Purchase Orders
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </aside>
-
-    <!-- MAIN -->
-
-    <main class="main">
-
-        <header class="topbar">
-
-            <div class="restaurant-info">
-
-                <h3>
-                    FoodHub
-                </h3>
-
-                <p>
-                    Inventory Management
-                </p>
-
-            </div>
-
-            <div class="profile">
-
-                <div class="profile-avatar">
-                    A
-                </div>
-
-                <div>
-
-                    <h4>
-                        Administrator
-                    </h4>
-
-                    <p>
-                        Restaurant Owner
-                    </p>
-
-                </div>
-
-            </div>
-
-        </header>
-
-        <div class="content">
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
 
             <!-- HEADER -->
 
@@ -890,9 +529,4 @@
             </div>
 
         </div>
-
-    </main>
-
-</body>
-
-</html>
+{% endblock %}

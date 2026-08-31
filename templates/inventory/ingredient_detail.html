@@ -1,14 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "dashboard/base_owner.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}{{ ingredient.name }} | Restaurant 360{% endblock %}
+{% block page_title %}{{ ingredient.name }}{% endblock %}
 
-    <title>{{ ingredient.name }} | Restaurant 360</title>
-
-    <style>
-        * {
+{% block extra_css %}
+<style>
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -202,13 +199,11 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
+</style>
+{% endblock %}
 
-</head>
-
-<body>
-
-    <div class="content">
+{% block content %}
+<div class="content">
 
         <div class="header">
 
@@ -495,7 +490,4 @@
         </div>
 
     </div>
-
-</body>
-
-</html>
+{% endblock %}

@@ -1,14 +1,11 @@
-<!doctype html>
-<html lang="en">
+{% extends "dashboard/base_owner.html" %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% block title %}Kitchen Dashboard{% endblock %}
+{% block page_title %}Kitchen Display{% endblock %}
 
-  <title>Kitchen Dashboard</title>
-
-  <style>
-    * {
+{% block extra_css %}
+<style>
+* {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -186,11 +183,11 @@
         grid-template-columns: 1fr;
       }
     }
-  </style>
-</head>
+</style>
+{% endblock %}
 
-<body>
-  <div class="header">
+{% block content %}
+<div class="header">
     <div>
       <h1>Kitchen Dashboard</h1>
       <p>Active restaurant orders</p>
@@ -316,6 +313,4 @@
 
     {% endif %}
   </div>
-</body>
-
-</html>
+{% endblock %}

@@ -1,28 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "dashboard/base_owner.html" %}
 
-<head>
+{% block title %}Recipe Builder | Restaurant 360{% endblock %}
+{% block page_title %}Recipe Builder{% endblock %}
 
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Recipe Builder | Restaurant 360
-    </title>
-
-
-    <style>
-
-        * {
+{% block extra_css %}
+<style>
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
 
         :root {
             --primary: #111827;
@@ -53,9 +40,7 @@
             --yellow: #ca8a04;
             --yellow-light: #fefce8;
 
-            --sidebar-width: 260px;
         }
-
 
         body {
             font-family:
@@ -69,12 +54,10 @@
             color: var(--text-dark);
         }
 
-
         a {
             text-decoration: none;
             color: inherit;
         }
-
 
         button,
         input,
@@ -83,142 +66,6 @@
             font-family: inherit;
         }
 
-
-        /* =========================
-           SIDEBAR
-        ========================== */
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-
-            position: fixed;
-            top: 0;
-            left: 0;
-
-            overflow-y: auto;
-
-            background: var(--primary);
-            color: white;
-
-            z-index: 1000;
-        }
-
-
-        .sidebar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 10px;
-        }
-
-
-        .brand {
-            height: 78px;
-
-            display: flex;
-            align-items: center;
-
-            gap: 12px;
-
-            padding: 0 20px;
-
-            border-bottom: 1px solid #2d3748;
-        }
-
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 12px;
-
-            background: var(--accent);
-
-            font-size: 21px;
-            font-weight: 800;
-        }
-
-
-        .brand h2 {
-            font-size: 17px;
-        }
-
-
-        .brand p {
-            margin-top: 4px;
-
-            color: #9ca3af;
-
-            font-size: 10px;
-        }
-
-
-        .sidebar-menu {
-            padding: 18px 14px 30px;
-        }
-
-
-        .menu-section {
-            margin-bottom: 18px;
-        }
-
-
-        .menu-title {
-            padding: 0 11px;
-
-            margin-bottom: 7px;
-
-            color: #6b7280;
-
-            font-size: 9px;
-            font-weight: 800;
-
-            letter-spacing: 1px;
-        }
-
-
-        .menu-item {
-            min-height: 41px;
-
-            display: flex;
-            align-items: center;
-
-            gap: 11px;
-
-            padding: 9px 11px;
-
-            margin-bottom: 3px;
-
-            border-radius: 8px;
-
-            color: #d1d5db;
-
-            font-size: 11px;
-        }
-
-
-        .menu-item:hover {
-            background: var(--secondary);
-            color: white;
-        }
-
-
-        .menu-icon {
-            width: 22px;
-
-            display: flex;
-            justify-content: center;
-        }
-
-
         .sub-menu {
             margin-left: 22px;
 
@@ -226,82 +73,6 @@
 
             border-left: 1px solid #374151;
         }
-
-
-        .sub-item {
-            display: flex;
-
-            padding: 9px;
-
-            margin-bottom: 2px;
-
-            border-radius: 7px;
-
-            color: #bfc5cf;
-
-            font-size: 10px;
-        }
-
-
-        .sub-item:hover {
-            background: var(--secondary);
-            color: white;
-        }
-
-
-        .sub-item.active {
-            background: rgba(249, 115, 22, 0.15);
-
-            color: #fb923c;
-
-            font-weight: 700;
-        }
-
-
-        /* =========================
-           MAIN
-        ========================== */
-
-        .main {
-            min-height: 100vh;
-
-            margin-left: var(--sidebar-width);
-        }
-
-
-        .topbar {
-            height: 78px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 30px;
-
-            background: white;
-
-            border-bottom: 1px solid var(--border);
-
-            position: sticky;
-            top: 0;
-
-            z-index: 900;
-        }
-
-
-        .topbar h3 {
-            font-size: 15px;
-        }
-
-
-        .topbar p {
-            margin-top: 4px;
-
-            color: var(--text-light);
-
-            font-size: 10px;
-        }
-
 
         /* =========================
            CONTENT
@@ -315,7 +86,6 @@
             padding: 30px;
         }
 
-
         .page-header {
             display: flex;
             align-items: flex-start;
@@ -326,13 +96,11 @@
             margin-bottom: 22px;
         }
 
-
         .page-header h1 {
             margin-bottom: 6px;
 
             font-size: 27px;
         }
-
 
         .page-header p {
             color: var(--text-light);
@@ -341,7 +109,6 @@
 
             line-height: 1.6;
         }
-
 
         .back-btn {
             padding: 10px 14px;
@@ -354,7 +121,6 @@
             font-size: 10px;
             font-weight: 700;
         }
-
 
         /* =========================
            ITEM INFO
@@ -377,13 +143,11 @@
             border-radius: 13px;
         }
 
-
         .item-card h3 {
             margin-bottom: 5px;
 
             font-size: 16px;
         }
-
 
         .item-card p {
             color: var(--text-light);
@@ -391,11 +155,9 @@
             font-size: 10px;
         }
 
-
         .price-box {
             text-align: right;
         }
-
 
         .price-label {
             margin-bottom: 5px;
@@ -406,12 +168,10 @@
             font-weight: 700;
         }
 
-
         .price-value {
             font-size: 20px;
             font-weight: 800;
         }
-
 
         /* =========================
            LAYOUT
@@ -429,7 +189,6 @@
             align-items: start;
         }
 
-
         /* =========================
            CARD
         ========================== */
@@ -443,13 +202,11 @@
             overflow: hidden;
         }
 
-
         .card-header {
             padding: 18px 20px;
 
             border-bottom: 1px solid var(--border);
         }
-
 
         .card-header h3 {
             margin-bottom: 5px;
@@ -457,18 +214,15 @@
             font-size: 14px;
         }
 
-
         .card-header p {
             color: var(--text-light);
 
             font-size: 9px;
         }
 
-
         .card-body {
             padding: 20px;
         }
-
 
         /* =========================
            ERROR
@@ -487,7 +241,6 @@
 
             font-size: 10px;
         }
-
 
         /* =========================
            RECIPE TABLE
@@ -513,7 +266,6 @@
             font-weight: 800;
         }
 
-
         .recipe-row {
             display: grid;
 
@@ -533,7 +285,6 @@
             border-bottom: 1px solid #f1f1f1;
         }
 
-
         .control {
             width: 100%;
 
@@ -551,7 +302,6 @@
             font-size: 10px;
         }
 
-
         .control:focus {
             border-color: var(--accent);
 
@@ -560,13 +310,11 @@
                 var(--accent-light);
         }
 
-
         .unit-box {
             color: var(--text-light);
 
             font-size: 9px;
         }
-
 
         .row-cost {
             color: var(--text-dark);
@@ -574,7 +322,6 @@
             font-size: 10px;
             font-weight: 700;
         }
-
 
         .remove-btn {
             width: 34px;
@@ -592,7 +339,6 @@
             font-size: 16px;
             font-weight: 800;
         }
-
 
         .add-btn {
             width: 100%;
@@ -614,7 +360,6 @@
             font-weight: 750;
         }
 
-
         /* =========================
            INSTRUCTIONS
         ========================== */
@@ -622,7 +367,6 @@
         .instructions {
             margin-top: 20px;
         }
-
 
         .instructions label {
             display: block;
@@ -633,13 +377,11 @@
             font-weight: 750;
         }
 
-
         textarea.control {
             min-height: 110px;
 
             resize: vertical;
         }
-
 
         /* =========================
            SUMMARY
@@ -651,23 +393,19 @@
             top: 96px;
         }
 
-
         .summary-item {
             padding: 14px 0;
 
             border-bottom: 1px solid #f1f1f1;
         }
 
-
         .summary-item:first-child {
             padding-top: 0;
         }
 
-
         .summary-item:last-child {
             border-bottom: none;
         }
-
 
         .summary-label {
             margin-bottom: 6px;
@@ -680,12 +418,10 @@
             letter-spacing: 0.4px;
         }
 
-
         .summary-value {
             font-size: 21px;
             font-weight: 800;
         }
-
 
         .summary-small {
             margin-top: 5px;
@@ -697,16 +433,13 @@
             line-height: 1.5;
         }
 
-
         .profit-positive {
             color: var(--green);
         }
 
-
         .profit-negative {
             color: var(--red);
         }
-
 
         .stock-status {
             display: inline-flex;
@@ -722,24 +455,20 @@
             font-weight: 750;
         }
 
-
         .stock-good {
             background: var(--green-light);
             color: var(--green);
         }
-
 
         .stock-bad {
             background: var(--red-light);
             color: var(--red);
         }
 
-
         .stock-empty {
             background: var(--yellow-light);
             color: var(--yellow);
         }
-
 
         /* =========================
            INGREDIENT SUMMARY
@@ -749,7 +478,6 @@
             margin-top: 18px;
         }
 
-
         .ingredient-preview-title {
             margin-bottom: 8px;
 
@@ -758,7 +486,6 @@
             font-size: 8px;
             font-weight: 800;
         }
-
 
         .ingredient-preview-row {
             display: flex;
@@ -774,16 +501,13 @@
             font-size: 9px;
         }
 
-
         .ingredient-preview-row:last-child {
             border-bottom: none;
         }
 
-
         .preview-name {
             font-weight: 700;
         }
-
 
         .preview-details {
             margin-top: 3px;
@@ -792,7 +516,6 @@
 
             font-size: 8px;
         }
-
 
         /* =========================
            ACTION
@@ -806,7 +529,6 @@
 
             margin-top: 20px;
         }
-
 
         .btn {
             min-height: 40px;
@@ -826,7 +548,6 @@
             font-weight: 750;
         }
 
-
         .btn-secondary {
             background: white;
 
@@ -835,18 +556,15 @@
             color: var(--text);
         }
 
-
         .btn-primary {
             background: var(--accent);
 
             color: white;
         }
 
-
         .btn-primary:hover {
             background: var(--accent-dark);
         }
-
 
         @media (max-width: 1100px) {
 
@@ -854,27 +572,11 @@
                 grid-template-columns: 1fr;
             }
 
-
             .summary-card {
                 position: static;
             }
 
         }
-
-
-        @media (max-width: 950px) {
-
-            .sidebar {
-                display: none;
-            }
-
-
-            .main {
-                margin-left: 0;
-            }
-
-        }
-
 
         @media (max-width: 750px) {
 
@@ -882,16 +584,13 @@
                 padding: 18px;
             }
 
-
             .recipe-header {
                 display: none;
             }
 
-
             .recipe-row {
                 grid-template-columns: 1fr;
             }
-
 
             .item-card {
                 flex-direction: column;
@@ -899,225 +598,20 @@
                 align-items: flex-start;
             }
 
-
             .price-box {
                 text-align: left;
             }
-
 
             .page-header {
                 flex-direction: column;
             }
 
         }
-
-    </style>
-
-</head>
-
-
-<body>
-
-
-    <!-- =========================
-         SIDEBAR
-    ========================== -->
-
-    <aside class="sidebar">
-
-
-        <div class="brand">
-
-
-            <div class="brand-logo">
-                R
-            </div>
-
-
-            <div>
-
-                <h2>
-                    Restaurant 360
-                </h2>
-
-                <p>
-                    Restaurant Management
-                </p>
-
-            </div>
-
-
-        </div>
-
-
-        <div class="sidebar-menu">
-
-
-            <div class="menu-section">
-
-
-                <a
-                    href="{% url 'owner_dashboard' %}"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        ▦
-                    </span>
-
-                    Dashboard
-
-                </a>
-
-
-            </div>
-
-
-            <div class="menu-section">
-
-
-                <div class="menu-title">
-                    OPERATIONS
-                </div>
-
-
-                <a
-                    href="{% url 'orders_list' %}"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        🧾
-                    </span>
-
-                    Orders
-
-                </a>
-
-
-                <a
-                    href="{% url 'kitchen_dashboard' %}"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        🍳
-                    </span>
-
-                    Kitchen Display
-
-                </a>
-
-
-            </div>
-
-
-            <div class="menu-section">
-
-
-                <div class="menu-title">
-                    MENU MANAGEMENT
-                </div>
-
-
-                <div class="sub-menu">
-
-
-                    <a
-                        href="{% url 'category_list' %}"
-                        class="sub-item"
-                    >
-                        ▤ Menu Categories
-                    </a>
-
-
-                    <a
-                        href="{% url 'menu_item_list' %}"
-                        class="sub-item active"
-                    >
-                        🍔 Menu Items
-                    </a>
-
-
-                </div>
-
-
-            </div>
-
-
-            <div class="menu-section">
-
-
-                <div class="menu-title">
-                    INVENTORY
-                </div>
-
-
-                <a
-                    href="{% url 'inventory_category_list' %}"
-                    class="menu-item"
-                >
-                    ▤ Ingredient Groups
-                </a>
-
-
-                <a
-                    href="{% url 'ingredient_list' %}"
-                    class="menu-item"
-                >
-                    📦 Inventory Items
-                </a>
-
-
-            </div>
-
-
-        </div>
-
-
-    </aside>
-
-
-    <!-- =========================
-         MAIN
-    ========================== -->
-
-    <main class="main">
-
-
-        <header class="topbar">
-
-
-            <div>
-
-                <h3>
-                    FoodHub
-                </h3>
-
-                <p>
-                    Menu Management / Recipe Builder
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Administrator
-                </h3>
-
-                <p>
-                    Restaurant Owner
-                </p>
-
-            </div>
-
-
-        </header>
-
-
-        <div class="content">
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
 
 
             <!-- PAGE HEADER -->
@@ -1336,6 +830,61 @@
 
 
                                 </div>
+
+                                <template id="ingredientRowTemplate">
+                                    <div class="recipe-row">
+                                        <select
+                                            name="ingredient_id"
+                                            class="control ingredient-select"
+                                        >
+                                            <option
+                                                value=""
+                                                data-unit=""
+                                                data-cost="0"
+                                                data-stock="0"
+                                            >
+                                                Select inventory ingredient
+                                            </option>
+
+                                            {% for ingredient in ingredients %}
+
+                                                <option
+                                                    value="{{ ingredient.id }}"
+                                                    data-unit="{{ ingredient.get_base_unit_display }}"
+                                                    data-cost="{{ ingredient.current_unit_cost }}"
+                                                    data-stock="{{ ingredient.available_stock }}"
+                                                >
+                                                    {{ ingredient.name }}
+                                                </option>
+
+                                            {% endfor %}
+                                        </select>
+
+                                        <input
+                                            type="number"
+                                            name="quantity"
+                                            class="control quantity-input"
+                                            min="0.001"
+                                            step="0.001"
+                                            placeholder="Quantity"
+                                        >
+
+                                        <div class="unit-box">
+                                            -
+                                        </div>
+
+                                        <div class="row-cost">
+                                            ৳0.00
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            class="remove-btn"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                </template>
 
 
                                 <button
@@ -1570,92 +1119,11 @@
 
 
         </div>
+{% endblock %}
 
-
-    </main>
-
-
-    <!-- =========================
-         NEW ROW TEMPLATE
-    ========================== -->
-
-    <template id="ingredientRowTemplate">
-
-
-        <div class="recipe-row">
-
-
-            <select
-                name="ingredient_id"
-                class="control ingredient-select"
-            >
-
-                <option
-                    value=""
-                    data-unit=""
-                    data-cost="0"
-                    data-stock="0"
-                >
-                    Select inventory ingredient
-                </option>
-
-
-                {% for ingredient in ingredients %}
-
-                    <option
-                        value="{{ ingredient.id }}"
-                        data-unit="{{ ingredient.get_base_unit_display }}"
-                        data-cost="{{ ingredient.current_unit_cost }}"
-                        data-stock="{{ ingredient.available_stock }}"
-                    >
-                        {{ ingredient.name }}
-                    </option>
-
-                {% endfor %}
-
-
-            </select>
-
-
-            <input
-                type="number"
-                name="quantity"
-                class="control quantity-input"
-                min="0.001"
-                step="0.001"
-                placeholder="Quantity"
-            >
-
-
-            <div class="unit-box">
-                -
-            </div>
-
-
-            <div class="row-cost">
-                ৳0.00
-            </div>
-
-
-            <button
-                type="button"
-                class="remove-btn"
-            >
-                ×
-            </button>
-
-
-        </div>
-
-
-    </template>
-
-
-    <!-- =========================
-         JAVASCRIPT
-    ========================== -->
-
-    <script>
+{% block extra_js %}
+<script>
+    (function () {
 
         const sellingPrice =
             Number(
@@ -1721,6 +1189,16 @@
             document.getElementById(
                 "ingredientPreview"
             );
+
+        if (
+            !recipeRows ||
+            !addIngredientButton ||
+            !ingredientRowTemplate
+        ) {
+
+            return;
+
+        }
 
 
         function money(value) {
@@ -2288,9 +1766,6 @@
         updateRecipeSummary();
 
 
+    })();
     </script>
-
-
-</body>
-
-</html>
+{% endblock %}

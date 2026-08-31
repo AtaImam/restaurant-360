@@ -1,14 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "dashboard/base_owner.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}{{ page_title }} | Restaurant 360{% endblock %}
+{% block page_title %}{{ page_title|default:"Inventory Item" }}{% endblock %}
 
-    <title>{{ page_title }} | Restaurant 360</title>
-
-    <style>
-        * {
+{% block extra_css %}
+<style>
+* {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -24,7 +21,6 @@
             --text-dark: #111827;
             --text-light: #6b7280;
             --red: #dc2626;
-            --sidebar-width: 260px;
         }
 
         body {
@@ -45,74 +41,11 @@
             font-family: inherit;
         }
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            background: var(--primary);
-            color: white;
-            padding: 20px 14px;
-        }
-
-        .brand {
-            padding: 8px 10px 25px;
-        }
-
-        .brand h2 {
-            font-size: 18px;
-        }
-
-        .brand p {
-            margin-top: 4px;
-            color: #9ca3af;
-            font-size: 10px;
-        }
-
         .section-title {
             margin: 20px 10px 8px;
             color: #6b7280;
             font-size: 10px;
             font-weight: 700;
-        }
-
-        .menu-item {
-            display: block;
-            padding: 11px 12px;
-            border-radius: 8px;
-            color: #d1d5db;
-            font-size: 13px;
-        }
-
-        .menu-item.active {
-            background: var(--accent);
-            color: white;
-        }
-
-        .main {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-        }
-
-        .topbar {
-            height: 78px;
-            background: white;
-            border-bottom: 1px solid var(--border);
-            padding: 0 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .topbar h3 {
-            font-size: 15px;
-        }
-
-        .topbar p {
-            margin-top: 4px;
-            color: var(--text-light);
-            font-size: 11px;
         }
 
         .content {
@@ -251,13 +184,6 @@
         }
 
         @media (max-width: 900px) {
-            .sidebar {
-                display: none;
-            }
-
-            .main {
-                margin-left: 0;
-            }
 
             .grid {
                 grid-template-columns: 1fr;
@@ -267,58 +193,11 @@
                 grid-column: auto;
             }
         }
-    </style>
+</style>
+{% endblock %}
 
-</head>
-
-<body>
-
-    <aside class="sidebar">
-
-        <div class="brand">
-            <h2>Restaurant 360</h2>
-            <p>Restaurant Management</p>
-        </div>
-
-        <div class="section-title">
-            INVENTORY
-        </div>
-
-        <a href="{% url 'inventory_category_list' %}" class="menu-item">
-            ▤ Ingredient Groups
-        </a>
-
-        <a href="{% url 'ingredient_list' %}" class="menu-item active">
-            📦 Inventory Items
-        </a>
-
-        <a href="#" class="menu-item">
-            ▧ Stock Transactions
-        </a>
-
-        <a href="#" class="menu-item">
-            🗑 Wastage
-        </a>
-
-    </aside>
-
-    <main class="main">
-
-        <header class="topbar">
-
-            <div>
-                <h3>FoodHub</h3>
-                <p>Inventory Management</p>
-            </div>
-
-            <div>
-                <h3>Administrator</h3>
-                <p>Restaurant Owner</p>
-            </div>
-
-        </header>
-
-        <div class="content">
+{% block content %}
+<div class="content">
 
             <div class="page-header">
 
@@ -742,9 +621,4 @@
             </form>
 
         </div>
-
-    </main>
-
-</body>
-
-</html>
+{% endblock %}

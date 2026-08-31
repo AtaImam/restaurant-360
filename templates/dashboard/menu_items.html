@@ -1,28 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "dashboard/base_owner.html" %}
 
-<head>
+{% block title %}Menu Items | Restaurant 360{% endblock %}
+{% block page_title %}Menu Items{% endblock %}
 
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Menu Items | Restaurant 360
-    </title>
-
-
-    <style>
-
-        * {
+{% block extra_css %}
+<style>
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
 
         :root {
             --primary: #111827;
@@ -52,9 +39,7 @@
             --yellow: #ca8a04;
             --yellow-light: #fefce8;
 
-            --sidebar-width: 260px;
         }
-
 
         body {
             font-family:
@@ -69,301 +54,19 @@
             color: var(--text-dark);
         }
 
-
         a {
             text-decoration: none;
             color: inherit;
         }
-
 
         button,
         input {
             font-family: inherit;
         }
 
-
-        /* =========================
-           SIDEBAR
-        ========================== */
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-
-            position: fixed;
-            top: 0;
-            left: 0;
-
-            z-index: 1000;
-
-            overflow-y: auto;
-
-            background: var(--primary);
-
-            color: white;
-        }
-
-
-        .sidebar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 10px;
-        }
-
-
-        .brand {
-            height: 78px;
-
-            display: flex;
-            align-items: center;
-
-            gap: 12px;
-
-            padding: 0 20px;
-
-            border-bottom: 1px solid #2d3748;
-        }
-
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 12px;
-
-            background: var(--accent);
-
-            font-size: 21px;
-            font-weight: 800;
-        }
-
-
-        .brand h2 {
-            font-size: 17px;
-        }
-
-
-        .brand p {
-            margin-top: 4px;
-
-            color: #9ca3af;
-
-            font-size: 10px;
-        }
-
-
-        .sidebar-search {
-            padding: 14px 14px 5px;
-        }
-
-
-        .sidebar-search input {
-            width: 100%;
-            height: 38px;
-
-            padding: 0 12px;
-
-            border: 1px solid #374151;
-            border-radius: 8px;
-
-            outline: none;
-
-            background: #182233;
-
-            color: white;
-
-            font-size: 10px;
-        }
-
-
-        .sidebar-search input::placeholder {
-            color: #9ca3af;
-        }
-
-
-        .sidebar-menu {
-            padding: 12px 14px 30px;
-        }
-
-
-        .menu-section {
-            margin-bottom: 18px;
-        }
-
-
-        .menu-title {
-            padding: 0 11px;
-
-            margin-bottom: 7px;
-
-            color: #6b7280;
-
-            font-size: 9px;
-            font-weight: 800;
-
-            letter-spacing: 1px;
-        }
-
-
-        .menu-item,
-        .dropdown-button {
-            width: 100%;
-            min-height: 41px;
-
-            display: flex;
-            align-items: center;
-
-            gap: 11px;
-
-            padding: 9px 11px;
-
-            margin-bottom: 3px;
-
-            border: none;
-            border-radius: 8px;
-
-            background: transparent;
-
-            color: #d1d5db;
-
-            text-align: left;
-
-            font-size: 11px;
-
-            cursor: pointer;
-        }
-
-
-        .menu-item:hover,
-        .dropdown-button:hover {
-            background: var(--secondary);
-
-            color: white;
-        }
-
-
-        .menu-icon {
-            width: 22px;
-
-            display: flex;
-            justify-content: center;
-        }
-
-
         .menu-text {
             flex: 1;
         }
-
-
-        .arrow {
-            color: #9ca3af;
-
-            font-size: 11px;
-        }
-
-
-        .dropdown-menu {
-            display: none;
-
-            margin-left: 23px;
-
-            padding-left: 10px;
-
-            border-left: 1px solid #374151;
-        }
-
-
-        .dropdown.open .dropdown-menu {
-            display: block;
-        }
-
-
-        .dropdown.open .arrow {
-            transform: rotate(180deg);
-        }
-
-
-        .sub-item {
-            min-height: 35px;
-
-            display: flex;
-            align-items: center;
-
-            padding: 8px 9px;
-
-            margin-bottom: 2px;
-
-            border-radius: 7px;
-
-            color: #bfc5cf;
-
-            font-size: 10px;
-        }
-
-
-        .sub-item:hover {
-            background: var(--secondary);
-
-            color: white;
-        }
-
-
-        .sub-item.active {
-            background: rgba(249, 115, 22, 0.15);
-
-            color: #fb923c;
-
-            font-weight: 700;
-        }
-
-
-        /* =========================
-           MAIN
-        ========================== */
-
-        .main {
-            margin-left: var(--sidebar-width);
-
-            min-height: 100vh;
-        }
-
-
-        .topbar {
-            height: 78px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 30px;
-
-            background: white;
-
-            border-bottom: 1px solid var(--border);
-        }
-
-
-        .topbar h3 {
-            font-size: 15px;
-        }
-
-
-        .topbar p {
-            margin-top: 4px;
-
-            color: var(--text-light);
-
-            font-size: 10px;
-        }
-
 
         /* =========================
            CONTENT
@@ -372,7 +75,6 @@
         .content {
             padding: 30px;
         }
-
 
         .page-header {
             display: flex;
@@ -384,20 +86,17 @@
             margin-bottom: 22px;
         }
 
-
         .page-header h1 {
             margin-bottom: 6px;
 
             font-size: 27px;
         }
 
-
         .page-header p {
             color: var(--text-light);
 
             font-size: 11px;
         }
-
 
         .btn {
             min-height: 39px;
@@ -417,13 +116,11 @@
             cursor: pointer;
         }
 
-
         .btn-primary {
             background: var(--accent);
 
             color: white;
         }
-
 
         /* =========================
            STATS
@@ -443,7 +140,6 @@
             margin-bottom: 20px;
         }
 
-
         .stat-card {
             padding: 18px;
 
@@ -452,7 +148,6 @@
             border: 1px solid var(--border);
             border-radius: 13px;
         }
-
 
         .stat-label {
             margin-bottom: 8px;
@@ -463,12 +158,10 @@
             font-weight: 700;
         }
 
-
         .stat-value {
             font-size: 24px;
             font-weight: 800;
         }
-
 
         .stat-note {
             margin-top: 6px;
@@ -477,7 +170,6 @@
 
             font-size: 9px;
         }
-
 
         /* =========================
            TABLE
@@ -492,13 +184,11 @@
             overflow: hidden;
         }
 
-
         .card-header {
             padding: 18px 20px;
 
             border-bottom: 1px solid var(--border);
         }
-
 
         .card-header h3 {
             margin-bottom: 4px;
@@ -506,18 +196,15 @@
             font-size: 14px;
         }
 
-
         .card-header p {
             color: var(--text-light);
 
             font-size: 9px;
         }
 
-
         .table-wrapper {
             overflow-x: auto;
         }
-
 
         table {
             width: 100%;
@@ -525,11 +212,9 @@
             border-collapse: collapse;
         }
 
-
         thead {
             background: #fafafa;
         }
-
 
         th {
             padding: 12px;
@@ -545,7 +230,6 @@
             white-space: nowrap;
         }
 
-
         td {
             padding: 14px 12px;
 
@@ -556,18 +240,15 @@
             vertical-align: middle;
         }
 
-
         tbody tr:hover {
             background: #fcfcfc;
         }
-
 
         .item-name {
             font-size: 11px;
 
             font-weight: 750;
         }
-
 
         .item-description {
             max-width: 220px;
@@ -579,13 +260,11 @@
             font-size: 8px;
         }
 
-
         .price {
             font-size: 10px;
 
             font-weight: 750;
         }
-
 
         .profit {
             color: var(--green);
@@ -593,11 +272,9 @@
             font-weight: 750;
         }
 
-
         .negative-profit {
             color: var(--red);
         }
-
 
         /* =========================
            BADGES
@@ -614,13 +291,11 @@
             font-weight: 750;
         }
 
-
         .badge-green {
             background: var(--green-light);
 
             color: var(--green);
         }
-
 
         .badge-red {
             background: var(--red-light);
@@ -628,20 +303,17 @@
             color: var(--red);
         }
 
-
         .badge-blue {
             background: var(--blue-light);
 
             color: var(--blue);
         }
 
-
         .badge-yellow {
             background: var(--yellow-light);
 
             color: var(--yellow);
         }
-
 
         /* =========================
            ACTION
@@ -654,7 +326,6 @@
 
             white-space: nowrap;
         }
-
 
         .action-btn {
             display: inline-flex;
@@ -671,13 +342,11 @@
             font-weight: 750;
         }
 
-
         .action-edit {
             background: var(--accent-light);
 
             color: var(--accent);
         }
-
 
         .action-build {
             background: var(--blue-light);
@@ -685,25 +354,21 @@
             color: var(--blue);
         }
 
-
         .empty-state {
             padding: 55px 20px;
 
             text-align: center;
         }
 
-
         .empty-state h3 {
             margin-bottom: 7px;
         }
-
 
         .empty-state p {
             color: var(--text-light);
 
             font-size: 10px;
         }
-
 
         /* =========================
            RESPONSIVE
@@ -721,572 +386,26 @@
 
         }
 
-
-        @media (max-width: 950px) {
-
-            .sidebar {
-                display: none;
-            }
-
-
-            .main {
-                margin-left: 0;
-            }
-
-        }
-
-
         @media (max-width: 650px) {
 
             .content {
                 padding: 18px;
             }
 
-
             .page-header {
                 flex-direction: column;
             }
-
 
             .stats-grid {
                 grid-template-columns: 1fr;
             }
 
         }
-
-    </style>
-
-</head>
-
-
-<body>
-
-
-    <!-- =========================
-         SIDEBAR
-    ========================== -->
-
-    <aside class="sidebar">
-
-
-        <div class="brand">
-
-
-            <div class="brand-logo">
-                R
-            </div>
-
-
-            <div>
-
-                <h2>
-                    Restaurant 360
-                </h2>
-
-                <p>
-                    Restaurant Management
-                </p>
-
-            </div>
-
-
-        </div>
-
-
-        <div class="sidebar-search">
-
-            <input
-                type="text"
-                id="sidebarSearch"
-                placeholder="Quick search..."
-            >
-
-        </div>
-
-
-        <div class="sidebar-menu">
-
-
-            <!-- DASHBOARD -->
-
-            <div class="menu-section">
-
-
-                <a
-                    href="{% url 'owner_dashboard' %}"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        ▦
-                    </span>
-
-                    <span class="menu-text">
-                        Dashboard
-                    </span>
-
-                </a>
-
-
-            </div>
-
-
-            <!-- OPERATIONS -->
-
-            <div class="menu-section">
-
-
-                <div class="menu-title">
-                    OPERATIONS
-                </div>
-
-
-                <a
-                    href="{% url 'orders_list' %}"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        🧾
-                    </span>
-
-                    <span class="menu-text">
-                        Orders
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="#"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        ▦
-                    </span>
-
-                    <span class="menu-text">
-                        POS
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{% url 'kitchen_dashboard' %}"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        🍳
-                    </span>
-
-                    <span class="menu-text">
-                        Kitchen Display
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="#"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        👨‍🍳
-                    </span>
-
-                    <span class="menu-text">
-                        Waiter Panel
-                    </span>
-
-                </a>
-
-
-            </div>
-
-
-            <!-- MENU -->
-
-            <div class="menu-section">
-
-
-                <div class="dropdown open">
-
-
-                    <button
-                        type="button"
-                        class="dropdown-button"
-                    >
-
-                        <span class="menu-icon">
-                            ◈
-                        </span>
-
-                        <span class="menu-text">
-                            Menu Management
-                        </span>
-
-                        <span class="arrow">
-                            ▼
-                        </span>
-
-                    </button>
-
-
-                    <div class="dropdown-menu">
-
-
-                        <a
-                            href="{% url 'category_list' %}"
-                            class="sub-item"
-                        >
-                            ▤ Menu Categories
-                        </a>
-
-
-                        <a
-                            href="{% url 'menu_item_list' %}"
-                            class="sub-item active"
-                        >
-                            🍔 Menu Items
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            ＋ Addons
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            % Coupons & Offers
-                        </a>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-            <!-- INVENTORY -->
-
-            <div class="menu-section">
-
-
-                <div class="dropdown">
-
-
-                    <button
-                        type="button"
-                        class="dropdown-button"
-                    >
-
-                        <span class="menu-icon">
-                            📦
-                        </span>
-
-                        <span class="menu-text">
-                            Inventory
-                        </span>
-
-                        <span class="arrow">
-                            ▼
-                        </span>
-
-                    </button>
-
-
-                    <div class="dropdown-menu">
-
-
-                        <a
-                            href="{% url 'inventory_category_list' %}"
-                            class="sub-item"
-                        >
-                            ▤ Ingredient Groups
-                        </a>
-
-
-                        <a
-                            href="{% url 'ingredient_list' %}"
-                            class="sub-item"
-                        >
-                            📦 Inventory Items
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            ▧ Stock Transactions
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            🗑 Wastage
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            🚚 Suppliers
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            🛒 Purchase Orders
-                        </a>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-            <!-- STAFF -->
-
-            <div class="menu-section">
-
-
-                <div class="dropdown">
-
-
-                    <button
-                        type="button"
-                        class="dropdown-button"
-                    >
-
-                        <span class="menu-icon">
-                            👤
-                        </span>
-
-                        <span class="menu-text">
-                            Staff Management
-                        </span>
-
-                        <span class="arrow">
-                            ▼
-                        </span>
-
-                    </button>
-
-
-                    <div class="dropdown-menu">
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            👤 Employees
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            ✓ Attendance
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            📆 Leave
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            ৳ Payroll
-                        </a>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-            <!-- REPORTS -->
-
-            <div class="menu-section">
-
-
-                <div class="dropdown">
-
-
-                    <button
-                        type="button"
-                        class="dropdown-button"
-                    >
-
-                        <span class="menu-icon">
-                            📊
-                        </span>
-
-                        <span class="menu-text">
-                            Reports
-                        </span>
-
-                        <span class="arrow">
-                            ▼
-                        </span>
-
-                    </button>
-
-
-                    <div class="dropdown-menu">
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            📊 Sales Report
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            📈 Item Sales
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            📦 Stock Report
-                        </a>
-
-
-                        <a
-                            href="#"
-                            class="sub-item"
-                        >
-                            📉 Profit & Loss
-                        </a>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-            <!-- SYSTEM -->
-
-            <div class="menu-section">
-
-
-                <div class="menu-title">
-                    SYSTEM
-                </div>
-
-
-                <a
-                    href="#"
-                    class="menu-item"
-                >
-
-                    <span class="menu-icon">
-                        ⚙
-                    </span>
-
-                    <span class="menu-text">
-                        Settings
-                    </span>
-
-                </a>
-
-
-            </div>
-
-
-        </div>
-
-
-    </aside>
-
-
-    <!-- =========================
-         MAIN
-    ========================== -->
-
-    <main class="main">
-
-
-        <header class="topbar">
-
-
-            <div>
-
-                <h3>
-                    FoodHub
-                </h3>
-
-                <p>
-                    Menu Management
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Administrator
-                </h3>
-
-                <p>
-                    Restaurant Owner
-                </p>
-
-            </div>
-
-
-        </header>
-
-
-        <div class="content">
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
 
 
             <!-- PAGE HEADER -->
@@ -1728,137 +847,4 @@
 
 
         </div>
-
-
-    </main>
-
-
-    <!-- =========================
-         JAVASCRIPT
-    ========================== -->
-
-    <script>
-
-
-        const dropdowns =
-            document.querySelectorAll(
-                ".dropdown"
-            );
-
-
-        dropdowns.forEach(
-
-            function (dropdown) {
-
-
-                const button =
-                    dropdown.querySelector(
-                        ".dropdown-button"
-                    );
-
-
-                button.addEventListener(
-
-                    "click",
-
-                    function () {
-
-
-                        dropdown.classList.toggle(
-                            "open"
-                        );
-
-
-                    }
-
-                );
-
-
-            }
-
-        );
-
-
-        const sidebarSearch =
-            document.getElementById(
-                "sidebarSearch"
-            );
-
-
-        sidebarSearch.addEventListener(
-
-            "input",
-
-            function () {
-
-
-                const query =
-                    sidebarSearch
-                    .value
-                    .toLowerCase()
-                    .trim();
-
-
-                document.querySelectorAll(
-                    ".menu-item, .sub-item"
-                ).forEach(
-
-                    function (item) {
-
-
-                        const text =
-                            item
-                            .textContent
-                            .toLowerCase();
-
-
-                        if (
-                            text.includes(
-                                query
-                            )
-                        ) {
-
-                            item.style.display =
-                                "flex";
-
-                        } else {
-
-                            item.style.display =
-                                "none";
-
-                        }
-
-
-                    }
-
-                );
-
-
-                if (query) {
-
-                    dropdowns.forEach(
-
-                        function (dropdown) {
-
-                            dropdown.classList.add(
-                                "open"
-                            );
-
-                        }
-
-                    );
-
-                }
-
-
-            }
-
-        );
-
-
-    </script>
-
-
-</body>
-
-</html>
+{% endblock %}

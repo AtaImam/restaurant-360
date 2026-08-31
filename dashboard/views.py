@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from django.db.models import Sum, Avg
+from django.db.models import Sum, Avg, Q
 from users.decorators import role_required
 
 from orders.models import Order
@@ -49,5 +49,125 @@ def owner_dashboard(request):
     return render(
         request,
         'dashboard/index.html',
+        context
+    )
+
+
+def orders_list(request):
+    orders = Order.objects.select_related(
+        'restaurant',
+        'table'
+    ).order_by('-created_at')
+
+    search = request.GET.get('search', '').strip()
+    status = request.GET.get('status', '').strip()
+    order_type = request.GET.get('order_type', '').strip()
+
+    if search:
+        if search.isdigit():
+            orders = orders.filter(id=int(search))
+        else:
+            orders = orders.filter(
+                Q(restaurant__name__icontains=search)
+            )
+
+    if status:
+        orders = orders.filter(status=status)
+
+    if order_type:
+        orders = orders.filter(order_type=order_type)
+
+    paginator = Paginator(orders, 10)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    status_choices = [
+        {
+            'value': value,
+            'label': label,
+            'selected': value == status
+        }
+        for value, label in Order.STATUS_CHOICES
+    ]
+
+    order_type_choices = [
+        {
+            'value': value,
+            'label': label,
+            'selected': value == order_type
+        }
+        for value, label in Order.ORDER_TYPES
+    ]
+
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'selected_status': status,
+        'selected_order_type': order_type,
+        'status_choices': status_choices,
+        'order_type_choices': order_type_choices,
+    }
+
+    return render(
+        request,
+        'dashboard/orders.html',
+        context
+    )
+
+
+def order_detail(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_related(
+            'restaurant',
+            'table'
+        ).prefetch_related(
+            'items__menu_item'
+        ),
+        id=order_id
+    )
+
+    owner_transitions = {
+        'NEW': [('ACCEPTED', 'Accept Order')],
+        'ACCEPTED': [],
+        'PREPARING': [],
+        'READY': [('SERVED', 'Mark Served')],
+        'SERVED': [('COMPLETED', 'Complete Order')],
+        'COMPLETED': [],
+    }
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+
+        allowed_statuses = [
+            value
+            for value, label in owner_transitions.get(
+                order.status,
+                []
+            )
+        ]
+
+        if new_status in allowed_statuses:
+            order.status = new_status
+            order.save(
+                update_fields=['status']
+            )
+
+        return redirect(
+            'order_detail',
+            order_id=order.id
+        )
+
+    context = {
+        'order': order,
+        'status_choices': owner_transitions.get(
+            order.status,
+            []
+        ),
+    }
+
+    return render(
+        request,
+        'dashboard/order_detail.html',
         context
     )

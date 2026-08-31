@@ -1026,7 +1026,7 @@
                     OPERATIONS
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{% url 'orders_list' %}" class="menu-item">
 
                     <span class="menu-icon">🧾</span>
                     <span class="menu-text">Orders</span>
@@ -1879,7 +1879,7 @@
 
                     </div>
 
-                    <a href="#" class="view-link">
+                    <a href="{% url 'orders_list' %}" class="view-link">
 
                         View All Orders
 
@@ -1917,6 +1917,10 @@
 
                                 <th>
                                     TIME
+                                </th>
+
+                                <th>
+                                    ACTION
                                 </th>
 
                             </tr>
@@ -2001,13 +2005,27 @@
                                     {{ order.created_at|date:"h:i A" }}
                                 </td>
 
+                                <td>
+                                    <a href="{% url 'order_detail' order.id %}" style="
+                                           display:inline-block;
+                                           padding:7px 11px;
+                                           background:#fff7ed;
+                                           color:#f97316;
+                                           border-radius:7px;
+                                           font-size:10px;
+                                           font-weight:700;
+                                       ">
+                                        View
+                                    </a>
+                                </td>
+
                             </tr>
 
                             {% empty %}
 
                             <tr>
 
-                                <td colspan="6" style="
+                                <td colspan="7" style="
                                             text-align:center;
                                             padding:35px;
                                             color:#6b7280;

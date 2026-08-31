@@ -72,6 +72,9 @@ class OrderItem(models.Model):
         max_digits=10,
         decimal_places=2
     )
+    @property
+    def subtotal(self):
+         return self.price * self.quantity 
 
     def __str__(self):
         return f"{self.menu_item.name} x {self.quantity}"

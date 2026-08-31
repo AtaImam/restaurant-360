@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders | Restaurant 360</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+
+            --purple: #9333ea;
+            --purple-light: #faf5ff;
+
+            --yellow: #ca8a04;
+            --yellow-light: #fefce8;
+
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary);
+            color: white;
+
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            overflow-y: auto;
+        }
+
+        .brand {
+            height: 78px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 0 22px;
+
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 12px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background: var(--accent);
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .brand h2 {
+            font-size: 17px;
+        }
+
+        .brand p {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .sidebar-menu {
+            padding: 18px 14px 30px;
+        }
+
+        .menu-section {
+            margin-bottom: 22px;
+        }
+
+        .menu-title {
+            padding: 0 12px;
+            margin-bottom: 8px;
+
+            font-size: 10px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #6b7280;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 11px 13px;
+            margin-bottom: 4px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            color: #d1d5db;
+
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 23px;
+            text-align: center;
+        }
+
+        /* MAIN */
+
+        .main {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* TOPBAR */
+
+        .topbar {
+            height: 78px;
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .restaurant-info h3 {
+            font-size: 15px;
+        }
+
+        .restaurant-info p {
+            margin-top: 3px;
+
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-avatar {
+            width: 39px;
+            height: 39px;
+
+            background: var(--accent);
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            border-radius: 50%;
+
+            font-weight: 700;
+        }
+
+        .profile h4 {
+            font-size: 12px;
+        }
+
+        .profile p {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* CONTENT */
+
+        .content {
+            padding: 30px;
+
+            max-width: 1700px;
+            margin: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .btn {
+            border: none;
+
+            padding: 10px 16px;
+
+            border-radius: 8px;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* FILTER */
+
+        .filter-card {
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            padding: 18px;
+
+            margin-bottom: 20px;
+        }
+
+        .filter-form {
+            display: grid;
+
+            grid-template-columns:
+                minmax(220px, 2fr) minmax(160px, 1fr) minmax(160px, 1fr) auto auto;
+
+            gap: 12px;
+
+            align-items: center;
+        }
+
+        .form-control {
+            width: 100%;
+
+            height: 42px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            padding: 0 12px;
+
+            background: white;
+
+            font-size: 12px;
+
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: #fdba74;
+        }
+
+        .filter-button {
+            height: 42px;
+
+            border: none;
+            border-radius: 8px;
+
+            padding: 0 18px;
+
+            cursor: pointer;
+
+            background: var(--accent);
+            color: white;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .reset-button {
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 16px;
+
+            background: #f3f4f6;
+
+            border-radius: 8px;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* TABLE CARD */
+
+        .card {
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .card-header {
+            min-height: 64px;
+
+            padding: 0 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .order-count {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #fafafa;
+
+            color: var(--text-light);
+
+            text-align: left;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            padding: 14px 18px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 18px;
+
+            font-size: 11px;
+
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .order-id {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .badge-new {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .badge-accepted {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .badge-preparing {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .badge-ready {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .badge-served {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .badge-completed {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .view-btn {
+            display: inline-block;
+
+            padding: 7px 11px;
+
+            border-radius: 7px;
+
+            background: var(--accent-light);
+            color: var(--accent);
+
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* PAGINATION */
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 16px 20px;
+        }
+
+        .pagination-info {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-link {
+            min-width: 34px;
+            height: 34px;
+
+            border: 1px solid var(--border);
+            border-radius: 7px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: white;
+
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .page-link.active {
+            background: var(--accent);
+            color: white;
+
+            border-color: var(--accent);
+        }
+
+        .empty-state {
+            padding: 50px 20px;
+
+            text-align: center;
+
+            color: var(--text-light);
+        }
+
+        .empty-state h3 {
+            font-size: 15px;
+            margin-bottom: 6px;
+
+            color: var(--text-dark);
+        }
+
+        .empty-state p {
+            font-size: 11px;
+        }
+
+        @media (max-width: 1000px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .filter-form {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .content {
+                padding: 18px;
+            }
+
+            .filter-form {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                R
+            </div>
+
+            <div>
+                <h2>Restaurant 360</h2>
+                <p>Restaurant Management</p>
+            </div>
+
+        </div>
+
+        <div class="sidebar-menu">
+
+            <div class="menu-section">
+
+                <a href="{% url 'owner_dashboard' %}" class="menu-item">
+
+                    <span class="menu-icon">▦</span>
+                    Dashboard
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    OPERATIONS
+                </div>
+
+                <a href="{% url 'orders_list' %}" class="menu-item active">
+
+                    <span class="menu-icon">🧾</span>
+                    Orders
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">💳</span>
+                    POS
+
+                </a>
+
+                <a href="{% url 'kitchen_dashboard' %}" class="menu-item">
+
+                    <span class="menu-icon">🍳</span>
+                    Kitchen Display
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">👨‍🍳</span>
+                    Waiter Panel
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    MENU MANAGEMENT
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▤</span>
+                    Categories
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🍔</span>
+                    Menu Items
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    BRANCH MANAGEMENT
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">🏢</span>
+                    Branches
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▣</span>
+                    Tables & QR
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    INVENTORY
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📦</span>
+                    Ingredients
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">▧</span>
+                    Stock
+
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    FINANCE & REPORTS
+                </div>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">💰</span>
+                    Expenses
+
+                </a>
+
+                <a href="#" class="menu-item">
+
+                    <span class="menu-icon">📊</span>
+                    Sales Report
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div class="restaurant-info">
+
+                <h3>
+                    FoodHub
+                </h3>
+
+                <p>
+                    Main Branch • Dhaka
+                </p>
+
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <h4>
+                        Administrator
+                    </h4>
+
+                    <p>
+                        Restaurant Owner
+                    </p>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- CONTENT -->
+
+        <div class="content">
+
+            <!-- PAGE HEADER -->
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Orders Management
+                    </h1>
+
+                    <p>
+                        View, search and manage all restaurant orders.
+                    </p>
+
+                </div>
+
+                <button class="btn btn-primary">
+                    + New Order
+                </button>
+
+            </div>
+
+            <!-- FILTERS -->
+
+            <div class="filter-card">
+
+                <form method="GET" action="{% url 'orders_list' %}" class="filter-form">
+
+                    <input type="text" name="search" value="{{ search }}" class="form-control"
+                        placeholder="Search by order ID or restaurant...">
+
+                    <select name="status" class="form-control" onchange="this.form.submit()">
+                        <option value="">
+                            All Statuses
+                        </option>
+
+                        {% for choice in status_choices %}
+                        <option value="{{ choice.value }}" {% if choice.selected %}selected{% endif %}>
+                            {{ choice.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="order_type" class="form-control" onchange="this.form.submit()">
+                        <option value="">
+                            All Order Types
+                        </option>
+
+                        {% for choice in order_type_choices %}
+                        <option value="{{ choice.value }}" {% if choice.selected %}selected{% endif %}>
+                            {{ choice.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="filter-button">
+                        Filter
+                    </button>
+
+                    <a href="{% url 'orders_list' %}" class="reset-button">
+                        Reset
+                    </a>
+
+                </form>
+
+            </div>
+
+            <!-- ORDERS TABLE -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h3>
+                            All Orders
+                        </h3>
+
+                        <p>
+                            Latest restaurant orders
+                        </p>
+
+                    </div>
+
+                    <div class="order-count">
+
+                        {{ page_obj.paginator.count }}
+                        order{{ page_obj.paginator.count|pluralize }}
+
+                    </div>
+
+                </div>
+
+                {% if page_obj %}
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    ORDER
+                                </th>
+
+                                <th>
+                                    TYPE
+                                </th>
+
+                                <th>
+                                    TABLE
+                                </th>
+
+                                <th>
+                                    RESTAURANT
+                                </th>
+
+                                <th>
+                                    AMOUNT
+                                </th>
+
+                                <th>
+                                    STATUS
+                                </th>
+
+                                <th>
+                                    DATE
+                                </th>
+
+                                <th>
+                                    ACTION
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for order in page_obj %}
+
+                            <tr>
+
+                                <td class="order-id">
+                                    #{{ order.id }}
+                                </td>
+
+                                <td>
+                                    {{ order.get_order_type_display }}
+                                </td>
+
+                                <td>
+
+                                    {% if order.table %}
+
+                                    Table {{ order.table.table_number }}
+
+                                    {% else %}
+
+                                    -
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ order.restaurant.name }}
+                                </td>
+
+                                <td>
+                                    ৳{{ order.total_amount|floatformat:2 }}
+                                </td>
+
+                                <td>
+
+                                    {% if order.status == "NEW" %}
+
+                                    <span class="badge badge-new">
+                                        New
+                                    </span>
+
+                                    {% elif order.status == "ACCEPTED" %}
+
+                                    <span class="badge badge-accepted">
+                                        Accepted
+                                    </span>
+
+                                    {% elif order.status == "PREPARING" %}
+
+                                    <span class="badge badge-preparing">
+                                        Preparing
+                                    </span>
+
+                                    {% elif order.status == "READY" %}
+
+                                    <span class="badge badge-ready">
+                                        Ready
+                                    </span>
+
+                                    {% elif order.status == "SERVED" %}
+
+                                    <span class="badge badge-served">
+                                        Served
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="badge badge-completed">
+                                        {{ order.get_status_display }}
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ order.created_at|date:"d M Y, h:i A" }}
+                                </td>
+
+                                <td>
+                                    <a href="{% url 'order_detail' order.id %}" class="view-btn">
+                                        View
+                                    </a>
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- PAGINATION -->
+
+                <div class="pagination-wrapper">
+
+                    <div class="pagination-info">
+
+                        Page {{ page_obj.number }}
+                        of {{ page_obj.paginator.num_pages }}
+
+                    </div>
+
+                    <div class="pagination">
+
+                        {% if page_obj.has_previous %}
+
+                        <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ selected_status }}&order_type={{ selected_order_type }}"
+                            class="page-link">
+                            ‹
+                        </a>
+
+                        {% endif %}
+
+                        {% for number in page_obj.paginator.page_range %}
+
+                        {% if number == page_obj.number %}
+
+                        <span class="page-link active">
+                            {{ number }}
+                        </span>
+
+                        {% elif number >= page_obj.number|add:"-2" and number <= page_obj.number|add:"2" %} <a
+                            href="?page={{ number }}&search={{ search }}&status={{ selected_status }}&order_type={{ selected_order_type }}"
+                            class="page-link">
+                            {{ number }}
+                            </a>
+
+                            {% endif %}
+
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+
+                            <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ selected_status }}&order_type={{ selected_order_type }}"
+                                class="page-link">
+                                ›
+                            </a>
+
+                            {% endif %}
+
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-state">
+
+                    <h3>
+                        No orders found
+                    </h3>
+
+                    <p>
+                        Try changing your search or filter options.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

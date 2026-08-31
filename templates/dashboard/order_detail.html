@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Order #{{ order.id }} | Restaurant 360
+    </title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+
+            --background: #f6f7fb;
+            --white: #ffffff;
+
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+
+            --border: #e5e7eb;
+
+            --blue: #2563eb;
+            --blue-light: #eff6ff;
+
+            --green: #16a34a;
+            --green-light: #f0fdf4;
+
+            --purple: #9333ea;
+            --purple-light: #faf5ff;
+
+            --yellow: #ca8a04;
+            --yellow-light: #fefce8;
+
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        select {
+            font-family: inherit;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            background: var(--primary);
+            color: white;
+
+            overflow-y: auto;
+        }
+
+        .brand {
+            height: 78px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 0 22px;
+
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: var(--accent);
+
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .brand h2 {
+            font-size: 17px;
+        }
+
+        .brand p {
+            margin-top: 4px;
+
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .sidebar-menu {
+            padding: 18px 14px 30px;
+        }
+
+        .menu-section {
+            margin-bottom: 22px;
+        }
+
+        .menu-title {
+            padding: 0 12px;
+            margin-bottom: 8px;
+
+            font-size: 10px;
+            letter-spacing: 1px;
+            font-weight: 700;
+
+            color: #6b7280;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 11px 13px;
+            margin-bottom: 4px;
+
+            border-radius: 8px;
+
+            color: #d1d5db;
+
+            font-size: 13px;
+        }
+
+        .menu-item:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 23px;
+            text-align: center;
+        }
+
+        /* MAIN */
+
+        .main {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 78px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 30px;
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .restaurant-info h3 {
+            font-size: 15px;
+        }
+
+        .restaurant-info p {
+            margin-top: 3px;
+
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-avatar {
+            width: 39px;
+            height: 39px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: var(--accent);
+            color: white;
+
+            font-weight: 700;
+        }
+
+        .profile h4 {
+            font-size: 12px;
+        }
+
+        .profile p {
+            margin-top: 2px;
+
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        /* CONTENT */
+
+        .content {
+            max-width: 1450px;
+            margin: auto;
+
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            margin-bottom: 22px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 6px;
+
+            font-size: 25px;
+        }
+
+        .page-header p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            padding: 10px 14px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            background: white;
+
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .layout {
+            display: grid;
+
+            grid-template-columns: minmax(0, 2fr) minmax(290px, 1fr);
+
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .card+.card {
+            margin-top: 20px;
+        }
+
+        .card-header {
+            min-height: 62px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 20px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            margin-bottom: 4px;
+
+            font-size: 14px;
+        }
+
+        .card-header p {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        /* INFO */
+
+        .info-grid {
+            display: grid;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 0;
+        }
+
+        .info-box {
+            padding: 20px;
+
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-box:nth-child(3n) {
+            border-right: none;
+        }
+
+        .info-label {
+            margin-bottom: 7px;
+
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .info-value {
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        /* ITEMS */
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 13px 18px;
+
+            background: #fafafa;
+
+            border-bottom: 1px solid var(--border);
+
+            text-align: left;
+
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        td {
+            padding: 15px 18px;
+
+            border-bottom: 1px solid #f1f1f1;
+
+            font-size: 11px;
+        }
+
+        .item-name {
+            font-weight: 650;
+        }
+
+        .total-row td {
+            background: #fafafa;
+
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        /* STATUS */
+
+        .badge {
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 20px;
+
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .badge-new {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .badge-accepted {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .badge-preparing {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .badge-ready {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .badge-served {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .badge-completed {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        /* RIGHT */
+
+        .sidebar-card-body {
+            padding: 20px;
+        }
+
+        .status-current {
+            margin-bottom: 20px;
+        }
+
+        .status-current p {
+            margin-bottom: 8px;
+
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .form-label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 42px;
+
+            margin-bottom: 12px;
+
+            padding: 0 12px;
+
+            border: 1px solid var(--border);
+            border-radius: 8px;
+
+            background: white;
+        }
+
+        .update-btn {
+            width: 100%;
+            height: 42px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: var(--accent);
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+
+            padding: 12px 0;
+
+            border-bottom: 1px solid #f1f1f1;
+
+            font-size: 11px;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row span:first-child {
+            color: var(--text-light);
+        }
+
+        @media (max-width: 1000px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .content {
+                padding: 18px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-box {
+                border-right: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                R
+            </div>
+
+            <div>
+                <h2>Restaurant 360</h2>
+                <p>Restaurant Management</p>
+            </div>
+
+        </div>
+
+        <div class="sidebar-menu">
+
+            <div class="menu-section">
+
+                <a href="{% url 'owner_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">▦</span>
+                    Dashboard
+                </a>
+
+            </div>
+
+            <div class="menu-section">
+
+                <div class="menu-title">
+                    OPERATIONS
+                </div>
+
+                <a href="{% url 'orders_list' %}" class="menu-item active">
+                    <span class="menu-icon">🧾</span>
+                    Orders
+                </a>
+
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">💳</span>
+                    POS
+                </a>
+
+                <a href="{% url 'kitchen_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">🍳</span>
+                    Kitchen Display
+                </a>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="restaurant-info">
+
+                <h3>
+                    {{ order.restaurant.name }}
+                </h3>
+
+                <p>
+                    Order Management
+                </p>
+
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <h4>
+                        Administrator
+                    </h4>
+
+                    <p>
+                        Restaurant Owner
+                    </p>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <div class="content">
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Order #{{ order.id }}
+                    </h1>
+
+                    <p>
+                        Review order information, items and status.
+                    </p>
+
+                </div>
+
+                <a href="{% url 'orders_list' %}" class="back-btn">
+                    ← Back to Orders
+                </a>
+
+            </div>
+
+            <div class="layout">
+
+                <!-- LEFT -->
+
+                <div>
+
+                    <!-- ORDER INFORMATION -->
+
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <h3>
+                                    Order Information
+                                </h3>
+
+                                <p>
+                                    Main details for this order
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="info-grid">
+
+                            <div class="info-box">
+
+                                <div class="info-label">
+                                    Order ID
+                                </div>
+
+                                <div class="info-value">
+                                    #{{ order.id }}
+                                </div>
+
+                            </div>
+
+                            <div class="info-box">
+
+                                <div class="info-label">
+                                    Order Type
+                                </div>
+
+                                <div class="info-value">
+                                    {{ order.get_order_type_display }}
+                                </div>
+
+                            </div>
+
+                            <div class="info-box">
+
+                                <div class="info-label">
+                                    Table
+                                </div>
+
+                                <div class="info-value">
+
+                                    {% if order.table %}
+                                    Table {{ order.table.table_number }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                            <div class="info-box">
+
+                                <div class="info-label">
+                                    Restaurant
+                                </div>
+
+                                <div class="info-value">
+                                    {{ order.restaurant.name }}
+                                </div>
+
+                            </div>
+
+                            <div class="info-box">
+
+                                <div class="info-label">
+                                    Created At
+                                </div>
+
+                                <div class="info-value">
+                                    {{ order.created_at|date:"d M Y, h:i A" }}
+                                </div>
+
+                            </div>
+
+                            <div class="info-box">
+
+                                <div class="info-label">
+                                    Total Amount
+                                </div>
+
+                                <div class="info-value">
+                                    ৳{{ order.total_amount|floatformat:2 }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ITEMS -->
+
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <h3>
+                                    Ordered Items
+                                </h3>
+
+                                <p>
+                                    Items included in this order
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div style="overflow-x:auto;">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            ITEM
+                                        </th>
+
+                                        <th>
+                                            QTY
+                                        </th>
+
+                                        <th>
+                                            UNIT PRICE
+                                        </th>
+
+                                        <th>
+                                            SUBTOTAL
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {% for item in order.items.all %}
+
+                                    <tr>
+
+                                        <td class="item-name">
+                                            {{ item.menu_item.name }}
+                                        </td>
+
+                                        <td>
+                                            {{ item.quantity }}
+                                        </td>
+
+                                        <td>
+                                            ৳{{ item.price|floatformat:2 }}
+                                        </td>
+
+                                        <td>
+                                            ৳{{ item.subtotal|floatformat:2 }}
+                                        </td>
+
+                                    </tr>
+
+                                    {% empty %}
+
+                                    <tr>
+
+                                        <td colspan="4" style="
+                                                    text-align:center;
+                                                    padding:30px;
+                                                    color:#6b7280;
+                                                ">
+                                            No order items found.
+                                        </td>
+
+                                    </tr>
+
+                                    {% endfor %}
+
+                                    <tr class="total-row">
+
+                                        <td colspan="3">
+                                            Total
+                                        </td>
+
+                                        <td>
+                                            ৳{{ order.total_amount|floatformat:2 }}
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+
+                <div>
+
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <h3>
+                                    Order Status
+                                </h3>
+
+                                <p>
+                                    Manage current workflow status
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="sidebar-card-body">
+
+                            <div class="status-current">
+
+                                <p>
+                                    Current Status
+                                </p>
+
+                                {% if order.status == "NEW" %}
+
+                                <span class="badge badge-new">
+                                    New
+                                </span>
+
+                                {% elif order.status == "ACCEPTED" %}
+
+                                <span class="badge badge-accepted">
+                                    Accepted
+                                </span>
+
+                                {% elif order.status == "PREPARING" %}
+
+                                <span class="badge badge-preparing">
+                                    Preparing
+                                </span>
+
+                                {% elif order.status == "READY" %}
+
+                                <span class="badge badge-ready">
+                                    Ready
+                                </span>
+
+                                {% elif order.status == "SERVED" %}
+
+                                <span class="badge badge-served">
+                                    Served
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge badge-completed">
+                                    {{ order.get_status_display }}
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+                            {% if status_choices %}
+
+
+                            <form method="POST">
+                                {% csrf_token %}
+
+                                {% for value, label in status_choices %}
+
+                                <input type="hidden" name="status" value="{{ value }}">
+
+                                <button type="submit" class="update-btn">
+                                    {% if value == "ACCEPTED" %}
+                                    Accept Order
+
+                                    {% elif value == "PREPARING" %}
+                                    Start Preparing
+
+                                    {% elif value == "READY" %}
+                                    Mark as Ready
+
+                                    {% elif value == "SERVED" %}
+                                    Mark as Served
+
+                                    {% elif value == "COMPLETED" %}
+                                    Complete Order
+
+                                    {% else %}
+                                    Update Status
+                                    {% endif %}
+                                </button>
+
+                                {% endfor %}
+                            </form>
+
+                            {% else %}
+
+                            <div style="
+        padding: 14px;
+        background: #f0fdf4;
+        color: #15803d;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+    ">
+                                ✓ Order Completed
+                            </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <h3>
+                                    Order Summary
+                                </h3>
+
+                                <p>
+                                    Quick order overview
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="sidebar-card-body">
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Order Type
+                                </span>
+
+                                <strong>
+                                    {{ order.get_order_type_display }}
+                                </strong>
+
+                            </div>
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Items
+                                </span>
+
+                                <strong>
+                                    {{ order.items.count }}
+                                </strong>
+
+                            </div>
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Table
+                                </span>
+
+                                <strong>
+
+                                    {% if order.table %}
+                                    {{ order.table.table_number }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+
+                                </strong>
+
+                            </div>
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Total
+                                </span>
+
+                                <strong>
+                                    ৳{{ order.total_amount|floatformat:2 }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

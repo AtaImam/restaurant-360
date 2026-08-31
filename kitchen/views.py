@@ -1,31 +1,48 @@
 from django.shortcuts import render, get_object_or_404, redirect
+
 from orders.models import Order
 
 
 def kitchen_dashboard(request):
     orders = Order.objects.exclude(
-        status__in=['SERVED', 'COMPLETED']
+        status__in=[
+            'SERVED',
+            'COMPLETED'
+        ]
     ).order_by('-created_at')
 
-    return render(request, 'kitchen/dashboard.html', {
-        'orders': orders
-    })
+    return render(
+        request,
+        'kitchen/dashboard.html',
+        {
+            'orders': orders
+        }
+    )
 
 
 def update_order_status(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(
+        Order,
+        id=order_id
+    )
+
+    kitchen_transitions = {
+        'NEW': 'ACCEPTED',
+        'ACCEPTED': 'PREPARING',
+        'PREPARING': 'READY',
+    }
 
     if request.method == 'POST':
+        next_status = kitchen_transitions.get(
+            order.status
+        )
 
-        if order.status == 'NEW':
-            order.status = 'ACCEPTED'
+        if next_status:
+            order.status = next_status
+            order.save(
+                update_fields=['status']
+            )
 
-        elif order.status == 'ACCEPTED':
-            order.status = 'PREPARING'
-
-        elif order.status == 'PREPARING':
-            order.status = 'READY'
-
-        order.save()
-
-    return redirect('kitchen_dashboard')
+    return redirect(
+        'kitchen_dashboard'
+    )

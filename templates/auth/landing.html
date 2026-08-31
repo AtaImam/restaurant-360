@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant 360 - Modern Restaurant Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #111827;
+            --secondary: #1f2937;
+            --accent: #f97316;
+            --accent-light: #fff7ed;
+            --background: #f6f7fb;
+            --white: #ffffff;
+            --text-dark: #111827;
+            --text: #374151;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --green: #16a34a;
+            --blue: #2563eb;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--white);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--text);
+            font-weight: 500;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-login,
+        .btn-primary {
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login {
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            background: transparent;
+        }
+
+        .btn-login:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ea6317;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            margin-top: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .hero-highlight {
+            color: var(--accent);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            padding: 1rem 2.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .btn-hero.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-hero.primary:hover {
+            background: #ea6317;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-hero.secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-hero.secondary:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* ===== FEATURES ===== */
+        .features {
+            padding: 5rem 2rem;
+            background: var(--background);
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--accent-light);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* ===== STATS ===== */
+        .stats {
+            padding: 5rem 2rem;
+            background: var(--primary);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .stat-item p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* ===== ROLES ===== */
+        .roles {
+            padding: 5rem 2rem;
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .role-card {
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .role-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.15);
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .role-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .role-card p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .role-features {
+            text-align: left;
+            background: var(--background);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .role-features li {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        /* ===== CTA ===== */
+        .cta {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #ea6317 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            text-align: left;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .role-card {
+                padding: 1.5rem;
+            }
+
+            .cta h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* ===== MESSAGES ===== */
+        .messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .alert-warning {
+            background: #fefce8;
+            border-color: var(--yellow);
+            color: #92400e;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                🍽️ <span>Restaurant</span>360
+            </div>
+            <nav>
+                <a href="#features">Features</a>
+                <a href="#roles">Roles</a>
+                <a href="#cta">Get Started</a>
+                <div class="nav-buttons">
+                    <a href="{% url 'users:login' %}" class="btn-login">Log In</a>
+                    <a href="{% url 'users:login' %}" class="btn-primary">Start Free Trial</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Modern <span class="hero-highlight">Restaurant Management</span> Made Simple</h1>
+            <p>Streamline your restaurant operations with Restaurant 360. Manage orders, kitchen workflows, staff, and inventory all from one powerful platform.</p>
+            <div class="hero-buttons">
+                <a href="{% url 'users:login' %}" class="btn-hero primary">Get Started Now</a>
+                <a href="#features" class="btn-hero secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-container">
+            <div class="section-title">
+                <h2>Powerful Features</h2>
+                <p>Everything you need to run your restaurant efficiently</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>QR Code Ordering</h3>
+                    <p>Customers scan QR codes at their tables to browse the menu and place orders directly from their
+                        phones.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🍳</div>
+                    <h3>Kitchen Dashboard</h3>
+                    <p>Real-time order management with kitchen display system for efficient food preparation and
+                        tracking.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Staff Management</h3>
+                    <p>Manage different staff roles with role-based access control and permissions for security and
+                        integrity.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Analytics & Reports</h3>
+                    <p>Get insights into your restaurant performance with comprehensive sales reports and analytics.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure & Reliable</h3>
+                    <p>Enterprise-grade security with role-based access control ensuring data integrity and protection.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Fast & Responsive</h3>
+                    <p>Lightning-fast performance optimized for touch devices with intuitive user interface.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="section-container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>{{ total_restaurants }}</h3>
+                    <p>Restaurants Using</p>
+                </div>
+                <div class="stat-item">
+                    <h3>{{ total_users }}</h3>
+                    <p>Active Users</p>
+                </div>
+                <div class="stat-item">
+                    <h3>24/7</h3>
+                    <p>Uptime Guarantee</p>
+                </div>
+                <div class="stat-item">
+                    <h3>100%</h3>
+                    <p>Satisfaction Rate</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="roles" id="roles">
+        <div class="section-container">
+            <div class="section-title">
+                <h2>Multiple User Roles</h2>
+                <p>Different dashboards for different roles with limited access</p>
+            </div>
+            <div class="roles-grid">
+                <div class="role-card">
+                    <div class="role-badge">Admin</div>
+                    <h3>👨‍💼 Admin</h3>
+                    <p>Full system access with administrative controls and user management capabilities.</p>
+                    <div class="role-features">
+                        <ul>
+                            <li>✓ Manage all restaurants</li>
+                            <li>✓ Manage all staff</li>
+                            <li>✓ System settings</li>
+                            <li>✓ View all reports</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="role-card">
+                    <div class="role-badge">Owner</div>
+                    <h3>🏢 Owner</h3>
+                    <p>Complete control over restaurant operations and all management functions.</p>
+                    <div class="role-features">
+                        <ul>
+                            <li>✓ Restaurant management</li>
+                            <li>✓ Staff management</li>
+                            <li>✓ Financial reports</li>
+                            <li>✓ Menu management</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="role-card">
+                    <div class="role-badge">Manager</div>
+                    <h3>👔 Manager</h3>
+                    <p>Day-to-day restaurant management and staff coordination.</p>
+                    <div class="role-features">
+                        <ul>
+                            <li>✓ Shift management</li>
+                            <li>✓ Order oversight</li>
+                            <li>✓ Staff coordination</li>
+                            <li>✓ Daily reports</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="role-card">
+                    <div class="role-badge">Waiter</div>
+                    <h3>👨‍🍳 Waiter</h3>
+                    <p>Take orders and assist customers during their dining experience.</p>
+                    <div class="role-features">
+                        <ul>
+                            <li>✓ Order management</li>
+                            <li>✓ View customer orders</li>
+                            <li>✓ Table management</li>
+                            <li>✓ Order status</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="role-card">
+                    <div class="role-badge">Chef</div>
+                    <h3>🍳 Chef</h3>
+                    <p>Food preparation and kitchen operations management.</p>
+                    <div class="role-features">
+                        <ul>
+                            <li>✓ View orders</li>
+                            <li>✓ Update order status</li>
+                            <li>✓ Kitchen dashboard</li>
+                            <li>✓ Inventory checks</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="role-card">
+                    <div class="role-badge">Kitchen Manager</div>
+                    <h3>🏆 Kitchen Manager</h3>
+                    <p>Oversee kitchen operations and staff coordination.</p>
+                    <div class="role-features">
+                        <ul>
+                            <li>✓ Kitchen oversight</li>
+                            <li>✓ Staff management</li>
+                            <li>✓ Menu planning</li>
+                            <li>✓ Inventory management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta" id="cta">
+        <div class="cta-content">
+            <h2>Ready to Transform Your Restaurant?</h2>
+            <p>Join thousands of restaurants using Restaurant 360 to streamline their operations and improve customer
+                experience.</p>
+            <a href="{% url 'users:login' %}" class="btn-hero primary">Get Started Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Restaurant 360</h4>
+                <p>Modern restaurant management software designed to simplify your operations.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="#roles">Roles</a>
+                <a href="{% url 'users:login' %}">Login</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="mailto:support@restaurant360.com">Email Support</a>
+                <a href="#">Documentation</a>
+                <a href="#">FAQ</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Restaurant 360. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -195,6 +195,9 @@
   </div>
 
   <div class="container">
+    {% for message in messages %}
+    <div role="alert" class="order-card">{{ message }}</div>
+    {% endfor %}
     {% if orders %}
 
     <div class="orders-grid">
@@ -204,43 +207,7 @@
         <div class="order-top">
           <span class="order-number"> Order #{{ order.id }} </span>
 
-          {% if order.status == "NEW" %}
-
-          <form method="POST" action="{% url 'update_order_status' order.id %}">
-            {% csrf_token %}
-
-            <button type="submit">
-              Accept Order
-            </button>
-          </form>
-
-          {% elif order.status == "ACCEPTED" %}
-
-          <form method="POST" action="{% url 'update_order_status' order.id %}">
-            {% csrf_token %}
-
-            <button type="submit">
-              Start Preparing
-            </button>
-          </form>
-
-          {% elif order.status == "PREPARING" %}
-
-          <form method="POST" action="{% url 'update_order_status' order.id %}">
-            {% csrf_token %}
-
-            <button type="submit">
-              Mark Ready
-            </button>
-          </form>
-
-          {% elif order.status == "READY" %}
-
-          <div>
-            Ready — Waiting for waiter
-          </div>
-
-          {% endif %}
+          <span class="status status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
         </div>
 
         <div class="order-info">
@@ -275,7 +242,7 @@
         <form method="POST" action="{% url 'update_order_status' order.id %}">
           {% csrf_token %}
 
-          <button type="submit" class="action-button">Accept Order</button>
+          <button type="submit" name="status" value="ACCEPTED" class="action-button">Accept Order</button>
         </form>
 
         {% elif order.status == 'ACCEPTED' %}
@@ -283,7 +250,7 @@
         <form method="POST" action="{% url 'update_order_status' order.id %}">
           {% csrf_token %}
 
-          <button type="submit" class="action-button">Start Preparing</button>
+          <button type="submit" name="status" value="PREPARING" class="action-button">Start Preparing</button>
         </form>
 
         {% elif order.status == 'PREPARING' %}
@@ -291,7 +258,7 @@
         <form method="POST" action="{% url 'update_order_status' order.id %}">
           {% csrf_token %}
 
-          <button type="submit" class="action-button">Mark as Ready</button>
+          <button type="submit" name="status" value="READY" class="action-button">Mark as Ready</button>
         </form>
 
         {% elif order.status == 'READY' %}

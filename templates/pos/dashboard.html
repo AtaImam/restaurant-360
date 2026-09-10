@@ -1,0 +1,2095 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}POS | Restaurant 360{% endblock %}
+{% block page_title %}Point of Sale{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    .pos-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 410px;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* =========================
+       LEFT / MENU AREA
+    ========================== */
+
+    .pos-main {
+        min-width: 0;
+    }
+
+    .pos-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .pos-title h1 {
+        margin: 0 0 4px;
+        font-size: 27px;
+        color: #111827;
+        letter-spacing: -0.5px;
+    }
+
+    .pos-title p {
+        margin: 0;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .pos-search-wrap {
+        position: relative;
+        width: 330px;
+        max-width: 100%;
+    }
+
+    .pos-search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 15px;
+    }
+
+    .pos-search {
+        width: 100%;
+        height: 43px;
+        padding: 0 15px 0 41px;
+        border: 1px solid #e5e7eb;
+        border-radius: 11px;
+        background: #fff;
+        outline: none;
+        font-size: 12px;
+        color: #111827;
+        transition: 0.2s ease;
+    }
+
+    .pos-search:focus {
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.08);
+    }
+
+
+    /* =========================
+       CATEGORIES
+    ========================== */
+
+    .category-bar {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 2px 1px 10px;
+        margin-bottom: 12px;
+        scrollbar-width: thin;
+    }
+
+    .category-chip {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #4b5563;
+        padding: 9px 14px;
+        border-radius: 9px;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 11px;
+        font-weight: 700;
+        transition: 0.18s ease;
+    }
+
+    .category-chip:hover {
+        border-color: #fdba74;
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .category-chip.active {
+        border-color: #f97316;
+        background: #f97316;
+        color: white;
+    }
+
+
+    /* =========================
+       PRODUCT GRID
+    ========================== */
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 13px;
+    }
+
+    .product-card {
+        position: relative;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-2px);
+        border-color: #fdba74;
+        box-shadow: 0 10px 24px rgba(17, 24, 39, 0.07);
+    }
+
+    .product-image {
+        height: 120px;
+        background: linear-gradient(
+            135deg,
+            #fff7ed,
+            #f9fafb
+        );
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-fallback {
+        width: 54px;
+        height: 54px;
+        border-radius: 18px;
+        background: #ffedd5;
+        color: #f97316;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+    }
+
+    .product-body {
+        padding: 11px 12px 12px;
+    }
+
+    .product-category {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #f97316;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .product-name {
+        min-height: 34px;
+        font-size: 12px;
+        line-height: 17px;
+        font-weight: 750;
+        color: #111827;
+        margin-bottom: 8px;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .product-price {
+        font-size: 14px;
+        font-weight: 850;
+        color: #111827;
+    }
+
+    .product-add {
+        width: 29px;
+        height: 29px;
+        border: none;
+        border-radius: 8px;
+        background: #fff7ed;
+        color: #f97316;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .product-card:hover .product-add {
+        background: #f97316;
+        color: #fff;
+    }
+
+    .no-products {
+        grid-column: 1 / -1;
+        background: white;
+        border: 1px dashed #d1d5db;
+        border-radius: 13px;
+        text-align: center;
+        padding: 50px 20px;
+        color: #6b7280;
+    }
+
+
+    /* =========================
+       ORDER PANEL
+    ========================== */
+
+    .order-panel {
+        position: sticky;
+        top: 82px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(17, 24, 39, 0.04);
+    }
+
+    .order-head {
+        padding: 16px 17px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .order-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .order-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: #fff7ed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+    }
+
+    .order-head h2 {
+        margin: 0;
+        font-size: 16px;
+        color: #111827;
+    }
+
+    .order-number {
+        margin-top: 2px;
+        font-size: 9px;
+        color: #9ca3af;
+    }
+
+    .clear-cart {
+        border: none;
+        background: transparent;
+        color: #dc2626;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+
+    /* =========================
+       ORDER TYPE
+    ========================== */
+
+    .order-config {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .type-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-bottom: 14px;
+    }
+
+    .type-btn {
+        padding: 9px 5px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #fff;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .type-btn.active {
+        border-color: #f97316;
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .type-btn.disabled {
+        opacity: 0.45;
+    }
+
+
+    /* =========================
+       TABLE + WAITER
+    ========================== */
+
+    .order-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 9px;
+        font-weight: 750;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .field-with-icon {
+        position: relative;
+    }
+
+    .field-icon {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 11px;
+        color: #9ca3af;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .field-control {
+        width: 100%;
+        height: 39px;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
+        padding: 0 10px;
+        background: #fff;
+        color: #111827;
+        outline: none;
+        font-size: 10px;
+        transition: 0.2s ease;
+    }
+
+    .field-control-icon {
+        padding-left: 32px;
+    }
+
+    .field-control:focus {
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.06);
+    }
+
+
+    /* =========================
+       CART ITEMS
+    ========================== */
+
+    .cart-list {
+        padding: 5px 16px;
+        max-height: 285px;
+        overflow-y: auto;
+    }
+
+    .empty-cart {
+        padding: 34px 10px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 10px;
+        line-height: 17px;
+    }
+
+    .empty-cart-icon {
+        font-size: 31px;
+        margin-bottom: 7px;
+        opacity: 0.7;
+    }
+
+    .cart-row {
+        padding: 11px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .cart-row-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .cart-name {
+        font-size: 11px;
+        font-weight: 750;
+        color: #111827;
+    }
+
+    .cart-unit {
+        font-size: 9px;
+        color: #9ca3af;
+        margin-top: 3px;
+    }
+
+    .cart-line-total {
+        font-size: 11px;
+        font-weight: 800;
+        color: #111827;
+        white-space: nowrap;
+    }
+
+    .cart-row-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 9px;
+    }
+
+    .qty-box {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .qty-btn {
+        width: 25px;
+        height: 25px;
+        padding: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 7px;
+        background: #fff;
+        color: #374151;
+        cursor: pointer;
+        font-weight: 800;
+    }
+
+    .qty-btn:hover {
+        border-color: #fdba74;
+        color: #f97316;
+    }
+
+    .qty-number {
+        min-width: 18px;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .remove-item {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 9px;
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+
+    /* =========================
+       DISCOUNT / TOTAL
+    ========================== */
+
+    .pricing-area {
+        border-top: 1px solid #f1f5f9;
+        padding: 13px 16px 14px;
+        background: #fcfcfd;
+    }
+
+    .coupon-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 7px;
+        margin-bottom: 10px;
+    }
+
+    .coupon-input {
+        height: 34px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0 10px;
+        outline: none;
+        font-size: 9px;
+    }
+
+    .coupon-input:focus {
+        border-color: #f97316;
+    }
+
+    .coupon-btn {
+        border: 1px solid #fed7aa;
+        background: #fff7ed;
+        color: #ea580c;
+        border-radius: 8px;
+        padding: 0 12px;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 800;
+    }
+
+    .charges-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-bottom: 13px;
+    }
+
+    .charge-box label {
+        display: block;
+        font-size: 8px;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+
+    .charge-input {
+        width: 100%;
+        height: 31px;
+        border: 1px solid #e5e7eb;
+        border-radius: 7px;
+        padding: 0 7px;
+        font-size: 9px;
+        outline: none;
+    }
+
+    .charge-input:focus {
+        border-color: #f97316;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        color: #6b7280;
+        margin-bottom: 7px;
+    }
+
+    .summary-line strong {
+        color: #374151;
+    }
+
+    .summary-total {
+        margin-top: 10px;
+        padding-top: 11px;
+        border-top: 1px dashed #d1d5db;
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+    }
+
+    .summary-total span:first-child {
+        font-size: 12px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .summary-total-value {
+        font-size: 21px;
+        line-height: 22px;
+        color: #f97316;
+        font-weight: 900;
+    }
+
+
+    /* =========================
+       ACTION BUTTONS
+    ========================== */
+
+    .pos-actions {
+        display: grid;
+        grid-template-columns: 0.8fr 1fr 1.5fr;
+        gap: 7px;
+        padding: 13px 16px 16px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .action-btn {
+        height: 39px;
+        border-radius: 9px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .draft-btn {
+        color: #4b5563;
+    }
+
+    .kot-btn {
+        color: #ea580c;
+        border-color: #fed7aa;
+        background: #fff7ed;
+    }
+
+    .pay-btn {
+        border: none;
+        background: #f97316;
+        color: white;
+        font-size: 10px;
+    }
+
+    .pay-btn:disabled,
+    .kot-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+
+    /* =========================
+       TOAST
+    ========================== */
+
+    .pos-toast {
+        position: fixed;
+        right: 25px;
+        bottom: 25px;
+        z-index: 99999;
+        min-width: 260px;
+        max-width: 380px;
+        background: #111827;
+        color: #fff;
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-size: 11px;
+        box-shadow: 0 12px 35px rgba(0,0,0,.18);
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+        transition: .25s ease;
+    }
+
+    .pos-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+
+    /* =========================
+       RESPONSIVE
+    ========================== */
+
+    @media (max-width: 1450px) {
+        .product-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 1180px) {
+        .pos-shell {
+            grid-template-columns: minmax(0, 1fr) 365px;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 950px) {
+        .pos-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .order-panel {
+            position: static;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 700px) {
+        .pos-top {
+            flex-direction: column;
+        }
+
+        .pos-search-wrap {
+            width: 100%;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 460px) {
+        .product-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="pos-top">
+
+    <div class="pos-title">
+        <h1>Point of Sale</h1>
+
+        <p>
+            {% if restaurant %}
+                {{ restaurant.name }} · Fast restaurant order entry
+            {% else %}
+                Restaurant order entry
+            {% endif %}
+        </p>
+    </div>
+
+
+    <div class="pos-search-wrap">
+
+        <span class="pos-search-icon">
+            ⌕
+        </span>
+
+        <input
+            id="menuSearch"
+            class="pos-search"
+            type="text"
+            placeholder="Search menu items..."
+            autocomplete="off"
+        >
+
+    </div>
+
+</div>
+
+
+<div class="pos-shell">
+
+    <!-- =========================
+         MENU SIDE
+    ========================== -->
+
+    <section class="pos-main">
+
+        <div class="category-bar">
+
+            <button
+                type="button"
+                class="category-chip active"
+                data-category="all"
+            >
+                All Items
+            </button>
+
+
+            {% for category in categories %}
+
+                <button
+                    type="button"
+                    class="category-chip"
+                    data-category="{{ category.id }}"
+                >
+                    {{ category.name }}
+                </button>
+
+            {% endfor %}
+
+        </div>
+
+
+        <div
+            class="product-grid"
+            id="productGrid"
+        >
+
+            {% for item in menu_items %}
+
+                <article
+                    class="product-card"
+                    data-id="{{ item.id }}"
+                    data-name="{{ item.name|escape }}"
+                    data-price="{{ item.price }}"
+                    data-category="{{ item.category.id }}"
+                    data-search="{{ item.name|lower }} {{ item.category.name|lower }}"
+                >
+
+                    <div class="product-image">
+
+                        {% if item.image %}
+
+                            <img
+                                src="{{ item.image.url }}"
+                                alt="{{ item.name }}"
+                            >
+
+                        {% else %}
+
+                            <div class="product-fallback">
+                                🍽
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="product-body">
+
+                        <div class="product-category">
+                            {{ item.category.name }}
+                        </div>
+
+                        <div class="product-name">
+                            {{ item.name }}
+                        </div>
+
+                        <div class="product-footer">
+
+                            <span class="product-price">
+                                ৳{{ item.price|floatformat:2 }}
+                            </span>
+
+                            <button
+                                type="button"
+                                class="product-add"
+                                aria-label="Add {{ item.name }}"
+                            >
+                                +
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% empty %}
+
+                <div class="no-products">
+                    No available menu items found.
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         CURRENT ORDER
+    ========================== -->
+
+    <aside class="order-panel">
+
+        <div class="order-head">
+
+            <div class="order-title-wrap">
+
+                <div class="order-icon">
+                    🛒
+                </div>
+
+                <div>
+
+                    <h2>
+                        Current Order
+                    </h2>
+
+                    <div
+                        class="order-number"
+                        id="cartCount"
+                    >
+                        0 items
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="clear-cart"
+                id="clearCartBtn"
+            >
+                Clear all
+            </button>
+
+        </div>
+
+
+        <div class="order-config">
+
+            <div class="type-tabs">
+
+                <button
+                    type="button"
+                    class="type-btn active"
+                    data-type="DINE_IN"
+                >
+                    🍽 Dine In
+                </button>
+
+
+                <button
+                    type="button"
+                    class="type-btn"
+                    data-type="TAKEAWAY"
+                >
+                    🛍 Takeaway
+                </button>
+
+
+                <button
+                    type="button"
+                    class="type-btn disabled"
+                    data-type="DELIVERY"
+                    title="Delivery module will be connected later"
+                >
+                    🚚 Delivery
+                </button>
+
+            </div>
+
+
+            <div class="order-fields">
+
+                <div
+                    class="order-field"
+                    id="tableField"
+                >
+
+                    <label class="field-label">
+                        Table
+                    </label>
+
+                    <div class="field-with-icon">
+
+                        <span class="field-icon">
+                            ▦
+                        </span>
+
+                        <select
+                            id="tableSelect"
+                            class="field-control field-control-icon"
+                        >
+
+                            <option value="">
+                                Select Table
+                            </option>
+
+                            {% for table in tables %}
+
+                                <option value="{{ table.id }}">
+                                    Table {{ table.table_number }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div class="order-field">
+
+                    <label class="field-label">
+                        Waiter
+                    </label>
+
+                    <div class="field-with-icon">
+
+                        <span class="field-icon">
+                            👤
+                        </span>
+
+                        <select
+                            id="waiterSelect"
+                            class="field-control field-control-icon"
+                        >
+
+                            <option value="">
+                                Unassigned
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             CART
+        ========================== -->
+
+        <div
+            class="cart-list"
+            id="cartList"
+        >
+
+            <div class="empty-cart">
+
+                <div class="empty-cart-icon">
+                    🛒
+                </div>
+
+                No items added yet.<br>
+                Select products from the menu.
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             PRICING
+        ========================== -->
+
+        <div class="pricing-area">
+
+            <div class="coupon-row">
+
+                <input
+                    type="text"
+                    id="couponCode"
+                    class="coupon-input"
+                    placeholder="Coupon code"
+                >
+
+                <button
+                    type="button"
+                    id="applyCouponBtn"
+                    class="coupon-btn"
+                >
+                    Apply
+                </button>
+
+            </div>
+
+
+            <div class="charges-grid">
+
+                <div class="charge-box">
+
+                    <label>
+                        Discount ৳
+                    </label>
+
+                    <input
+                        type="number"
+                        id="discountInput"
+                        class="charge-input"
+                        value="0"
+                        min="0"
+                        step="1"
+                    >
+
+                </div>
+
+
+                <div class="charge-box">
+
+                    <label>
+                        Service %
+                    </label>
+
+                    <input
+                        type="number"
+                        id="serviceInput"
+                        class="charge-input"
+                        value="0"
+                        min="0"
+                        step="1"
+                    >
+
+                </div>
+
+
+                <div class="charge-box">
+
+                    <label>
+                        VAT %
+                    </label>
+
+                    <input
+                        type="number"
+                        id="vatInput"
+                        class="charge-input"
+                        value="0"
+                        min="0"
+                        step="1"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-line">
+
+                <span>
+                    Subtotal
+                </span>
+
+                <strong id="subtotalText">
+                    ৳0.00
+                </strong>
+
+            </div>
+
+
+            <div class="summary-line">
+
+                <span>
+                    Discount
+                </span>
+
+                <strong id="discountText">
+                    - ৳0.00
+                </strong>
+
+            </div>
+
+
+            <div class="summary-line">
+
+                <span>
+                    Service Charge
+                </span>
+
+                <strong id="serviceText">
+                    ৳0.00
+                </strong>
+
+            </div>
+
+
+            <div class="summary-line">
+
+                <span>
+                    VAT
+                </span>
+
+                <strong id="vatText">
+                    ৳0.00
+                </strong>
+
+            </div>
+
+
+            <div class="summary-total">
+
+                <span>
+                    Total
+                </span>
+
+                <span
+                    class="summary-total-value"
+                    id="totalText"
+                >
+                    ৳0.00
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             ACTIONS
+        ========================== -->
+
+        <div class="pos-actions">
+
+            <button
+                type="button"
+                class="action-btn draft-btn"
+                id="saveDraftBtn"
+            >
+                Save Draft
+            </button>
+
+
+            <button
+                type="button"
+                class="action-btn kot-btn"
+                id="kotBtn"
+                disabled
+            >
+                Send KOT
+            </button>
+
+
+            <button
+                type="button"
+                class="action-btn pay-btn"
+                id="billPayBtn"
+                disabled
+            >
+                Bill & Pay
+            </button>
+
+        </div>
+
+    </aside>
+
+</div>
+
+
+<div
+    class="pos-toast"
+    id="posToast"
+></div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    let cart = {};
+    let selectedCategory = "all";
+    let orderType = "DINE_IN";
+    let orderSubmitting = false;
+
+    const productCards = document.querySelectorAll(".product-card");
+    const addButtons = document.querySelectorAll(".product-add");
+    const categoryButtons = document.querySelectorAll(".category-chip");
+    const typeButtons = document.querySelectorAll(".type-btn");
+
+    const menuSearch = document.getElementById("menuSearch");
+    const cartList = document.getElementById("cartList");
+    const cartCount = document.getElementById("cartCount");
+    const clearCartBtn = document.getElementById("clearCartBtn");
+
+    const tableField = document.getElementById("tableField");
+    const tableSelect = document.getElementById("tableSelect");
+
+    const discountInput = document.getElementById("discountInput");
+    const serviceInput = document.getElementById("serviceInput");
+    const vatInput = document.getElementById("vatInput");
+
+    const subtotalText = document.getElementById("subtotalText");
+    const discountText = document.getElementById("discountText");
+    const serviceText = document.getElementById("serviceText");
+    const vatText = document.getElementById("vatText");
+    const totalText = document.getElementById("totalText");
+
+    const kotBtn = document.getElementById("kotBtn");
+    const billPayBtn = document.getElementById("billPayBtn");
+    const saveDraftBtn = document.getElementById("saveDraftBtn");
+    const applyCouponBtn = document.getElementById("applyCouponBtn");
+
+    const posToast = document.getElementById("posToast");
+
+
+    function money(value) {
+        return "৳" + Number(value).toFixed(2);
+    }
+
+
+    function showToast(message) {
+
+        posToast.textContent = message;
+
+        posToast.classList.add("show");
+
+        setTimeout(function () {
+            posToast.classList.remove("show");
+        }, 2500);
+    }
+
+
+    function getSubtotal() {
+
+        return Object.values(cart).reduce(
+            function (total, item) {
+
+                return total + (
+                    Number(item.price) *
+                    Number(item.quantity)
+                );
+            },
+            0
+        );
+    }
+
+
+    function getPricing() {
+
+        const subtotal = getSubtotal();
+
+        let discount =
+            Number(discountInput.value || 0);
+
+        let servicePercent =
+            Number(serviceInput.value || 0);
+
+        let vatPercent =
+            Number(vatInput.value || 0);
+
+
+        if (discount < 0) {
+            discount = 0;
+        }
+
+        if (servicePercent < 0) {
+            servicePercent = 0;
+        }
+
+        if (vatPercent < 0) {
+            vatPercent = 0;
+        }
+
+        if (discount > subtotal) {
+            discount = subtotal;
+        }
+
+
+        const afterDiscount =
+            subtotal - discount;
+
+        const serviceCharge =
+            afterDiscount *
+            servicePercent /
+            100;
+
+        const taxableAmount =
+            afterDiscount +
+            serviceCharge;
+
+        const vat =
+            taxableAmount *
+            vatPercent /
+            100;
+
+        const grandTotal =
+            taxableAmount +
+            vat;
+
+
+        return {
+            subtotal: subtotal,
+            discount: discount,
+            serviceCharge: serviceCharge,
+            vat: vat,
+            grandTotal: grandTotal
+        };
+    }
+
+
+    function updateTotals() {
+
+        const pricing = getPricing();
+
+        subtotalText.textContent =
+            money(pricing.subtotal);
+
+        discountText.textContent =
+            "- " + money(pricing.discount);
+
+        serviceText.textContent =
+            money(pricing.serviceCharge);
+
+        vatText.textContent =
+            money(pricing.vat);
+
+        totalText.textContent =
+            money(pricing.grandTotal);
+    }
+
+
+    function updateButtons() {
+
+        const hasItems =
+            Object.keys(cart).length > 0;
+
+        kotBtn.disabled =
+            !hasItems || orderSubmitting;
+
+        billPayBtn.disabled =
+            !hasItems || orderSubmitting;
+    }
+
+
+    function renderCart() {
+
+        const items =
+            Object.values(cart);
+
+
+        if (items.length === 0) {
+
+            cartList.innerHTML = `
+                <div class="empty-cart">
+
+                    <div class="empty-cart-icon">
+                        🛒
+                    </div>
+
+                    No items added yet.<br>
+                    Select products from the menu.
+
+                </div>
+            `;
+
+            cartCount.textContent =
+                "0 items";
+
+            updateTotals();
+            updateButtons();
+
+            return;
+        }
+
+
+        let html = "";
+        let totalQuantity = 0;
+
+
+        items.forEach(function (item) {
+
+            const lineTotal =
+                Number(item.price) *
+                Number(item.quantity);
+
+            totalQuantity +=
+                Number(item.quantity);
+
+
+            html += `
+                <div class="cart-row">
+
+                    <div class="cart-row-top">
+
+                        <div>
+
+                            <div class="cart-name">
+                                ${item.name}
+                            </div>
+
+                            <div class="cart-unit">
+                                ${money(item.price)} each
+                            </div>
+
+                        </div>
+
+                        <div class="cart-line-total">
+                            ${money(lineTotal)}
+                        </div>
+
+                    </div>
+
+
+                    <div class="cart-row-bottom">
+
+                        <div class="qty-box">
+
+                            <button
+                                type="button"
+                                class="qty-btn"
+                                data-cart-action="decrease"
+                                data-id="${item.id}"
+                            >
+                                −
+                            </button>
+
+                            <span class="qty-number">
+                                ${item.quantity}
+                            </span>
+
+                            <button
+                                type="button"
+                                class="qty-btn"
+                                data-cart-action="increase"
+                                data-id="${item.id}"
+                            >
+                                +
+                            </button>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="remove-item"
+                            data-cart-action="remove"
+                            data-id="${item.id}"
+                        >
+                            Remove
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+        });
+
+
+        cartList.innerHTML =
+            html;
+
+
+        cartCount.textContent =
+            totalQuantity +
+            (
+                totalQuantity === 1
+                    ? " item"
+                    : " items"
+            );
+
+
+        updateTotals();
+        updateButtons();
+    }
+
+
+    function addProduct(card) {
+
+        const id =
+            card.dataset.id;
+
+        const name =
+            card.dataset.name;
+
+        const price =
+            Number(card.dataset.price);
+
+
+        if (!id || !name || isNaN(price)) {
+
+            console.error(
+                "Invalid product data:",
+                card.dataset
+            );
+
+            showToast(
+                "Could not add this item."
+            );
+
+            return;
+        }
+
+
+        if (cart[id]) {
+
+            cart[id].quantity += 1;
+
+        } else {
+
+            cart[id] = {
+                id: id,
+                name: name,
+                price: price,
+                quantity: 1
+            };
+        }
+
+
+        renderCart();
+
+        showToast(
+            name + " added to order."
+        );
+    }
+
+
+    /*
+     * REALISTIC POS BEHAVIOUR
+     *
+     * Only the + button adds the item.
+     * Clicking the food card itself does NOT add anything.
+     */
+    addButtons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const card =
+                    button.closest(
+                        ".product-card"
+                    );
+
+                if (!card) {
+                    return;
+                }
+
+                addProduct(card);
+            }
+        );
+    });
+
+
+    cartList.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    "[data-cart-action]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            const id =
+                button.dataset.id;
+
+            const action =
+                button.dataset.cartAction;
+
+
+            if (!cart[id]) {
+                return;
+            }
+
+
+            if (action === "increase") {
+
+                cart[id].quantity += 1;
+            }
+
+
+            if (action === "decrease") {
+
+                cart[id].quantity -= 1;
+
+                if (
+                    cart[id].quantity <= 0
+                ) {
+                    delete cart[id];
+                }
+            }
+
+
+            if (action === "remove") {
+
+                delete cart[id];
+            }
+
+
+            renderCart();
+        }
+    );
+
+
+    clearCartBtn.addEventListener(
+        "click",
+        function () {
+
+            if (
+                Object.keys(cart).length === 0
+            ) {
+                return;
+            }
+
+
+            if (
+                confirm(
+                    "Clear all items from this order?"
+                )
+            ) {
+
+                cart = {};
+
+                renderCart();
+            }
+        }
+    );
+
+
+    categoryButtons.forEach(
+        function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    selectedCategory =
+                        button.dataset.category;
+
+
+                    categoryButtons.forEach(
+                        function (item) {
+
+                            item.classList.remove(
+                                "active"
+                            );
+                        }
+                    );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    filterProducts();
+                }
+            );
+        }
+    );
+
+
+    function filterProducts() {
+
+        const search =
+            menuSearch.value
+                .trim()
+                .toLowerCase();
+
+
+        productCards.forEach(
+            function (card) {
+
+                const categoryMatches =
+                    selectedCategory ===
+                    "all" ||
+                    card.dataset.category ===
+                    selectedCategory;
+
+
+                const searchMatches =
+                    card.dataset.search.includes(
+                        search
+                    );
+
+
+                card.style.display =
+                    categoryMatches &&
+                    searchMatches
+                        ? ""
+                        : "none";
+            }
+        );
+    }
+
+
+    menuSearch.addEventListener(
+        "input",
+        filterProducts
+    );
+
+
+    typeButtons.forEach(
+        function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    const requestedType =
+                        button.dataset.type;
+
+
+                    if (
+                        requestedType ===
+                        "DELIVERY"
+                    ) {
+
+                        showToast(
+                            "Delivery module will be connected later."
+                        );
+
+                        return;
+                    }
+
+
+                    typeButtons.forEach(
+                        function (item) {
+
+                            item.classList.remove(
+                                "active"
+                            );
+                        }
+                    );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    orderType =
+                        requestedType;
+
+
+                    if (
+                        orderType ===
+                        "DINE_IN"
+                    ) {
+
+                        tableField.style.display =
+                            "";
+
+                    } else {
+
+                        tableField.style.display =
+                            "none";
+
+                        tableSelect.value =
+                            "";
+                    }
+                }
+            );
+        }
+    );
+
+
+    [
+        discountInput,
+        serviceInput,
+        vatInput
+    ].forEach(
+        function (input) {
+
+            input.addEventListener(
+                "input",
+                updateTotals
+            );
+        }
+    );
+
+
+    applyCouponBtn.addEventListener(
+        "click",
+        function () {
+
+            showToast(
+                "Coupon backend will be connected later."
+            );
+        }
+    );
+
+
+    saveDraftBtn.addEventListener(
+        "click",
+        function () {
+
+            showToast(
+                "Draft order backend will be connected later."
+            );
+        }
+    );
+
+
+    billPayBtn.addEventListener(
+        "click",
+        function () {
+
+            showToast(
+                "Payment and receipt module will be connected later."
+            );
+        }
+    );
+
+
+    async function sendOrderToKitchen() {
+
+        if (orderSubmitting) {
+            return;
+        }
+
+
+        const items =
+            Object.values(cart).map(
+                function (item) {
+
+                    return {
+                        id: item.id,
+                        quantity: item.quantity
+                    };
+                }
+            );
+
+
+        if (
+            items.length === 0
+        ) {
+
+            showToast(
+                "Add at least one menu item."
+            );
+
+            return;
+        }
+
+
+        let tableId = null;
+
+
+        if (
+            orderType ===
+            "DINE_IN"
+        ) {
+
+            tableId =
+                tableSelect.value;
+
+
+            if (!tableId) {
+
+                showToast(
+                    "Please select a table."
+                );
+
+                return;
+            }
+        }
+
+
+        orderSubmitting =
+            true;
+
+        updateButtons();
+
+
+        kotBtn.textContent =
+            "Sending...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "{% url 'create_pos_order' %}",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+
+                            "X-CSRFToken":
+                                "{{ csrf_token }}"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    order_type:
+                                        orderType,
+
+                                    table_id:
+                                        tableId,
+
+                                    items:
+                                        items,
+
+                                    discount_amount:
+                                        Number(
+                                            discountInput.value || 0
+                                        ),
+
+                                    service_percent:
+                                        Number(
+                                            serviceInput.value || 0
+                                        ),
+
+                                    vat_percent:
+                                        Number(
+                                            vatInput.value || 0
+                                        )
+                                }
+                            )
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                showToast(
+                    data.message ||
+                    "Could not create order."
+                );
+
+                return;
+            }
+
+
+            showToast(
+                "Order #" +
+                data.order_id +
+                " sent to Kitchen."
+            );
+
+
+            cart = {};
+
+            tableSelect.value =
+                "";
+
+            discountInput.value =
+                "0";
+
+            serviceInput.value =
+                "0";
+
+            vatInput.value =
+                "0";
+
+
+            renderCart();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            showToast(
+                "Something went wrong while creating the order."
+            );
+
+
+        } finally {
+
+            orderSubmitting =
+                false;
+
+            kotBtn.textContent =
+                "Send KOT";
+
+            updateButtons();
+        }
+    }
+
+
+    kotBtn.addEventListener(
+        "click",
+        sendOrderToKitchen
+    );
+
+
+    renderCart();
+
+});
+</script>
+{% endblock %}

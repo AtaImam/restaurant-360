@@ -692,6 +692,21 @@
             {% endif %}
 
 
+            {% if menu_item.is_set_menu %}
+            <div class="card">
+                <div class="card-body">
+                    <p>This set menu uses the recipes of these component foods:</p>
+                    <ul>
+                        {% for row in set_components %}
+                        <li><a href="{% url 'recipe_builder' row.component_id %}">{{ row.component.name }}</a> × {{ row.quantity }}</li>
+                        {% empty %}
+                        <li>No components configured. This set cannot be ordered until components are added.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% else %}
+            <p>Ingredient quantities below make {{ recipe_yield }} portion{{ recipe_yield|pluralize }}.</p>
             <form method="POST">
 
                 {% csrf_token %}
@@ -1116,12 +1131,14 @@
 
 
             </form>
+            {% endif %}
 
 
         </div>
 {% endblock %}
 
 {% block extra_js %}
+{% if not menu_item.is_set_menu %}
 <script>
     (function () {
 
@@ -1129,6 +1146,7 @@
             Number(
                 "{{ menu_item.price }}"
             ) || 0;
+        const recipeYield = Number("{{ recipe_yield }}") || 1;
 
 
         const recipeRows =
@@ -1312,7 +1330,7 @@
 
 
                     const ingredientCost =
-                        quantity * unitCost;
+                        quantity * unitCost / recipeYield;
 
 
                     rowCostBox.textContent =
@@ -1340,7 +1358,7 @@
                     const ingredientPortions =
                         Math.floor(
                             availableStock /
-                            quantity
+                            (quantity / recipeYield)
                         );
 
 
@@ -1768,4 +1786,5 @@
 
     })();
     </script>
+{% endif %}
 {% endblock %}

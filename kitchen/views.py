@@ -1,16 +1,18 @@
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, get_object_or_404, redirect
-from users.decorators import kitchen_staff_required
-from orders.models import Order
+from django.views.decorators.http import require_POST
+
+from orders.services import orders_for_user, transition_order_status
 
 
-@kitchen_staff_required
 def kitchen_dashboard(request):
-    orders = Order.objects.exclude(
+    orders = orders_for_user(request.user).exclude(
         status__in=[
             'SERVED',
             'COMPLETED'
         ]
-    ).order_by('-created_at')
+    ).select_related('table').prefetch_related('items__menu_item').order_by('-created_at')
 
     return render(
         request,
@@ -21,29 +23,21 @@ def kitchen_dashboard(request):
     )
 
 
-@kitchen_staff_required
+@require_POST
 def update_order_status(request, order_id):
     order = get_object_or_404(
-        Order,
+        orders_for_user(request.user),
         id=order_id
     )
 
-    kitchen_transitions = {
-        'NEW': 'ACCEPTED',
-        'ACCEPTED': 'PREPARING',
-        'PREPARING': 'READY',
-    }
-
-    if request.method == 'POST':
-        next_status = kitchen_transitions.get(
-            order.status
+    try:
+        transition_order_status(
+            order,
+            request.POST.get('status'),
+            allowed_targets={'ACCEPTED', 'PREPARING', 'READY'},
         )
-
-        if next_status:
-            order.status = next_status
-            order.save(
-                update_fields=['status']
-            )
+    except ValidationError as error:
+        messages.error(request, ' '.join(error.messages))
 
     return redirect(
         'kitchen_dashboard'

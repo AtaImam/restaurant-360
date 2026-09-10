@@ -15,4 +15,5 @@ urlpatterns = [
 
     path("inventory/", include("inventory.urls")),
     path("menu-management/", include("menu.management_urls")),
+    path("pos/", include("pos.urls")),
 ]

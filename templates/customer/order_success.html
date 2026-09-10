@@ -1,153 +1,1059 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
 
-    <title>Order Confirmed</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Track Order #{{ order.id }}
+    </title>
 
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+        * {
+            box-sizing: border-box;
+        }
 
-      body {
-        font-family: Arial, sans-serif;
-        background: #f7f7f7;
-        color: #222;
+        body {
+            margin: 0;
+            background: #f7f7f8;
+            color: #18181b;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
 
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        .page {
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
 
-        padding: 20px;
-      }
+        .topbar {
+            background: #ffffff;
+            border-bottom: 1px solid #ececec;
+            padding: 15px 18px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
 
-      .card {
-        width: 100%;
-        max-width: 500px;
+        .topbar-inner {
+            max-width: 720px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
 
-        background: white;
-        border-radius: 16px;
-        padding: 35px 25px;
+        .brand strong {
+            display: block;
+            font-size: 17px;
+        }
 
-        text-align: center;
+        .brand span {
+            display: block;
+            margin-top: 3px;
+            color: #71717a;
+            font-size: 12px;
+        }
 
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-      }
+        .live {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: #52525b;
+            font-size: 12px;
+            font-weight: 600;
+        }
 
-      .success-icon {
-        width: 70px;
-        height: 70px;
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 1.7s infinite;
+        }
 
-        background: #e8f5e9;
-        color: #2e7d32;
+        @keyframes pulse {
+            0% {
+                box-shadow:
+                    0 0 0 0
+                    rgba(34, 197, 94, 0.4);
+            }
 
-        border-radius: 50%;
+            70% {
+                box-shadow:
+                    0 0 0 7px
+                    rgba(34, 197, 94, 0);
+            }
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
+            100% {
+                box-shadow:
+                    0 0 0 0
+                    rgba(34, 197, 94, 0);
+            }
+        }
 
-        font-size: 35px;
-        font-weight: bold;
+        .content {
+            width: min(
+                calc(100% - 28px),
+                720px
+            );
 
-        margin: 0 auto 20px;
-      }
+            margin: 22px auto;
+        }
 
-      h1 {
-        margin-bottom: 10px;
-      }
+        .tracking-card {
+            background: #ffffff;
+            border: 1px solid #ececec;
+            border-radius: 22px;
+            padding: 25px 22px;
+            box-shadow:
+                0 10px 35px
+                rgba(0, 0, 0, 0.04);
+        }
 
-      .message {
-        color: #666;
-        margin-bottom: 25px;
-      }
+        .order-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+        }
 
-      .order-info {
-        background: #f7f7f7;
-        border-radius: 12px;
-        padding: 18px;
+        .eyebrow {
+            color: #71717a;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
 
-        text-align: left;
-        margin-bottom: 22px;
-      }
+        .order-top h1 {
+            margin: 7px 0 0;
+            font-size: 25px;
+            line-height: 1.25;
+        }
 
-      .info-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 15px;
+        .status-badge {
+            flex-shrink: 0;
+            background: #fff7ed;
+            color: #ea580c;
+            border: 1px solid #fed7aa;
+            border-radius: 999px;
+            padding: 8px 11px;
+            font-size: 12px;
+            font-weight: 800;
+        }
 
-        padding: 10px 0;
-        border-bottom: 1px solid #e5e5e5;
-      }
+        .status-message {
+            margin: 13px 0 0;
+            color: #71717a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
 
-      .info-row:last-child {
-        border-bottom: none;
-      }
+        .eta-box {
+            display: none;
+            margin-top: 18px;
+            padding: 16px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 16px;
+        }
 
-      .label {
-        color: #666;
-      }
+        .eta-box.visible {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
 
-      .status {
-        font-weight: bold;
-        color: #e67e22;
-      }
+        .eta-label {
+            color: #9a3412;
+            font-size: 12px;
+            font-weight: 700;
+        }
 
-      .kitchen-message {
-        padding: 14px;
+        .eta-value {
+            margin-top: 3px;
+            color: #7c2d12;
+            font-size: 15px;
+            font-weight: 800;
+        }
 
-        background: #fff8e1;
-        border-radius: 10px;
+        .eta-number {
+            color: #ea580c;
+            font-size: 30px;
+            font-weight: 900;
+            line-height: 1;
+        }
 
-        font-size: 14px;
-        line-height: 1.5;
-      }
+        .progress-section {
+            margin-top: 27px;
+        }
+
+        .progress-track {
+            height: 7px;
+            background: #f1f1f1;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 8%;
+            background: #f97316;
+            border-radius: inherit;
+            transition: width 0.5s ease;
+        }
+
+        .steps {
+            margin-top: 26px;
+            display: grid;
+            gap: 0;
+        }
+
+        .track-step {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            gap: 12px;
+            min-height: 64px;
+            position: relative;
+        }
+
+        .step-left {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .step-circle {
+            width: 27px;
+            height: 27px;
+            border-radius: 50%;
+            background: #f4f4f5;
+            border: 2px solid #e4e4e7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a1a1aa;
+            font-size: 11px;
+            font-weight: 900;
+            z-index: 2;
+            transition: 0.3s;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 27px;
+            bottom: 0;
+            width: 2px;
+            background: #e4e4e7;
+        }
+
+        .track-step:last-child
+        .step-line {
+            display: none;
+        }
+
+        .step-content {
+            padding-top: 2px;
+        }
+
+        .step-content strong {
+            display: block;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+
+        .step-content span {
+            display: block;
+            margin-top: 4px;
+            color: #a1a1aa;
+            font-size: 12px;
+        }
+
+        .track-step.done
+        .step-circle {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+
+        .track-step.done
+        .step-line {
+            background: #22c55e;
+        }
+
+        .track-step.done
+        .step-content strong {
+            color: #52525b;
+        }
+
+        .track-step.active
+        .step-circle {
+            background: #f97316;
+            border-color: #f97316;
+            color: white;
+            box-shadow:
+                0 0 0 5px
+                #ffedd5;
+        }
+
+        .track-step.active
+        .step-content strong {
+            color: #18181b;
+        }
+
+        .track-step.active
+        .step-content span {
+            color: #71717a;
+        }
+
+        .info-card {
+            margin-top: 15px;
+            padding: 20px;
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #ececec;
+        }
+
+        .info-card h3 {
+            margin: 0 0 16px;
+            font-size: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(2, 1fr);
+            gap: 13px;
+        }
+
+        .info-box {
+            background: #fafafa;
+            border-radius: 13px;
+            padding: 13px;
+        }
+
+        .info-box span {
+            display: block;
+            color: #71717a;
+            font-size: 11px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        .order-items {
+            margin-top: 16px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding-bottom: 11px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .order-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .item-name {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .item-qty {
+            margin-top: 3px;
+            color: #71717a;
+            font-size: 11px;
+        }
+
+        .item-price {
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .total-row {
+            border-top: 1px solid #ececec;
+            margin-top: 16px;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .auto-note {
+            text-align: center;
+            margin-top: 18px;
+            color: #a1a1aa;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .menu-link {
+            display: block;
+            margin-top: 14px;
+            text-align: center;
+            text-decoration: none;
+            color: #ea580c;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        @media (max-width: 520px) {
+
+            .content {
+                width:
+                    calc(100% - 20px);
+                margin-top: 12px;
+            }
+
+            .tracking-card {
+                padding: 20px 16px;
+                border-radius: 18px;
+            }
+
+            .order-top h1 {
+                font-size: 20px;
+            }
+
+            .status-badge {
+                padding: 7px 9px;
+                font-size: 10px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .eta-number {
+                font-size: 26px;
+            }
+        }
     </style>
-  </head>
+</head>
 
-  <body>
-    <div class="card">
-      <div class="success-icon">✓</div>
+<body>
 
-      <h1>Order Confirmed!</h1>
+<div class="page">
 
-      <p class="message">Your order has been sent to the kitchen.</p>
+    <header class="topbar">
 
-      <div class="order-info">
-        <div class="info-row">
-          <span class="label">Order Number</span>
-          <strong>#{{ order.id }}</strong>
+        <div class="topbar-inner">
+
+            <div class="brand">
+                <strong>
+                    {{ order.restaurant.name }}
+                </strong>
+
+                <span>
+                    Live Order Tracking
+                </span>
+            </div>
+
+            <div
+                class="live"
+                id="liveIndicator"
+            >
+                <span class="live-dot"></span>
+
+                <span id="connectionText">
+                    Live
+                </span>
+            </div>
+
         </div>
 
-        <div class="info-row">
-          <span class="label">Order Type</span>
-          <strong>{{ order.get_order_type_display }}</strong>
+    </header>
+
+    <main class="content">
+
+        <section class="tracking-card">
+
+            <div class="order-top">
+
+                <div>
+
+                    <div class="eyebrow">
+                        Order #{{ order.id }}
+                    </div>
+
+                    <h1 id="statusTitle">
+                        {{ tracking.title }}
+                    </h1>
+
+                </div>
+
+                <div
+                    class="status-badge"
+                    id="statusBadge"
+                >
+                    {{ tracking.status_label }}
+                </div>
+
+            </div>
+
+            <p
+                class="status-message"
+                id="statusMessage"
+            >
+                {{ tracking.message }}
+            </p>
+
+            <div
+                class="eta-box{% if tracking.remaining_minutes != None %} visible{% endif %}"
+                id="etaBox"
+            >
+
+                <div>
+
+                    <div class="eta-label">
+                        ESTIMATED WAIT
+                    </div>
+
+                    <div class="eta-value" id="etaNote">
+                        {{ tracking.eta_note }}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <span
+                        class="eta-number"
+                        id="etaNumber"
+                    >
+                        {{ tracking.remaining_minutes|default_if_none:"--" }}
+                    </span>
+
+                    <span>
+                        min
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="progress-section">
+
+                <div class="progress-track">
+
+                    <div
+                        class="progress-fill"
+                        id="progressFill"
+                        style="width: {{ tracking.progress }}%;"
+                    ></div>
+
+                </div>
+
+                <div class="steps">
+
+                    <div
+                        class="track-step"
+                        data-step-index="0"
+                    >
+
+                        <div class="step-left">
+
+                            <div class="step-circle">
+                                1
+                            </div>
+
+                            <div class="step-line"></div>
+
+                        </div>
+
+                        <div class="step-content">
+
+                            <strong>
+                                Pending confirmation
+                            </strong>
+
+                            <span>
+                                Restaurant received your order
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="track-step"
+                        data-step-index="1"
+                    >
+
+                        <div class="step-left">
+
+                            <div class="step-circle">
+                                2
+                            </div>
+
+                            <div class="step-line"></div>
+
+                        </div>
+
+                        <div class="step-content">
+
+                            <strong>
+                                Accepted
+                            </strong>
+
+                            <span>
+                                Restaurant accepted the order
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="track-step"
+                        data-step-index="2"
+                    >
+
+                        <div class="step-left">
+
+                            <div class="step-circle">
+                                3
+                            </div>
+
+                            <div class="step-line"></div>
+
+                        </div>
+
+                        <div class="step-content">
+
+                            <strong>
+                                Cooking
+                            </strong>
+
+                            <span>
+                                Kitchen is preparing your food
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="track-step"
+                        data-step-index="3"
+                    >
+
+                        <div class="step-left">
+
+                            <div class="step-circle">
+                                4
+                            </div>
+
+                            <div class="step-line"></div>
+
+                        </div>
+
+                        <div class="step-content">
+
+                            <strong>
+                                Ready
+                            </strong>
+
+                            <span>
+                                Food preparation completed
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="track-step"
+                        data-step-index="4"
+                    >
+
+                        <div class="step-left">
+
+                            <div class="step-circle">
+                                5
+                            </div>
+
+                            <div class="step-line"></div>
+
+                        </div>
+
+                        <div class="step-content">
+
+                            <strong>
+                                Served
+                            </strong>
+
+                            <span>
+                                Food delivered to customer
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="track-step"
+                        data-step-index="5"
+                    >
+
+                        <div class="step-left">
+
+                            <div class="step-circle">
+                                ✓
+                            </div>
+
+                        </div>
+
+                        <div class="step-content">
+
+                            <strong>
+                                Completed
+                            </strong>
+
+                            <span>
+                                Order successfully completed
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="info-card">
+
+            <h3>
+                Order Details
+            </h3>
+
+            <div class="info-grid">
+
+                <div class="info-box">
+
+                    <span>
+                        Order Type
+                    </span>
+
+                    <strong>
+                        {{ order.get_order_type_display }}
+                    </strong>
+
+                </div>
+
+                <div class="info-box">
+
+                    <span>
+                        Table
+                    </span>
+
+                    <strong>
+
+                        {% if order.table %}
+
+                            Table {{ order.table.table_number }}
+
+                        {% else %}
+
+                            Takeaway
+
+                        {% endif %}
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="order-items">
+
+                {% for item in order.items.all %}
+
+                    <div class="order-item">
+
+                        <div>
+
+                            <div class="item-name">
+                                {{ item.menu_item.name }}
+                            </div>
+
+                            <div class="item-qty">
+                                Qty {{ item.quantity }}
+                            </div>
+
+                        </div>
+
+                        <div class="item-price">
+                            ৳{{ item.subtotal }}
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <div class="total-row">
+
+                <span>
+                    Total
+                </span>
+
+                <span>
+                    ৳{{ order.total_amount }}
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <div class="auto-note">
+
+            This page updates automatically.
+            You do not need to refresh.
+
         </div>
 
-        <div class="info-row">
-          <span class="label">Table</span>
-          <strong>Table {{ order.table.table_number }}</strong>
-        </div>
 
-        <div class="info-row">
-          <span class="label">Status</span>
-          <span class="status"> {{ order.get_status_display }} </span>
-        </div>
+        {% if order.table %}
 
-        <div class="info-row">
-          <span class="label">Total</span>
-          <strong>৳{{ order.total_amount }}</strong>
-        </div>
-      </div>
+            <a
+                class="menu-link"
+                href="{% url 'customer_menu' order.restaurant.id order.table.id %}"
+            >
+                Back to Menu
+            </a>
 
-      <div class="kitchen-message">
-        The kitchen will start preparing your order shortly.
-      </div>
-    </div>
-  </body>
+        {% endif %}
+
+    </main>
+
+</div>
+
+
+{{ tracking|json_script:"initialOrderStatus" }}
+<script>
+    const statusUrl =
+        "{% url 'order_status_api' order.id %}";
+
+    const statusTitle =
+        document.getElementById(
+            "statusTitle"
+        );
+
+    const statusBadge =
+        document.getElementById(
+            "statusBadge"
+        );
+
+    const statusMessage =
+        document.getElementById(
+            "statusMessage"
+        );
+
+    const progressFill =
+        document.getElementById(
+            "progressFill"
+        );
+
+    const etaBox =
+        document.getElementById(
+            "etaBox"
+        );
+
+    const etaNumber =
+        document.getElementById(
+            "etaNumber"
+        );
+
+    const connectionText =
+        document.getElementById(
+            "connectionText"
+        );
+
+    const steps =
+        document.querySelectorAll(
+            ".track-step"
+        );
+
+
+    function renderSteps(
+        currentIndex
+    ) {
+
+        steps.forEach(
+            function(step, index) {
+
+                step.classList.remove(
+                    "done",
+                    "active"
+                );
+
+                if (
+                    index <
+                    currentIndex
+                ) {
+
+                    step.classList.add(
+                        "done"
+                    );
+
+                }
+
+                if (
+                    index ===
+                    currentIndex
+                ) {
+
+                    step.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    function renderStatus(data) {
+        document.getElementById("etaNote").textContent = data.eta_note;
+
+        statusTitle.textContent =
+            data.title;
+
+        statusBadge.textContent =
+            data.status_label;
+
+        statusMessage.textContent =
+            data.message;
+
+        progressFill.style.width =
+            data.progress + "%";
+
+        renderSteps(
+            Number(
+                data.stage_index
+            )
+        );
+
+        if (
+            data.remaining_minutes
+            !== null
+        ) {
+
+            etaNumber.textContent =
+                data.remaining_minutes;
+
+            etaBox.classList.add(
+                "visible"
+            );
+
+        } else {
+
+            etaBox.classList.remove(
+                "visible"
+            );
+
+        }
+
+    }
+
+
+    async function refreshOrderStatus() {
+
+        try {
+
+            const response =
+                await fetch(
+                    statusUrl,
+                    {
+                        cache:
+                            "no-store"
+                    }
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Could not load status"
+                );
+
+            }
+
+            const data =
+                await response.json();
+
+            connectionText.textContent =
+                "Live";
+
+            renderStatus(
+                data
+            );
+
+            if (
+                !data.is_terminal
+            ) {
+
+                window.setTimeout(
+                    refreshOrderStatus,
+                    3000
+                );
+
+            }
+
+        } catch (error) {
+
+            connectionText.textContent =
+                "Reconnecting...";
+
+            window.setTimeout(
+                refreshOrderStatus,
+                5000
+            );
+
+        }
+
+    }
+
+
+    renderStatus(JSON.parse(document.getElementById("initialOrderStatus").textContent));
+    refreshOrderStatus();
+</script>
+
+</body>
 </html>

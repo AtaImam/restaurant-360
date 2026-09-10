@@ -1,3 +1,5 @@
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Avg, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
@@ -5,14 +7,15 @@ from django.utils import timezone
 
 from menu.models import Category
 from orders.models import Order
+from orders.services import orders_for_user, transition_order_status
 from users.decorators import role_required
 
 
-@role_required("admin", "owner", "manager", "waiter")
+@role_required("admin", "owner", "manager", "waiter", "bar_manager")
 def owner_dashboard(request):
     today = timezone.localtime()
 
-    today_orders = Order.objects.filter(
+    today_orders = orders_for_user(request.user).filter(
         created_at__date=today
     )
 
@@ -22,7 +25,7 @@ def owner_dashboard(request):
 
     total_orders = today_orders.count()
 
-    active_orders = Order.objects.filter(
+    active_orders = orders_for_user(request.user).filter(
         status__in=[
             "NEW",
             "ACCEPTED",
@@ -36,7 +39,7 @@ def owner_dashboard(request):
     )["average"] or 0
 
     recent_orders = (
-        Order.objects.select_related("table")
+        orders_for_user(request.user).select_related("table")
         .order_by("-created_at")[:5]
     )
 
@@ -58,7 +61,7 @@ def owner_dashboard(request):
 
 def orders_list(request):
     orders = (
-        Order.objects.select_related(
+        orders_for_user(request.user).select_related(
             "restaurant",
             "table",
         )
@@ -124,7 +127,7 @@ def orders_list(request):
 
 def order_detail(request, order_id):
     order = get_object_or_404(
-        Order.objects.select_related(
+        orders_for_user(request.user).select_related(
             "restaurant",
             "table",
         ).prefetch_related(
@@ -145,19 +148,14 @@ def order_detail(request, order_id):
     if request.method == "POST":
         new_status = request.POST.get("status")
 
-        allowed_statuses = [
-            value
-            for value, label in owner_transitions.get(
-                order.status,
-                [],
+        try:
+            transition_order_status(
+                order,
+                new_status,
+                allowed_targets={"ACCEPTED", "SERVED", "COMPLETED"},
             )
-        ]
-
-        if new_status in allowed_statuses:
-            order.status = new_status
-            order.save(
-                update_fields=["status"]
-            )
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
 
         return redirect(
             "order_detail",

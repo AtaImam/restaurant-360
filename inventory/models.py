@@ -292,7 +292,6 @@ class Recipe(models.Model):
     def __str__(self):
         return f"Recipe - {self.menu_item.name}"
 
-
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
@@ -309,13 +308,28 @@ class RecipeIngredient(models.Model):
     quantity = models.DecimalField(
         max_digits=12,
         decimal_places=3,
-        validators=[MinValueValidator(Decimal("0.001"))]
+        validators=[
+            MinValueValidator(
+                Decimal("0.001")
+            )
+        ]
+    )
+
+    is_customer_visible = models.BooleanField(
+        default=False,
+        help_text=(
+            "Show this ingredient name to customers "
+            "on the menu item details page."
+        )
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["recipe", "ingredient"],
+                fields=[
+                    "recipe",
+                    "ingredient"
+                ],
                 name="unique_ingredient_per_recipe"
             )
         ]
@@ -332,7 +346,6 @@ class RecipeIngredient(models.Model):
             f"{self.recipe.menu_item.name} - "
             f"{self.ingredient.name}"
         )
-
 
 class StockTransaction(models.Model):
     class TransactionType(models.TextChoices):

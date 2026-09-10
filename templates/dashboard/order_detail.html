@@ -381,6 +381,9 @@
 
 {% block content %}
 <div class="content">
+            {% for message in messages %}
+            <div role="alert" class="card">{{ message }}</div>
+            {% endfor %}
 
             <div class="page-header">
 

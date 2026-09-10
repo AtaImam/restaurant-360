@@ -1,0 +1,926 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ item.name }} | {{ restaurant.name }}
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+                #f8fafc;
+
+            color:
+                #111827;
+        }
+
+        .topbar {
+            position:
+                sticky;
+
+            top: 0;
+
+            z-index:
+                50;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.96
+                );
+
+            backdrop-filter:
+                blur(10px);
+
+            border-bottom:
+                1px solid #e5e7eb;
+        }
+
+        .topbar-inner {
+            max-width:
+                720px;
+
+            margin: auto;
+
+            padding:
+                13px 18px;
+
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+        }
+
+        .back-link {
+            color:
+                #111827;
+
+            text-decoration:
+                none;
+
+            font-size:
+                12px;
+
+            font-weight:
+                750;
+        }
+
+        .cart-link {
+            position:
+                relative;
+
+            text-decoration:
+                none;
+
+            font-size:
+                20px;
+        }
+
+        .cart-count {
+            position:
+                absolute;
+
+            top:
+                -8px;
+
+            right:
+                -10px;
+
+            min-width:
+                19px;
+
+            height:
+                19px;
+
+            padding:
+                0 5px;
+
+            border-radius:
+                20px;
+
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            background:
+                #f97316;
+
+            color:
+                white;
+
+            font-size:
+                9px;
+
+            font-weight:
+                800;
+        }
+
+        .container {
+            max-width:
+                720px;
+
+            margin:
+                20px auto 100px;
+
+            padding:
+                0 18px;
+        }
+
+        .details-card {
+            overflow:
+                hidden;
+
+            background:
+                white;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius:
+                20px;
+        }
+
+        .image-wrap {
+            width:
+                100%;
+
+            height:
+                310px;
+
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            overflow:
+                hidden;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fff7ed,
+                    #f9fafb
+                );
+        }
+
+        .food-image {
+            width:
+                100%;
+
+            height:
+                100%;
+
+            object-fit:
+                cover;
+        }
+
+        .fallback {
+            width:
+                95px;
+
+            height:
+                95px;
+
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                28px;
+
+            background:
+                #ffedd5;
+
+            font-size:
+                45px;
+        }
+
+        .details-body {
+            padding:
+                22px;
+        }
+
+        .category {
+            margin-bottom:
+                7px;
+
+            color:
+                #f97316;
+
+            font-size:
+                10px;
+
+            font-weight:
+                850;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                0.5px;
+        }
+
+        .title-row {
+            display: flex;
+
+            align-items:
+                flex-start;
+
+            justify-content:
+                space-between;
+
+            gap:
+                15px;
+        }
+
+        h1 {
+            margin:
+                0;
+
+            font-size:
+                26px;
+
+            line-height:
+                1.25;
+        }
+
+        .price {
+            flex-shrink:
+                0;
+
+            color:
+                #f97316;
+
+            font-size:
+                22px;
+
+            font-weight:
+                900;
+        }
+
+        .description {
+            margin:
+                14px 0 0;
+
+            color:
+                #6b7280;
+
+            line-height:
+                1.7;
+
+            font-size:
+                13px;
+        }
+
+        .section {
+            margin-top:
+                24px;
+
+            padding-top:
+                20px;
+
+            border-top:
+                1px solid #f1f5f9;
+        }
+
+        .section-title {
+            margin:
+                0 0 13px;
+
+            font-size:
+                14px;
+
+            font-weight:
+                850;
+        }
+
+        .section-subtitle {
+            margin:
+                -7px 0 13px;
+
+            color:
+                #9ca3af;
+
+            font-size:
+                10px;
+        }
+
+
+        /* SET MENU */
+
+        .component-list {
+            display: flex;
+
+            flex-direction:
+                column;
+
+            gap:
+                8px;
+        }
+
+        .component {
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            padding:
+                12px 13px;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius:
+                11px;
+
+            background:
+                #fafafa;
+        }
+
+        .component-left {
+            display: flex;
+
+            align-items:
+                center;
+
+            gap:
+                9px;
+        }
+
+        .check {
+            width:
+                24px;
+
+            height:
+                24px;
+
+            border-radius:
+                50%;
+
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            background:
+                #ecfdf5;
+
+            color:
+                #16a34a;
+
+            font-size:
+                11px;
+
+            font-weight:
+                900;
+        }
+
+        .component-name {
+            font-size:
+                12px;
+
+            font-weight:
+                750;
+        }
+
+        .component-qty {
+            color:
+                #6b7280;
+
+            font-size:
+                11px;
+
+            font-weight:
+                700;
+        }
+
+
+        /* INGREDIENTS */
+
+        .ingredient-list {
+            display: flex;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                7px;
+        }
+
+        .ingredient {
+            padding:
+                7px 10px;
+
+            border-radius:
+                30px;
+
+            background:
+                #f3f4f6;
+
+            color:
+                #4b5563;
+
+            font-size:
+                10px;
+
+            font-weight:
+                650;
+        }
+
+
+        /* ALLERGEN */
+
+        .allergen-box {
+            padding:
+                12px 13px;
+
+            border:
+                1px solid #fde68a;
+
+            border-radius:
+                11px;
+
+            background:
+                #fffbeb;
+
+            color:
+                #92400e;
+
+            font-size:
+                11px;
+
+            line-height:
+                1.55;
+        }
+
+
+        /* ADD CART */
+
+        .bottom-action {
+            position:
+                fixed;
+
+            bottom:
+                0;
+
+            left:
+                0;
+
+            right:
+                0;
+
+            z-index:
+                60;
+
+            padding:
+                12px 18px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.96
+                );
+
+            backdrop-filter:
+                blur(10px);
+
+            border-top:
+                1px solid #e5e7eb;
+        }
+
+        .add-form {
+            max-width:
+                680px;
+
+            margin: auto;
+        }
+
+        .add-button {
+            width:
+                100%;
+
+            height:
+                50px;
+
+            border:
+                none;
+
+            border-radius:
+                13px;
+
+            background:
+                #f97316;
+
+            color:
+                white;
+
+            cursor:
+                pointer;
+
+            font-size:
+                12px;
+
+            font-weight:
+                850;
+
+            display: flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            padding:
+                0 18px;
+        }
+
+
+        @media (
+            max-width: 600px
+        ) {
+
+            .container {
+                margin-top:
+                    0;
+
+                padding:
+                    0 0 100px;
+            }
+
+            .details-card {
+                border-left:
+                    none;
+
+                border-right:
+                    none;
+
+                border-radius:
+                    0;
+            }
+
+            .image-wrap {
+                height:
+                    260px;
+            }
+
+            .details-body {
+                padding:
+                    19px;
+            }
+
+            h1 {
+                font-size:
+                    22px;
+            }
+
+            .price {
+                font-size:
+                    19px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <header class="topbar">
+
+        <div class="topbar-inner">
+
+            <a
+                href="{% url 'customer_menu' restaurant.id table.id %}"
+                class="back-link"
+            >
+                ← Back to Menu
+            </a>
+
+
+            <a
+                href="{% url 'cart' restaurant.id table.id %}"
+                class="cart-link"
+            >
+                🛒
+
+                {% if cart_count %}
+
+                    <span class="cart-count">
+                        {{ cart_count }}
+                    </span>
+
+                {% endif %}
+
+            </a>
+
+        </div>
+
+    </header>
+
+
+    <main class="container">
+
+        <article class="details-card">
+
+
+            <div class="image-wrap">
+
+                {% if item.image %}
+
+                    <img
+                        src="{{ item.image.url }}"
+                        alt="{{ item.name }}"
+                        class="food-image"
+                    >
+
+                {% else %}
+
+                    <div class="fallback">
+                        🍽
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="details-body">
+
+
+                <div class="category">
+
+                    {% if item.item_type == "SET_MENU" %}
+
+                        Set Menu
+
+                    {% else %}
+
+                        {{ item.category.name }}
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="title-row">
+
+                    <h1>
+                        {{ item.name }}
+                    </h1>
+
+                    <div class="price">
+                        ৳{{ item.price|floatformat:2 }}
+                    </div>
+
+                </div>
+
+
+                {% if item.description %}
+
+                    <p class="description">
+                        {{ item.description }}
+                    </p>
+
+                {% endif %}
+
+
+                {% if item.serves > 1 %}
+
+                    <div class="section">
+
+                        <h2 class="section-title">
+                            Serving
+                        </h2>
+
+                        <div class="ingredient-list">
+
+                            <span class="ingredient">
+                                Serves approximately
+                                {{ item.serves }}
+                                people
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- ===================================
+                     SET MENU DETAILS
+                ==================================== -->
+
+                {% if item.item_type == "SET_MENU" %}
+
+                    <section class="section">
+
+                        <h2 class="section-title">
+                            What's Included
+                        </h2>
+
+                        <p class="section-subtitle">
+                            This set menu contains the following items.
+                        </p>
+
+
+                        <div class="component-list">
+
+                            {% for set_component in set_components %}
+
+                                <div class="component">
+
+                                    <div class="component-left">
+
+                                        <span class="check">
+                                            ✓
+                                        </span>
+
+                                        <span class="component-name">
+                                            {{ set_component.component.name }}
+                                        </span>
+
+                                    </div>
+
+
+                                    <span class="component-qty">
+
+                                        ×
+                                        {{ set_component.quantity|floatformat:"-2" }}
+
+                                    </span>
+
+                                </div>
+
+                            {% empty %}
+
+                                <div class="allergen-box">
+                                    Set menu items have not been configured yet.
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+
+                <!-- ===================================
+                     NORMAL FOOD DETAILS
+                ==================================== -->
+
+                {% else %}
+
+                    {% if key_ingredients %}
+
+                        <section class="section">
+
+                            <h2 class="section-title">
+                                Key Ingredients
+                            </h2>
+
+                            <p class="section-subtitle">
+                                Ingredient quantities and internal recipe details
+                                are kept private by the restaurant.
+                            </p>
+
+
+                            <div class="ingredient-list">
+
+                                {% for ingredient in key_ingredients %}
+
+                                    <span class="ingredient">
+                                        {{ ingredient }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </section>
+
+                    {% endif %}
+
+                {% endif %}
+
+
+                {% if allergens %}
+
+                    <section class="section">
+
+                        <h2 class="section-title">
+                            Allergen Information
+                        </h2>
+
+                        <div class="allergen-box">
+
+                            Contains or may contain:
+
+                            <strong>
+                                {{ allergens|join:", " }}
+                            </strong>
+
+                        </div>
+
+                    </section>
+
+                {% endif %}
+
+
+            </div>
+
+        </article>
+
+    </main>
+
+
+    <div class="bottom-action">
+
+        <form
+            method="post"
+            action="{% url 'add_to_cart' restaurant.id table.id item.id %}"
+            class="add-form"
+        >
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="return_to"
+                value="detail"
+            >
+
+            <button
+                type="submit"
+                class="add-button"
+            >
+
+                <span>
+                    + Add to Order
+                </span>
+
+                <span>
+                    ৳{{ item.price|floatformat:2 }}
+                </span>
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+</body>
+
+</html>

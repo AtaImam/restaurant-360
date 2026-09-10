@@ -159,6 +159,12 @@
         </div>
       </div>
 
+      {% if stock_error %}
+      <div class="box" role="alert" style="color: #b91c1c; border: 1px solid #fecaca;">
+        {{ stock_error }}
+      </div>
+      {% endif %}
+
       <form method="POST">
         {% csrf_token %}
 

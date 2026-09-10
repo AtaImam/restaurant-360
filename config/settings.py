@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'kitchen',
     'dashboard',
     'inventory',
+    'pos',
 ]
 
 MIDDLEWARE = [
@@ -87,6 +88,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        # SQLite has no row-level SELECT FOR UPDATE. Acquire its write lock at
+        # the start of atomic blocks so stock checks cannot race reservations.
+        'OPTIONS': {
+            'transaction_mode': 'IMMEDIATE',
+            'timeout': 20,
+        },
     }
 }
 

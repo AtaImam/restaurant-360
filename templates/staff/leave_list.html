@@ -1,0 +1,592 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Leave Management | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .team-leave-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .team-leave-page * {
+    box-sizing: border-box;
+  }
+
+  .team-leave-header {
+    margin-bottom: 24px;
+  }
+
+  .team-leave-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .add-staff-leave-button {
+    display: inline-flex;
+    min-height: 43px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: 0 17px;
+    border-radius: 8px;
+    background: #f97316;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .add-staff-leave-button:hover {
+    background: #ea580c;
+  }
+  .team-leave-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .team-leave-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .team-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .team-tab:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+
+  .team-tab.active {
+    color: #ffffff;
+    background: #f97316;
+  }
+
+  .leave-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 24px;
+  }
+
+  .leave-summary-card {
+    min-height: 112px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .leave-summary-label {
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .leave-summary-value {
+    font-size: 27px;
+    font-weight: 800;
+  }
+
+  .leave-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 220px auto auto;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .leave-input {
+    width: 100%;
+    height: 43px;
+    padding: 0 13px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .leave-input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .leave-filter-button,
+  .leave-clear-button {
+    display: inline-flex;
+    height: 43px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .leave-filter-button {
+    border: 0;
+    background: #f97316;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .leave-clear-button {
+    border: 1px solid #dfe3e8;
+    background: #ffffff;
+    color: #4b5563;
+  }
+
+  .leave-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .leave-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 19px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .leave-card-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .leave-card-header span {
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .leave-table-scroll {
+    overflow-x: auto;
+  }
+
+  .leave-table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .leave-table th,
+  .leave-table td {
+    padding: 15px 17px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: top;
+  }
+
+  .leave-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .employee-name {
+    color: #111827;
+    font-weight: 750;
+  }
+
+  .leave-secondary {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .leave-reason {
+    max-width: 240px;
+    color: #4b5563;
+    line-height: 1.45;
+  }
+
+  .leave-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-cancelled {
+    background: #e5e7eb;
+    color: #4b5563;
+  }
+
+  .review-form {
+    min-width: 245px;
+  }
+
+  .review-note {
+    width: 100%;
+    min-height: 54px;
+    margin-bottom: 7px;
+    padding: 8px 9px;
+    border: 1px solid #dfe3e8;
+    border-radius: 7px;
+    resize: vertical;
+    font: inherit;
+    font-size: 12px;
+  }
+
+  .review-actions {
+    display: flex;
+    gap: 7px;
+  }
+
+  .approve-button,
+  .reject-button {
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 7px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .approve-button {
+    background: #16a34a;
+  }
+
+  .reject-button {
+    background: #dc2626;
+  }
+
+  .leave-empty {
+    padding: 40px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .leave-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 17px 21px;
+  }
+
+  .leave-page-link {
+    margin-left: 10px;
+    color: #ea580c;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 950px) {
+    .leave-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .leave-toolbar {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .team-leave-page {
+      padding: 18px;
+    }
+
+    .leave-summary-grid,
+    .leave-toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="team-leave-page">
+  <header class="team-leave-header">
+    <div class="team-leave-header-row">
+      <div>
+        <h1>Leave</h1>
+        <p>Review and manage staff leave requests.</p>
+      </div>
+
+      {% if user.is_superuser or user.role == "admin" or user.role == "owner" %}
+      <a
+        href="{% url 'staff:staff_leave_create' %}"
+        class="add-staff-leave-button"
+      >
+        + Add Leave for Staff
+      </a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% include "staff/_team_tabs.html" %}
+
+  <div class="leave-summary-grid">
+    <article class="leave-summary-card">
+      <div class="leave-summary-label">Total Requests</div>
+      <div class="leave-summary-value">{{ total_requests }}</div>
+    </article>
+
+    <article class="leave-summary-card">
+      <div class="leave-summary-label">Pending</div>
+      <div class="leave-summary-value" style="color: #d97706;">
+        {{ pending_requests }}
+      </div>
+    </article>
+
+    <article class="leave-summary-card">
+      <div class="leave-summary-label">Approved</div>
+      <div class="leave-summary-value" style="color: #15803d;">
+        {{ approved_requests }}
+      </div>
+    </article>
+
+    <article class="leave-summary-card">
+      <div class="leave-summary-label">Rejected</div>
+      <div class="leave-summary-value" style="color: #dc2626;">
+        {{ rejected_requests }}
+      </div>
+    </article>
+  </div>
+
+  <form method="get" class="leave-toolbar">
+    <input
+      type="search"
+      name="search"
+      value="{{ search }}"
+      class="leave-input"
+      placeholder="Search employee name, username or ID..."
+    >
+
+    <select name="status" class="leave-input">
+      <option value="">All statuses</option>
+      <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>
+        Pending
+      </option>
+      <option value="approved" {% if status_filter == "approved" %}selected{% endif %}>
+        Approved
+      </option>
+      <option value="rejected" {% if status_filter == "rejected" %}selected{% endif %}>
+        Rejected
+      </option>
+      <option value="cancelled" {% if status_filter == "cancelled" %}selected{% endif %}>
+        Cancelled
+      </option>
+    </select>
+
+    <button type="submit" class="leave-filter-button">
+      Filter
+    </button>
+
+    <a href="{% url 'staff:leave_list' %}" class="leave-clear-button">
+      Clear
+    </a>
+  </form>
+
+  <section class="leave-card">
+    <div class="leave-card-header">
+      <h2>Leave Requests</h2>
+      <span>
+        {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}
+      </span>
+    </div>
+
+    <div class="leave-table-scroll">
+      <table class="leave-table">
+        <thead>
+          <tr>
+            <th>EMPLOYEE</th>
+            <th>TYPE</th>
+            <th>DATES</th>
+            <th>DAYS</th>
+            <th>REASON</th>
+            <th>STATUS</th>
+            <th>REVIEW</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for leave in page_obj %}
+          <tr>
+            <td>
+              <span class="employee-name">
+                {{ leave.employee.user.get_full_name|default:leave.employee.user.username }}
+              </span>
+              <span class="leave-secondary">
+                {{ leave.employee.employee_id }}
+                · {{ leave.restaurant.name }}
+              </span>
+            </td>
+
+            <td>{{ leave.get_leave_type_display }}</td>
+
+            <td>
+              {{ leave.start_date|date:"d M Y" }}
+              <span class="leave-secondary">
+                to {{ leave.end_date|date:"d M Y" }}
+              </span>
+            </td>
+
+            <td>{{ leave.total_days }}</td>
+
+            <td>
+              <div class="leave-reason">{{ leave.reason }}</div>
+            </td>
+
+            <td>
+              {% if leave.status == "pending" %}
+              <span class="leave-badge status-pending">Pending</span>
+              {% elif leave.status == "approved" %}
+              <span class="leave-badge status-approved">Approved</span>
+              {% elif leave.status == "rejected" %}
+              <span class="leave-badge status-rejected">Rejected</span>
+              {% else %}
+              <span class="leave-badge status-cancelled">Cancelled</span>
+              {% endif %}
+
+              {% if leave.review_note %}
+              <span class="leave-secondary">
+                {{ leave.review_note }}
+              </span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if leave.status == "pending" %}
+              <form
+                method="post"
+                action="{% url 'staff:leave_review' leave_id=leave.pk %}"
+                class="review-form"
+              >
+                {% csrf_token %}
+
+                <textarea
+                  name="review_note"
+                  class="review-note"
+                  placeholder="Optional review note"
+                ></textarea>
+
+                <div class="review-actions">
+                  <button
+                    type="submit"
+                    name="action"
+                    value="approve"
+                    class="approve-button"
+                  >
+                    Approve
+                  </button>
+
+                  <button
+                    type="submit"
+                    name="action"
+                    value="reject"
+                    class="reject-button"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </form>
+              {% else %}
+              <span class="leave-secondary">
+                Reviewed
+                {% if leave.reviewed_by %}
+                  by {{ leave.reviewed_by.username }}
+                {% endif %}
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="7" class="leave-empty">
+              No leave requests found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="leave-pagination">
+      <span>
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+
+      <div>
+        {% if page_obj.has_previous %}
+        <a
+          href="?page={{ page_obj.previous_page_number }}&amp;search={{ search|urlencode }}&amp;status={{ status_filter }}"
+          class="leave-page-link"
+        >
+          Previous
+        </a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}&amp;search={{ search|urlencode }}&amp;status={{ status_filter }}"
+          class="leave-page-link"
+        >
+          Next
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

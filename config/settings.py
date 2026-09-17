@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'dashboard',
     'inventory',
     'pos',
+    'staff.apps.StaffConfig',
 ]
 
 MIDDLEWARE = [

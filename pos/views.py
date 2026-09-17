@@ -16,6 +16,7 @@ from inventory.services import reserve_stock_for_order
 from menu.models import Category, MenuItem
 from orders.models import Order, OrderItem
 from restaurant.models import Restaurant, Table
+from staff.operations import register_new_order
 
 
 # ============================================================
@@ -587,6 +588,11 @@ def create_pos_order(request):
             reservations = (
                 reserve_stock_for_order(
                     order
+                )
+            )
+            transaction.on_commit(
+                lambda order_id=order.pk: register_new_order(
+                    order_id
                 )
             )
 

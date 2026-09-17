@@ -1,0 +1,459 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}My Leave | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .leave-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .leave-page * {
+    box-sizing: border-box;
+  }
+
+  .leave-header {
+    margin-bottom: 24px;
+  }
+
+  .leave-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .leave-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .leave-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .leave-stat {
+    min-height: 115px;
+    padding: 21px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .leave-stat-label {
+    margin-bottom: 11px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .leave-stat-value {
+    font-size: 27px;
+    font-weight: 800;
+  }
+
+  .leave-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.8fr) minmax(500px, 1.5fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .leave-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .leave-card-header {
+    padding: 19px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .leave-card-header h2 {
+    margin: 0 0 5px;
+    font-size: 18px;
+  }
+
+  .leave-card-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .leave-form {
+    padding: 22px;
+  }
+
+  .leave-field {
+    margin-bottom: 17px;
+  }
+
+  .leave-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .leave-field input,
+  .leave-field select,
+  .leave-field textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .leave-field input:focus,
+  .leave-field select:focus,
+  .leave-field textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .leave-submit {
+    display: inline-flex;
+    width: 100%;
+    min-height: 43px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: #f97316;
+    color: #ffffff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .leave-error {
+    margin-top: 6px;
+    color: #dc2626;
+    font-size: 12px;
+  }
+
+  .leave-form-error {
+    margin-bottom: 16px;
+    padding: 12px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #991b1b;
+    font-size: 13px;
+  }
+
+  .leave-table-scroll {
+    overflow-x: auto;
+  }
+
+  .leave-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .leave-table th,
+  .leave-table td {
+    padding: 15px 17px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: middle;
+  }
+
+  .leave-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .leave-secondary {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .leave-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-cancelled {
+    background: #e5e7eb;
+    color: #4b5563;
+  }
+
+  .leave-empty {
+    padding: 38px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .leave-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 17px 20px;
+  }
+
+  .leave-page-link {
+    color: #ea580c;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 950px) {
+    .leave-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .leave-page {
+      padding: 18px;
+    }
+
+    .leave-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="leave-page">
+  <header class="leave-header">
+    <h1>My Leave</h1>
+    <p>
+      Submit leave requests and track their approval status.
+    </p>
+  </header>
+
+  {% if profile_error %}
+  <div class="leave-form-error">
+    {{ profile_error }}
+  </div>
+  {% endif %}
+
+  <div class="leave-summary">
+    <article class="leave-stat">
+      <div class="leave-stat-label">Pending Requests</div>
+      <div class="leave-stat-value" style="color: #d97706;">
+        {{ pending_count }}
+      </div>
+    </article>
+
+    <article class="leave-stat">
+      <div class="leave-stat-label">Approved Requests</div>
+      <div class="leave-stat-value" style="color: #15803d;">
+        {{ approved_count }}
+      </div>
+    </article>
+
+    <article class="leave-stat">
+      <div class="leave-stat-label">Approved Leave Days</div>
+      <div class="leave-stat-value" style="color: #2563eb;">
+        {{ approved_days }}
+      </div>
+    </article>
+  </div>
+
+  <div class="leave-layout">
+    <section class="leave-card">
+      <div class="leave-card-header">
+        <h2>Request Leave</h2>
+        <p>Select your leave type and requested dates.</p>
+      </div>
+
+      <form method="post" class="leave-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="leave-form-error">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="leave-field">
+          <label for="{{ form.leave_type.id_for_label }}">
+            Leave Type
+          </label>
+          {{ form.leave_type }}
+
+          {% for error in form.leave_type.errors %}
+          <div class="leave-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="leave-field">
+          <label for="{{ form.start_date.id_for_label }}">
+            Start Date
+          </label>
+          {{ form.start_date }}
+
+          {% for error in form.start_date.errors %}
+          <div class="leave-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="leave-field">
+          <label for="{{ form.end_date.id_for_label }}">
+            End Date
+          </label>
+          {{ form.end_date }}
+
+          {% for error in form.end_date.errors %}
+          <div class="leave-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="leave-field">
+          <label for="{{ form.reason.id_for_label }}">
+            Reason
+          </label>
+          {{ form.reason }}
+
+          {% for error in form.reason.errors %}
+          <div class="leave-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <button
+          type="submit"
+          class="leave-submit"
+          {% if not employee %}disabled{% endif %}
+        >
+          Submit Leave Request
+        </button>
+      </form>
+    </section>
+
+    <section class="leave-card">
+      <div class="leave-card-header">
+        <h2>Leave History</h2>
+        <p>Your submitted and reviewed leave requests.</p>
+      </div>
+
+      <div class="leave-table-scroll">
+        <table class="leave-table">
+          <thead>
+            <tr>
+              <th>TYPE</th>
+              <th>DATES</th>
+              <th>DAYS</th>
+              <th>STATUS</th>
+              <th>REVIEW NOTE</th>
+              <th>REQUESTED</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for leave in page_obj %}
+            <tr>
+              <td>{{ leave.get_leave_type_display }}</td>
+
+              <td>
+                {{ leave.start_date|date:"d M Y" }}
+                <span class="leave-secondary">
+                  to {{ leave.end_date|date:"d M Y" }}
+                </span>
+              </td>
+
+              <td>{{ leave.total_days }}</td>
+
+              <td>
+                {% if leave.status == "pending" %}
+                <span class="leave-badge status-pending">Pending</span>
+                {% elif leave.status == "approved" %}
+                <span class="leave-badge status-approved">Approved</span>
+                {% elif leave.status == "rejected" %}
+                <span class="leave-badge status-rejected">Rejected</span>
+                {% else %}
+                <span class="leave-badge status-cancelled">Cancelled</span>
+                {% endif %}
+              </td>
+
+              <td>{{ leave.review_note|default:"—" }}</td>
+
+              <td>{{ leave.created_at|date:"d M Y" }}</td>
+            </tr>
+
+            {% empty %}
+            <tr>
+              <td colspan="6" class="leave-empty">
+                You have not submitted any leave requests yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if page_obj.has_other_pages %}
+      <nav class="leave-pagination">
+        <span>
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        <div>
+          {% if page_obj.has_previous %}
+          <a
+            href="?page={{ page_obj.previous_page_number }}"
+            class="leave-page-link"
+          >
+            Previous
+          </a>
+          {% endif %}
+
+          {% if page_obj.has_next %}
+          <a
+            href="?page={{ page_obj.next_page_number }}"
+            class="leave-page-link"
+          >
+            Next
+          </a>
+          {% endif %}
+        </div>
+      </nav>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock %}

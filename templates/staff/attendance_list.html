@@ -1,0 +1,796 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Attendance | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .attendance-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .attendance-page * {
+    box-sizing: border-box;
+  }
+
+  .attendance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .attendance-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .attendance-description {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .team-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .team-tab:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+
+  .team-tab.active {
+    color: #ffffff;
+    background: #f97316;
+  }
+
+  .attendance-card {
+    margin-bottom: 24px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .attendance-card-header {
+    padding: 20px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .attendance-card-header h2 {
+    margin: 0 0 5px;
+    font-size: 18px;
+  }
+
+  .attendance-card-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+  }
+
+  .attendance-filter {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) auto auto;
+    gap: 12px;
+    padding: 20px 22px;
+  }
+
+  .attendance-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .attendance-input {
+    width: 100%;
+    height: 43px;
+    padding: 0 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .attendance-input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .filter-button,
+  .reset-button {
+    align-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 43px;
+    padding: 0 17px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .filter-button {
+    border: 0;
+    background: #f97316;
+    color: #ffffff;
+  }
+
+  .reset-button {
+    border: 1px solid #dfe3e8;
+    background: #ffffff;
+    color: #4b5563;
+  }
+
+  .attendance-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    padding: 0 22px 22px;
+  }
+
+  .attendance-stat {
+    min-height: 105px;
+    padding: 17px;
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+
+  .attendance-stat-label {
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  .attendance-stat-value {
+    font-size: 25px;
+    font-weight: 800;
+  }
+
+  .stat-orange {
+    color: #ea580c;
+  }
+
+  .stat-green {
+    color: #15803d;
+  }
+
+  .stat-blue {
+    color: #2563eb;
+  }
+
+  .stat-red {
+    color: #dc2626;
+  }
+
+  .stat-gray {
+    color: #374151;
+  }
+
+  .attendance-table-scroll {
+    overflow-x: auto;
+  }
+
+  .attendance-table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    padding: 15px 18px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: middle;
+  }
+
+  .attendance-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .employee-name {
+    color: #111827;
+    font-weight: 750;
+  }
+
+  .employee-id,
+  .record-secondary {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .attendance-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .badge-on-time {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .badge-late {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  .badge-working {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .empty-attendance {
+    padding: 38px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .attendance-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+  }
+
+  .attendance-page-link {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 1050px) {
+    .attendance-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .attendance-filter {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .attendance-page {
+      padding: 18px;
+    }
+
+    .attendance-summary,
+    .attendance-filter {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="attendance-page">
+  <header class="attendance-header">
+    <div>
+      <h1>Attendance</h1>
+      <p class="attendance-description">
+        Staff check-in, check-out and working hours.
+      </p>
+    </div>
+
+    <a
+      href="{% url 'staff:attendance_export_csv' %}?from_date={{ report_from|date:'Y-m-d' }}&amp;to_date={{ report_to|date:'Y-m-d' }}&amp;report_employee={{ report_employee }}"
+      class="filter-button"
+    >
+      Export CSV
+    </a>
+  </header>
+  {% include "staff/_team_tabs.html" %}
+
+  <section class="attendance-card">
+    <div class="attendance-card-header">
+      <h2>Today’s Roster</h2>
+      <p>
+        View staff presence for {{ selected_date|date:"d M Y" }}.
+      </p>
+    </div>
+
+    <form method="get" class="attendance-filter">
+      <div class="attendance-field">
+        <label for="attendance-date">Date</label>
+        <input
+          id="attendance-date"
+          type="date"
+          name="date"
+          value="{{ selected_date|date:'Y-m-d' }}"
+          class="attendance-input"
+        >
+      </div>
+
+      <div class="attendance-field">
+        <label for="attendance-employee">Employee</label>
+        <select
+          id="attendance-employee"
+          name="employee"
+          class="attendance-input"
+        >
+          <option value="">All employees</option>
+
+          {% for employee in employees %}
+          <option
+            value="{{ employee.pk }}"
+            {% if selected_employee == employee.pk|stringformat:"s" %}selected{% endif %}
+          >
+            {{ employee.user.get_full_name|default:employee.user.username }}
+            — {{ employee.employee_id }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="filter-button">
+        Apply Filter
+      </button>
+
+      <a href="{% url 'staff:attendance_list' %}" class="reset-button">
+        Today
+      </a>
+    </form>
+
+    <div class="attendance-summary">
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Total Staff</div>
+        <div class="attendance-stat-value stat-gray">
+          {{ total_staff }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Checked In</div>
+        <div class="attendance-stat-value stat-green">
+          {{ checked_in }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Still Working</div>
+        <div class="attendance-stat-value stat-blue">
+          {{ still_working }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Late</div>
+        <div class="attendance-stat-value stat-orange">
+          {{ late_count }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Absent</div>
+        <div class="attendance-stat-value stat-red">
+          {{ absent_count }}
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="attendance-card">
+    <div class="attendance-card-header">
+      <h2>Attendance Records</h2>
+      <p>
+        {{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}
+        found.
+      </p>
+    </div>
+
+    <div class="attendance-table-scroll">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>DATE</th>
+            <th>EMPLOYEE</th>
+            <th>BRANCH</th>
+            <th>SHIFT</th>
+            <th>CHECK IN</th>
+            <th>CHECK OUT</th>
+            <th>WORKED</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in page_obj %}
+          <tr>
+            <td>{{ record.work_date|date:"d M Y" }}</td>
+
+            <td>
+              <span class="employee-name">
+                {{ record.employee.user.get_full_name|default:record.employee.user.username }}
+              </span>
+              <span class="employee-id">
+                {{ record.employee.employee_id }}
+              </span>
+            </td>
+
+            <td>
+              {{ record.employee.user.restaurant.name|default:"Not assigned" }}
+            </td>
+
+            <td>
+              {{ record.shift.name }}
+              <span class="record-secondary">
+                {{ record.scheduled_start|date:"H:i" }}
+                –
+                {{ record.scheduled_end|date:"H:i" }}
+              </span>
+            </td>
+
+            <td>{{ record.check_in|date:"H:i:s" }}</td>
+
+            <td>
+              {% if record.check_out %}
+                {{ record.check_out|date:"H:i:s" }}
+              {% else %}
+                <span class="attendance-badge badge-working">
+                  Still working
+                </span>
+              {% endif %}
+            </td>
+
+            <td>{{ record.worked_time }}</td>
+
+            <td>
+              {% if record.arrival_status == "Late" %}
+              <span class="attendance-badge badge-late">Late</span>
+              {% else %}
+              <span class="attendance-badge badge-on-time">On time</span>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="8" class="empty-attendance">
+              No attendance records found for this date.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="attendance-pagination">
+      <span>
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+
+      <div>
+        {% if page_obj.has_previous %}
+        <a
+          href="?page={{ page_obj.previous_page_number }}&amp;date={{ selected_date|date:'Y-m-d' }}&amp;employee={{ selected_employee }}"
+          class="attendance-page-link"
+        >
+          Previous
+        </a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}&amp;date={{ selected_date|date:'Y-m-d' }}&amp;employee={{ selected_employee }}"
+          class="attendance-page-link"
+        >
+          Next
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </section>
+    <section class="attendance-card" id="date-range-report">
+    <div class="attendance-card-header">
+      <h2>Date Range Report</h2>
+      <p>
+        Review attendance performance across a selected period.
+      </p>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 18px 22px 0;
+      "
+    >
+      <a
+        href="?from_date={{ today|date:'Y-m-d' }}&amp;to_date={{ today|date:'Y-m-d' }}"
+        class="reset-button"
+      >
+        Today
+      </a>
+
+      <a
+        href="?from_date={{ yesterday|date:'Y-m-d' }}&amp;to_date={{ yesterday|date:'Y-m-d' }}"
+        class="reset-button"
+      >
+        Yesterday
+      </a>
+
+      <a
+        href="?from_date={{ week_start|date:'Y-m-d' }}&amp;to_date={{ today|date:'Y-m-d' }}"
+        class="reset-button"
+      >
+        This Week
+      </a>
+
+      <a
+        href="?from_date={{ month_start|date:'Y-m-d' }}&amp;to_date={{ today|date:'Y-m-d' }}"
+        class="reset-button"
+      >
+        This Month
+      </a>
+
+      <a
+        href="?from_date={{ last_month_start|date:'Y-m-d' }}&amp;to_date={{ last_month_end|date:'Y-m-d' }}"
+        class="reset-button"
+      >
+        Last Month
+      </a>
+
+      <a
+        href="?from_date={{ year_start|date:'Y-m-d' }}&amp;to_date={{ today|date:'Y-m-d' }}"
+        class="reset-button"
+      >
+        This Year
+      </a>
+    </div>
+
+    <form method="get" class="attendance-filter">
+      <div class="attendance-field">
+        <label for="report-from">From</label>
+        <input
+          id="report-from"
+          type="date"
+          name="from_date"
+          value="{{ report_from|date:'Y-m-d' }}"
+          class="attendance-input"
+        >
+      </div>
+
+      <div class="attendance-field">
+        <label for="report-to">To</label>
+        <input
+          id="report-to"
+          type="date"
+          name="to_date"
+          value="{{ report_to|date:'Y-m-d' }}"
+          class="attendance-input"
+        >
+      </div>
+
+      <div class="attendance-field">
+        <label for="report-employee">Employee</label>
+        <select
+          id="report-employee"
+          name="report_employee"
+          class="attendance-input"
+        >
+          <option value="">All employees</option>
+
+          {% for employee in employees %}
+          <option
+            value="{{ employee.pk }}"
+            {% if report_employee == employee.pk|stringformat:"s" %}selected{% endif %}
+          >
+            {{ employee.user.get_full_name|default:employee.user.username }}
+            — {{ employee.employee_id }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="filter-button">
+        Generate
+      </button>
+    </form>
+
+    <div
+      class="attendance-summary"
+      style="grid-template-columns: repeat(4, minmax(0, 1fr));"
+    >
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Records</div>
+        <div class="attendance-stat-value stat-gray">
+          {{ report_record_count }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Present</div>
+        <div class="attendance-stat-value stat-green">
+          {{ report_present_count }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Late</div>
+        <div class="attendance-stat-value stat-orange">
+          {{ report_late_count }}
+        </div>
+      </article>
+
+      <article class="attendance-stat">
+        <div class="attendance-stat-label">Total Hours</div>
+        <div class="attendance-stat-value stat-blue">
+          {{ report_total_time }}
+        </div>
+      </article>
+    </div>
+
+    <div class="attendance-card-header">
+      <h2>Report Records</h2>
+      <p>
+        {{ report_from|date:"d M Y" }}
+        –
+        {{ report_to|date:"d M Y" }}
+      </p>
+    </div>
+
+    <div class="attendance-table-scroll">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>DATE</th>
+            <th>EMPLOYEE</th>
+            <th>BRANCH</th>
+            <th>SHIFT</th>
+            <th>CHECK IN</th>
+            <th>CHECK OUT</th>
+            <th>WORKED</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in report_page_obj %}
+          <tr>
+            <td>{{ record.work_date|date:"d M Y" }}</td>
+
+            <td>
+              <span class="employee-name">
+                {{ record.employee.user.get_full_name|default:record.employee.user.username }}
+              </span>
+              <span class="employee-id">
+                {{ record.employee.employee_id }}
+              </span>
+            </td>
+
+            <td>
+              {{ record.employee.user.restaurant.name|default:"Not assigned" }}
+            </td>
+
+            <td>
+              {{ record.shift.name }}
+              <span class="record-secondary">
+                {{ record.scheduled_start|date:"H:i" }}
+                –
+                {{ record.scheduled_end|date:"H:i" }}
+              </span>
+            </td>
+
+            <td>{{ record.check_in|date:"H:i:s" }}</td>
+
+            <td>
+              {% if record.check_out %}
+                {{ record.check_out|date:"H:i:s" }}
+              {% else %}
+                <span class="attendance-badge badge-working">
+                  Still working
+                </span>
+              {% endif %}
+            </td>
+
+            <td>{{ record.worked_time }}</td>
+
+            <td>
+              {% if record.arrival_status == "Late" %}
+              <span class="attendance-badge badge-late">Late</span>
+              {% else %}
+              <span class="attendance-badge badge-on-time">
+                On time
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="8" class="empty-attendance">
+              No attendance records found for this date range.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if report_page_obj.has_other_pages %}
+    <nav class="attendance-pagination">
+      <span>
+        Page {{ report_page_obj.number }}
+        of {{ report_page_obj.paginator.num_pages }}
+      </span>
+
+      <div>
+        {% if report_page_obj.has_previous %}
+        <a
+          href="?report_page={{ report_page_obj.previous_page_number }}&amp;from_date={{ report_from|date:'Y-m-d' }}&amp;to_date={{ report_to|date:'Y-m-d' }}&amp;report_employee={{ report_employee }}"
+          class="attendance-page-link"
+        >
+          Previous
+        </a>
+        {% endif %}
+
+        {% if report_page_obj.has_next %}
+        <a
+          href="?report_page={{ report_page_obj.next_page_number }}&amp;from_date={{ report_from|date:'Y-m-d' }}&amp;to_date={{ report_to|date:'Y-m-d' }}&amp;report_employee={{ report_employee }}"
+          class="attendance-page-link"
+        >
+          Next
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

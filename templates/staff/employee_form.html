@@ -1,0 +1,218 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{% if is_edit %}Edit Employee{% else %}Add Employee{% endif %} | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .employee-page {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .employee-page h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+  }
+
+  .employee-intro {
+    color: #6b7280;
+    margin-bottom: 24px;
+  }
+
+  .employee-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 22px;
+  }
+
+  .employee-section h2 {
+    font-size: 18px;
+    margin: 0 0 20px;
+  }
+
+  .employee-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .employee-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .employee-field input,
+  .employee-field select,
+  .employee-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .employee-field input:focus,
+  .employee-field select:focus,
+  .employee-field textarea:focus {
+    outline: 2px solid #f97316;
+    outline-offset: 2px;
+  }
+
+  .employee-field select:disabled {
+    background: #f3f4f6;
+  }
+
+  .employee-help {
+    margin-top: 7px;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .employee-help ul {
+    padding-left: 20px;
+  }
+
+  .employee-page .errorlist {
+    color: #b91c1c;
+    padding-left: 20px;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+
+  .employee-required {
+    color: #b91c1c;
+  }
+
+  .employee-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .employee-save,
+  .employee-cancel {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .employee-save {
+    background: #f97316;
+    color: white;
+    border: 1px solid #f97316;
+  }
+
+  .employee-cancel {
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  @media (max-width: 700px) {
+    .employee-page {
+      padding: 18px;
+    }
+
+    .employee-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="employee-page">
+    <h1>{% if is_edit %}Edit Employee{% else %}Add Employee{% endif %}</h1>
+    <p class="employee-intro">
+    {% if is_edit %}
+    Update employee information. Fields marked * are required.
+    {% else %}
+    Create a login account and employee profile.
+    Fields marked * are required.
+    {% endif %}
+  </p>
+
+    <form method="post">
+    {% csrf_token %}
+
+    <section class="employee-section">
+      <h2>Account &amp; Restaurant</h2>
+
+      {{ account_form.non_field_errors }}
+
+      <div class="employee-grid">
+        {% for field in account_form %}
+        <div class="employee-field">
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}
+            <span class="employee-required">*</span>
+            {% endif %}
+          </label>
+
+          {{ field }}
+          {{ field.errors }}
+
+          {% if field.help_text %}
+          <div class="employee-help">
+            {{ field.help_text }}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="employee-section">
+      <h2>Employment Details</h2>
+
+      {{ profile_form.non_field_errors }}
+
+      <div class="employee-grid">
+        {% for field in profile_form %}
+        <div class="employee-field">
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}
+            <span class="employee-required">*</span>
+            {% endif %}
+          </label>
+
+          {{ field }}
+          {{ field.errors }}
+
+          {% if field.help_text %}
+          <div class="employee-help">
+            {{ field.help_text }}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="employee-actions">
+      <button type="submit" class="employee-save">
+        {% if is_edit %}Save Changes{% else %}Save Employee{% endif %}
+      </button>
+      <a href="{% url 'staff:employee_list' %}" class="employee-cancel">
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

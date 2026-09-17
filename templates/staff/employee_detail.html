@@ -1,0 +1,221 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Employee Details | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .staff-detail {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .staff-detail h1 {
+    margin-bottom: 8px;
+  }
+
+  .detail-subtitle {
+    color: #6b7280;
+    margin-bottom: 24px;
+  }
+
+  .detail-card {
+    padding: 24px;
+    margin-bottom: 22px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: white;
+  }
+
+  .detail-card h2 {
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .detail-grid dt {
+    margin-bottom: 6px;
+    color: #6b7280;
+    font-size: 13px;
+  }
+
+  .detail-grid dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-back {
+    display: inline-block;
+    padding: 12px 18px;
+    border-radius: 8px;
+    background: #f97316;
+    color: white;
+    text-decoration: none;
+  }
+
+  @media (max-width: 650px) {
+    .staff-detail {
+      padding: 18px;
+    }
+
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="staff-detail">
+  <h1>{{ employee.get_full_name|default:employee.username }}</h1>
+  <p class="detail-subtitle">
+    {{ employee.get_role_display }} · {{ employee.username }}
+  </p>
+
+  <section class="detail-card">
+    <h2>Account Details</h2>
+    <dl class="detail-grid">
+      <div>
+        <dt>Restaurant</dt>
+        <dd>{{ employee.restaurant.name|default:"Not assigned" }}</dd>
+      </div>
+      <div>
+        <dt>Status</dt>
+        <dd>
+          {% if employee.is_active and employee.is_active_staff %}
+          Active
+          {% else %}
+          Inactive
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{{ employee.email|default:"Not provided" }}</dd>
+      </div>
+      <div>
+        <dt>Phone</dt>
+        <dd>{{ employee.phone|default:"Not provided" }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="detail-card">
+    <h2>Employment Details</h2>
+
+    {% if profile %}
+    <dl class="detail-grid">
+      <div>
+        <dt>Employee ID</dt>
+        <dd>{{ profile.employee_id }}</dd>
+      </div>
+      <div>
+        <dt>Joining Date</dt>
+        <dd>{{ profile.joining_date|date:"d M Y" }}</dd>
+      </div>
+      <div>
+        <dt>Basic Salary (BDT)</dt>
+        <dd>{{ profile.basic_salary|floatformat:2 }}</dd>
+      </div>
+      <div>
+        <dt>Assigned Shift</dt>
+        <dd>
+          {% if profile.shift %}
+          {{ profile.shift.name }}
+          ({{ profile.shift.start_time|time:"H:i" }} –
+          {{ profile.shift.end_time|time:"H:i" }})
+          {% if profile.shift.end_time < profile.shift.start_time %}
+          — ends next day
+          {% endif %}
+          {% else %}
+          Not assigned
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt>Address</dt>
+        <dd>{{ profile.address|default:"Not provided"|linebreaksbr }}</dd>
+      </div>
+      <div>
+        <dt>Emergency Contact Name</dt>
+        <dd>{{ profile.emergency_contact_name|default:"Not provided" }}</dd>
+      </div>
+      <div>
+        <dt>Emergency Contact Phone</dt>
+        <dd>{{ profile.emergency_contact_phone|default:"Not provided" }}</dd>
+      </div>
+    </dl>
+    {% else %}
+    <p>This employee's employment profile has not been completed yet.</p>
+    {% endif %}
+  </section>
+
+  {% if user.is_superuser or user.role == "admin" or user.role == "owner" or user.role == "manager" and employee.role != "manager" %}
+  <a
+    href="{% url 'staff:employee_edit' employee_id=employee.pk %}"
+    class="detail-back"
+    style="margin-right: 10px; margin-bottom: 12px;"
+  >
+    Edit Employee
+  </a>
+  <a
+    href="{% url 'staff:employee_assign_shift' employee_id=employee.pk %}"
+    class="detail-back"
+    style="margin-right: 10px; margin-bottom: 12px;"
+  >
+    Assign Shift
+  </a>
+  {% endif %}
+
+  <a href="{% url 'staff:employee_list' %}" class="detail-back">
+    Back to Employees
+  </a>
+
+  {% if user.pk != employee.pk %}
+  {% if user.is_superuser or user.role == "admin" or user.role == "owner" or user.role == "manager" and employee.role != "manager" %}
+  <form
+    method="post"
+    action="{% url 'staff:employee_set_status' employee_id=employee.pk %}"
+    style="margin-top: 24px;"
+  >
+    {% csrf_token %}
+
+    {% if employee.is_active and employee.is_active_staff %}
+    <p style="margin-bottom: 12px; color: #6b7280;">
+      Deactivating this employee blocks login and keeps their records.
+    </p>
+    <button
+      type="submit"
+      name="action"
+      value="deactivate"
+      class="detail-back"
+      style="background: #b91c1c; border: 0; cursor: pointer; font: inherit;"
+    >
+      Deactivate Employee
+    </button>
+    {% else %}
+    <p style="margin-bottom: 12px; color: #6b7280;">
+      Activate this employee to allow login again.
+    </p>
+    <button
+      type="submit"
+      name="action"
+      value="activate"
+      class="detail-back"
+      style="background: #15803d; border: 0; cursor: pointer; font: inherit;"
+    >
+      Activate Employee
+    </button>
+    {% endif %}
+  </form>
+  {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

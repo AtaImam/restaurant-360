@@ -1,0 +1,220 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Add Staff Leave | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .staff-leave-page {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .staff-leave-header {
+    margin-bottom: 22px;
+  }
+
+  .staff-leave-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .staff-leave-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .staff-leave-card {
+    padding: 25px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .staff-leave-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .staff-leave-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .staff-leave-field.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .staff-leave-field label {
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .staff-leave-field input,
+  .staff-leave-field select,
+  .staff-leave-field textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .staff-leave-field input,
+  .staff-leave-field select {
+    min-height: 44px;
+  }
+
+  .staff-leave-field textarea {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  .staff-leave-field input:focus,
+  .staff-leave-field select:focus,
+  .staff-leave-field textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .field-error,
+  .form-errors {
+    color: #b91c1c;
+    font-size: 12px;
+  }
+
+  .form-errors {
+    grid-column: 1 / -1;
+    padding: 11px 13px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+  }
+
+  .staff-leave-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .cancel-button,
+  .save-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 17px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .cancel-button {
+    border: 1px solid #dfe3e8;
+    background: #ffffff;
+    color: #4b5563;
+  }
+
+  .save-button {
+    border: 0;
+    background: #f97316;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  @media (max-width: 650px) {
+    .staff-leave-page {
+      padding: 18px;
+    }
+
+    .staff-leave-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .staff-leave-field.full-width {
+      grid-column: auto;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="staff-leave-page">
+  <header class="staff-leave-header">
+    <h1>Add Leave for Staff</h1>
+    <p>Create a leave request on behalf of an employee.</p>
+  </header>
+
+  <form method="post" class="staff-leave-card">
+    {% csrf_token %}
+
+    <div class="staff-leave-grid">
+      {% if form.non_field_errors %}
+      <div class="form-errors">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <div class="staff-leave-field full-width">
+        <label for="{{ form.employee.id_for_label }}">Employee</label>
+        {{ form.employee }}
+        {% for error in form.employee.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="staff-leave-field">
+        <label for="{{ form.leave_type.id_for_label }}">Leave Type</label>
+        {{ form.leave_type }}
+        {% for error in form.leave_type.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="staff-leave-field">
+        <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+        {{ form.start_date }}
+        {% for error in form.start_date.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="staff-leave-field">
+        <label for="{{ form.end_date.id_for_label }}">End Date</label>
+        {{ form.end_date }}
+        {% for error in form.end_date.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="staff-leave-field full-width">
+        <label for="{{ form.reason.id_for_label }}">Reason</label>
+        {{ form.reason }}
+        {% for error in form.reason.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="staff-leave-actions">
+      <a href="{% url 'staff:leave_list' %}" class="cancel-button">
+        Cancel
+      </a>
+
+      <button type="submit" class="save-button">
+        Create Leave Request
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}

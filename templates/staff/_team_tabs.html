@@ -1,0 +1,55 @@
+{% with current_url=request.resolver_match.url_name %}
+<nav
+  class="team-tabs operations-tabs"
+  aria-label="Staff management navigation"
+>
+  <a
+    href="{% url 'staff:employee_list' %}"
+    class="team-tab {% if current_url == 'employee_list' or current_url == 'employee_create' or current_url == 'employee_detail' or current_url == 'employee_edit' or current_url == 'employee_assign_shift' %}active{% endif %}"
+  >
+    Staff
+  </a>
+
+  <a
+    href="{% url 'staff:daily_operations' %}"
+    class="team-tab {% if current_url == 'daily_operations' %}active{% endif %}"
+  >
+    Daily Operations
+  </a>
+
+  <a
+    href="{% url 'staff:shift_list' %}"
+    class="team-tab {% if current_url == 'shift_list' or current_url == 'shift_create' or current_url == 'shift_edit' %}active{% endif %}"
+  >
+    Work Shifts
+  </a>
+
+  <a
+    href="{% url 'staff:attendance_list' %}"
+    class="team-tab {% if current_url == 'attendance_list' %}active{% endif %}"
+  >
+    Attendance
+  </a>
+
+  <a
+    href="{% url 'staff:leave_list' %}"
+    class="team-tab {% if current_url == 'leave_list' or current_url == 'leave_review' %}active{% endif %}"
+  >
+    Leave
+  </a>
+
+  <a
+    href="{% url 'staff:payroll_list' %}"
+    class="team-tab {% if current_url == 'payroll_list' or current_url == 'payroll_mark_paid' %}active{% endif %}"
+  >
+    Payroll
+  </a>
+
+  <a
+    href="{% url 'staff:salary_advance_list' %}"
+    class="team-tab {% if current_url == 'salary_advance_list' or current_url == 'salary_advance_review' %}active{% endif %}"
+  >
+    Advance Salaries
+  </a>
+</nav>
+{% endwith %}

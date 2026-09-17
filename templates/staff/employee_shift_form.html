@@ -1,0 +1,38 @@
+{% extends "staff/employee_form.html" %}
+
+{% block title %}Assign Shift | Restaurant 360{% endblock %}
+
+{% block content %}
+<section class="employee-page">
+  <h1>Assign Shift</h1>
+  <p class="employee-intro">
+    {{ employee.get_full_name|default:employee.username }}
+    · {{ employee.restaurant.name }}
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <section class="employee-section">
+      {{ form.non_field_errors }}
+
+      <div class="employee-field">
+        <label for="{{ form.shift.id_for_label }}">Shift</label>
+        {{ form.shift }}
+        {{ form.shift.errors }}
+        <p class="employee-help">{{ form.shift.help_text }}</p>
+      </div>
+    </section>
+
+    <div class="employee-actions">
+      <button type="submit" class="employee-save">Save Shift</button>
+      <a
+        href="{% url 'staff:employee_detail' employee_id=employee.pk %}"
+        class="employee-cancel"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

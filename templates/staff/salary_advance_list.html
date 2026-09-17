@@ -1,0 +1,593 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Advance Salaries | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .advance-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .advance-page * {
+    box-sizing: border-box;
+  }
+
+  .advance-header {
+    margin-bottom: 24px;
+  }
+
+  .advance-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .advance-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .team-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .team-tab:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+
+  .team-tab.active {
+    color: #ffffff;
+    background: #f97316;
+  }
+
+  .advance-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 24px;
+  }
+
+  .advance-stat {
+    min-height: 110px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .advance-stat-label {
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .advance-stat-value {
+    font-size: 27px;
+    font-weight: 800;
+  }
+
+  .advance-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.7fr) minmax(650px, 1.6fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .advance-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .advance-card-header {
+    padding: 19px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .advance-card-header h2 {
+    margin: 0 0 5px;
+    font-size: 18px;
+  }
+
+  .advance-card-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .advance-form {
+    padding: 22px;
+  }
+
+  .advance-field {
+    margin-bottom: 17px;
+  }
+
+  .advance-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .advance-field input,
+  .advance-field select,
+  .advance-field textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .advance-field input:focus,
+  .advance-field select:focus,
+  .advance-field textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .advance-submit {
+    width: 100%;
+    min-height: 43px;
+    border: 0;
+    border-radius: 8px;
+    background: #f97316;
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .advance-error {
+    margin-top: 6px;
+    color: #dc2626;
+    font-size: 12px;
+  }
+
+  .advance-form-error {
+    margin-bottom: 15px;
+    padding: 11px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #991b1b;
+    font-size: 12px;
+  }
+
+  .advance-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 180px auto;
+    gap: 9px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .advance-input {
+    width: 100%;
+    height: 41px;
+    padding: 0 11px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    font: inherit;
+  }
+
+  .advance-filter-button {
+    border: 0;
+    border-radius: 8px;
+    background: #f97316;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .advance-table-scroll {
+    overflow-x: auto;
+  }
+
+  .advance-table {
+    width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .advance-table th,
+  .advance-table td {
+    padding: 15px 16px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: top;
+  }
+
+  .advance-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .employee-name {
+    color: #111827;
+    font-weight: 750;
+  }
+
+  .advance-secondary {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .advance-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-deducted {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .review-form {
+    min-width: 220px;
+  }
+
+  .review-note {
+    width: 100%;
+    min-height: 50px;
+    margin-bottom: 7px;
+    padding: 7px 8px;
+    border: 1px solid #dfe3e8;
+    border-radius: 7px;
+    resize: vertical;
+    font: inherit;
+    font-size: 11px;
+  }
+
+  .review-actions {
+    display: flex;
+    gap: 7px;
+  }
+
+  .approve-button,
+  .reject-button {
+    min-height: 31px;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 7px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .approve-button {
+    background: #16a34a;
+  }
+
+  .reject-button {
+    background: #dc2626;
+  }
+
+  .advance-empty {
+    padding: 38px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  @media (max-width: 1100px) {
+    .advance-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 750px) {
+    .advance-page {
+      padding: 18px;
+    }
+
+    .advance-summary,
+    .advance-toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="advance-page">
+  <header class="advance-header">
+    <h1>Advance Salaries</h1>
+    <p>Create, review and track employee salary advances.</p>
+  </header>
+
+  {% include "staff/_team_tabs.html" %}
+
+  <div class="advance-summary">
+    <article class="advance-stat">
+      <div class="advance-stat-label">Total Advances</div>
+      <div class="advance-stat-value">{{ total_advances }}</div>
+    </article>
+
+    <article class="advance-stat">
+      <div class="advance-stat-label">Pending</div>
+      <div class="advance-stat-value" style="color: #d97706;">
+        {{ pending_advances }}
+      </div>
+    </article>
+
+    <article class="advance-stat">
+      <div class="advance-stat-label">Approved</div>
+      <div class="advance-stat-value" style="color: #15803d;">
+        {{ approved_advances }}
+      </div>
+    </article>
+
+    <article class="advance-stat">
+      <div class="advance-stat-label">Deducted</div>
+      <div class="advance-stat-value" style="color: #2563eb;">
+        {{ deducted_advances }}
+      </div>
+    </article>
+  </div>
+
+  <div class="advance-layout">
+    <section class="advance-card">
+      <div class="advance-card-header">
+        <h2>New Salary Advance</h2>
+        <p>Create an advance request for an employee.</p>
+      </div>
+
+      <form method="post" class="advance-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="advance-form-error">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="advance-field">
+          <label for="{{ form.employee.id_for_label }}">
+            Employee
+          </label>
+          {{ form.employee }}
+
+          {% for error in form.employee.errors %}
+          <div class="advance-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="advance-field">
+          <label for="{{ form.amount.id_for_label }}">
+            Advance Amount
+          </label>
+          {{ form.amount }}
+
+          {% for error in form.amount.errors %}
+          <div class="advance-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="advance-field">
+          <label for="{{ form.reason.id_for_label }}">
+            Reason
+          </label>
+          {{ form.reason }}
+
+          {% for error in form.reason.errors %}
+          <div class="advance-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="advance-submit">
+          Create Advance Request
+        </button>
+      </form>
+    </section>
+
+    <section class="advance-card">
+      <div class="advance-card-header">
+        <h2>Salary Advance Records</h2>
+        <p>{{ page_obj.paginator.count }} record(s) found.</p>
+      </div>
+
+      <form method="get" class="advance-toolbar">
+        <input
+          type="search"
+          name="search"
+          value="{{ search }}"
+          class="advance-input"
+          placeholder="Search employee name or ID..."
+        >
+
+        <select name="status" class="advance-input">
+          <option value="">All statuses</option>
+          <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>
+            Pending
+          </option>
+          <option value="approved" {% if status_filter == "approved" %}selected{% endif %}>
+            Approved
+          </option>
+          <option value="rejected" {% if status_filter == "rejected" %}selected{% endif %}>
+            Rejected
+          </option>
+          <option value="deducted" {% if status_filter == "deducted" %}selected{% endif %}>
+            Deducted
+          </option>
+        </select>
+
+        <button type="submit" class="advance-filter-button">
+          Filter
+        </button>
+      </form>
+
+      <div class="advance-table-scroll">
+        <table class="advance-table">
+          <thead>
+            <tr>
+              <th>EMPLOYEE</th>
+              <th>AMOUNT</th>
+              <th>REASON</th>
+              <th>STATUS</th>
+              <th>CREATED</th>
+              <th>REVIEW</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for advance in page_obj %}
+            <tr>
+              <td>
+                <span class="employee-name">
+                  {{ advance.employee.user.get_full_name|default:advance.employee.user.username }}
+                </span>
+                <span class="advance-secondary">
+                  {{ advance.employee.employee_id }}
+                  · {{ advance.restaurant.name }}
+                </span>
+              </td>
+
+              <td>
+                <strong>৳{{ advance.amount|floatformat:2 }}</strong>
+              </td>
+
+              <td>{{ advance.reason }}</td>
+
+              <td>
+                {% if advance.status == "pending" %}
+                <span class="advance-badge status-pending">Pending</span>
+                {% elif advance.status == "approved" %}
+                <span class="advance-badge status-approved">Approved</span>
+                {% elif advance.status == "rejected" %}
+                <span class="advance-badge status-rejected">Rejected</span>
+                {% else %}
+                <span class="advance-badge status-deducted">Deducted</span>
+                {% endif %}
+
+                {% if advance.review_note %}
+                <span class="advance-secondary">
+                  {{ advance.review_note }}
+                </span>
+                {% endif %}
+              </td>
+
+              <td>{{ advance.created_at|date:"d M Y" }}</td>
+
+              <td>
+                {% if advance.status == "pending" %}
+                <form
+                  method="post"
+                  action="{% url 'staff:salary_advance_review' advance_id=advance.pk %}"
+                  class="review-form"
+                >
+                  {% csrf_token %}
+
+                  <textarea
+                    name="review_note"
+                    class="review-note"
+                    placeholder="Optional review note"
+                  ></textarea>
+
+                  <div class="review-actions">
+                    <button
+                      type="submit"
+                      name="action"
+                      value="approve"
+                      class="approve-button"
+                    >
+                      Approve
+                    </button>
+
+                    <button
+                      type="submit"
+                      name="action"
+                      value="reject"
+                      class="reject-button"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </form>
+                {% else %}
+                <span class="advance-secondary">
+                  Reviewed
+                  {% if advance.reviewed_by %}
+                    by {{ advance.reviewed_by.username }}
+                  {% endif %}
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+              <td colspan="6" class="advance-empty">
+                No salary advance records found.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,581 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Staff | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .staff-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .staff-page * {
+    box-sizing: border-box;
+  }
+
+  .staff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .staff-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+    line-height: 1.2;
+  }
+
+  .staff-description {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .staff-primary-button,
+  .staff-search-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 17px;
+    border: 0;
+    border-radius: 9px;
+    background: #f97316;
+    color: #ffffff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .team-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .team-tab:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+
+  .team-tab.active {
+    color: #ffffff;
+    background: #f97316;
+  }
+
+  .staff-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .summary-card {
+    position: relative;
+    min-height: 125px;
+    padding: 22px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .summary-card-label {
+    margin-bottom: 12px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .summary-card-value {
+    color: #111827;
+    font-size: 27px;
+    font-weight: 800;
+  }
+
+  .summary-card-note {
+    margin-top: 7px;
+    color: #9ca3af;
+    font-size: 12px;
+  }
+
+  .summary-card-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #f97316;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .staff-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .staff-search-input {
+    flex: 1;
+    min-width: 180px;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #dfe3e8;
+    border-radius: 9px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .staff-search-input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .staff-clear-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 15px;
+    border: 1px solid #dfe3e8;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .staff-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .staff-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 19px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .staff-card-title {
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .staff-result-count {
+    color: #6b7280;
+    font-size: 13px;
+  }
+
+  .staff-table-scroll {
+    overflow-x: auto;
+  }
+
+  .staff-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .staff-table th,
+  .staff-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: middle;
+  }
+
+  .staff-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .employee-avatar {
+    display: grid;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 50%;
+    background: #fff7ed;
+    color: #f97316;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .employee-name {
+    display: block;
+    color: #111827;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .employee-name:hover {
+    color: #f97316;
+  }
+
+  .employee-meta {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .role-name {
+    font-weight: 650;
+  }
+
+  .role-restaurant {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .staff-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .staff-active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .staff-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .staff-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .staff-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .staff-action:hover {
+    border-color: #fed7aa;
+    background: #fff7ed;
+    color: #ea580c;
+  }
+
+  .empty-staff {
+    padding: 38px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .staff-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+  }
+
+  .staff-pagination-links {
+    display: flex;
+    gap: 8px;
+  }
+
+  .staff-page-link {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .staff-page-link:hover {
+    border-color: #f97316;
+    color: #f97316;
+  }
+
+  @media (max-width: 900px) {
+    .staff-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .staff-page {
+      padding: 18px;
+    }
+
+    .staff-toolbar {
+      flex-direction: column;
+    }
+
+    .staff-search-button,
+    .staff-clear-button {
+      min-height: 42px;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="staff-page">
+  <header class="staff-header">
+    <div>
+      <h1>Staff</h1>
+      <p class="staff-description">
+        Manage your team, roles and pay.
+      </p>
+    </div>
+
+    <a href="{% url 'staff:employee_create' %}" class="staff-primary-button">
+      + Add Staff
+    </a>
+  </header>
+
+  {% include "staff/_team_tabs.html" %}
+
+  <div class="staff-summary-grid">
+    <article class="summary-card">
+      <div class="summary-card-icon">&#9826;</div>
+      <div class="summary-card-label">Total Staff</div>
+      <div class="summary-card-value">{{ total_staff }}</div>
+      <div class="summary-card-note">All registered team members</div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-card-icon">&#10003;</div>
+      <div class="summary-card-label">Active</div>
+      <div class="summary-card-value">{{ active_staff }}</div>
+      <div class="summary-card-note">Currently active staff accounts</div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-card-icon">৳</div>
+      <div class="summary-card-label">Monthly Payroll</div>
+      <div class="summary-card-value">
+        ৳{{ monthly_payroll|floatformat:2 }}
+      </div>
+      <div class="summary-card-note">Active staff basic salaries</div>
+    </article>
+  </div>
+
+  <form method="get" class="staff-toolbar">
+    <input
+      type="search"
+      name="search"
+      value="{{ search }}"
+      class="staff-search-input"
+      placeholder="Search staff by name, username, phone or employee ID..."
+      aria-label="Search staff"
+    >
+
+    <button type="submit" class="staff-search-button">
+      Search
+    </button>
+
+    {% if search %}
+    <a href="{% url 'staff:employee_list' %}" class="staff-clear-button">
+      Clear
+    </a>
+    {% endif %}
+  </form>
+
+  <div class="staff-card">
+    <div class="staff-card-header">
+      <div class="staff-card-title">All Staff</div>
+      <div class="staff-result-count">
+        {{ result_count }} result{{ result_count|pluralize }}
+      </div>
+    </div>
+
+    <div class="staff-table-scroll">
+      <table class="staff-table">
+        <thead>
+          <tr>
+            <th scope="col">NAME</th>
+            <th scope="col">ROLE</th>
+            <th scope="col">PHONE</th>
+            <th scope="col">SALARY</th>
+            <th scope="col">STATUS</th>
+            <th scope="col">ACTIONS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for employee in page_obj %}
+          <tr>
+            <td>
+              <div class="employee-cell">
+                <div class="employee-avatar">
+                  {{ employee.first_name|first|default:"S"|upper }}
+                </div>
+
+                <div>
+                  <a
+                    href="{% url 'staff:employee_detail' employee_id=employee.pk %}"
+                    class="employee-name"
+                  >
+                    {{ employee.get_full_name|default:employee.username }}
+                  </a>
+
+                  <span class="employee-meta">
+                    {{ employee.employee_profile.employee_id|default:"No employee ID" }}
+                    · {{ employee.email|default:employee.username }}
+                  </span>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <span class="role-name">{{ employee.get_role_display }}</span>
+              <span class="role-restaurant">
+                {{ employee.restaurant.name|default:"No restaurant" }}
+              </span>
+            </td>
+
+            <td>{{ employee.phone|default:"—" }}</td>
+
+            <td>
+              ৳{{ employee.employee_profile.basic_salary|default:0|floatformat:2 }}
+            </td>
+
+            <td>
+              {% if employee.is_active and employee.is_active_staff %}
+              <span class="staff-badge staff-active">Active</span>
+              {% else %}
+              <span class="staff-badge staff-inactive">Inactive</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="staff-actions">
+                <a
+                  href="{% url 'staff:employee_detail' employee_id=employee.pk %}"
+                  class="staff-action"
+                >
+                  View
+                </a>
+
+                <a
+                  href="{% url 'staff:employee_edit' employee_id=employee.pk %}"
+                  class="staff-action"
+                >
+                  Edit
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="6" class="empty-staff">
+              No staff members matched your search.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="staff-pagination" aria-label="Staff pages">
+      <span>
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+
+      <div class="staff-pagination-links">
+        {% if page_obj.has_previous %}
+        <a
+          href="?page={{ page_obj.previous_page_number }}&amp;search={{ search|urlencode }}"
+          class="staff-page-link"
+        >
+          Previous
+        </a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}&amp;search={{ search|urlencode }}"
+          class="staff-page-link"
+        >
+          Next
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,594 @@
+{% extends "dashboard/base_owner.html" %}
+{% load tz %}
+
+{% block title %}My Attendance | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .attendance-page {
+    max-width: 1450px;
+    margin: auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-header h1 {
+    margin: 0 0 8px;
+    font-size: 34px;
+  }
+
+  .muted {
+    color: #6b7280;
+  }
+
+  .attendance-card {
+    margin-bottom: 22px;
+    overflow: hidden;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+  }
+
+  .owner-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: 35px;
+    align-items: center;
+    min-height: 300px;
+    padding: 38px;
+    background:
+      radial-gradient(
+        circle at top left,
+        rgba(249, 115, 22, 0.12),
+        transparent 38%
+      ),
+      linear-gradient(135deg, #ffffff, #fffaf5);
+  }
+
+  .owner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    background: #ffedd5;
+    color: #ea580c;
+    font-size: 25px;
+    font-weight: 700;
+  }
+
+  .owner-panel h2 {
+    max-width: 600px;
+    margin: 0 0 12px;
+    font-size: 28px;
+  }
+
+  .owner-panel-description {
+    max-width: 650px;
+    margin: 0;
+    color: #6b7280;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .access-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    padding: 9px 13px;
+    border-radius: 999px;
+    background: white;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .employee-view-box {
+    padding: 25px;
+    border: 1px solid #fed7aa;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 12px 30px rgba(124, 45, 18, 0.08);
+  }
+
+  .employee-view-box h3 {
+    margin: 0 0 7px;
+    font-size: 21px;
+  }
+
+  .employee-view-box p {
+    margin: 0 0 18px;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .employee-view-box label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .employee-view-box select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: white;
+    font: inherit;
+  }
+
+  .employee-view-box select:focus {
+    outline: 2px solid #fb923c;
+    outline-offset: 1px;
+  }
+
+  .attendance-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 12px 18px;
+    border: 1px solid #f97316;
+    border-radius: 9px;
+    background: #f97316;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .employee-view-box .attendance-button {
+    width: 100%;
+    margin-top: 13px;
+  }
+
+  .button-secondary {
+    border-color: #d1d5db;
+    background: white;
+    color: #374151;
+  }
+
+  .attendance-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .viewing-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+    padding: 16px 20px;
+    border: 1px solid #fdba74;
+    border-radius: 12px;
+    background: #fff7ed;
+  }
+
+  .viewing-banner strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .employee-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 24px;
+    align-items: center;
+    padding: 26px;
+  }
+
+  .employee-card h2 {
+    margin: 0 0 9px;
+    font-size: 24px;
+  }
+
+  .employee-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    color: #4b5563;
+  }
+
+  .current-status {
+    padding: 18px;
+    border-radius: 12px;
+    background: #f9fafb;
+  }
+
+  .current-status p {
+    margin: 0 0 13px;
+    line-height: 1.6;
+  }
+
+  .preview-note {
+    color: #9a3412;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .card-header h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f1f3;
+    white-space: nowrap;
+  }
+
+  .attendance-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .empty-row {
+    padding: 40px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .message-box {
+    margin-bottom: 18px;
+    padding: 14px 18px;
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+    background: #fff7ed;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+  }
+
+  .pagination a {
+    color: #c2410c;
+  }
+
+  .unavailable-card {
+    padding: 30px;
+  }
+
+  @media (max-width: 950px) {
+    .owner-panel,
+    .employee-card {
+      grid-template-columns: 1fr;
+    }
+
+    .employee-view-box {
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .attendance-page {
+      padding: 18px;
+    }
+
+    .owner-panel {
+      padding: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+    }
+
+    .viewing-banner {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% timezone "Asia/Dhaka" %}
+<section class="attendance-page">
+  <header class="page-header">
+    <h1>My Attendance</h1>
+    <div class="muted">
+      Bangladesh time:
+      {{ local_now|date:"d M Y, H:i" }}
+      &middot; Updated at page load
+    </div>
+  </header>
+
+  {% for message in messages %}
+  <div class="message-box" role="status">
+    {{ message }}
+  </div>
+  {% endfor %}
+
+  {% if show_owner_hub %}
+  <section class="attendance-card owner-panel">
+    <div>
+      <div class="owner-icon">✓</div>
+
+      <h2>Attendance access for your entire team</h2>
+
+      <p class="owner-panel-description">
+        Owners and administrators can securely view any employee&rsquo;s
+        shift, attendance status and working history without leaving
+        their management account.
+      </p>
+
+      <div class="access-note">
+        Secure owner access &middot; Employee actions remain protected
+      </div>
+    </div>
+
+    <form method="get" class="employee-view-box">
+      <h3>View Employee</h3>
+
+      <p>
+        Select a staff member to view their attendance profile and
+        history.
+      </p>
+
+      <label for="employee-select">Employee</label>
+
+      <select
+        name="employee"
+        id="employee-select"
+        required
+      >
+        <option value="">Select an employee</option>
+
+        {% for staff_member in employees %}
+        <option value="{{ staff_member.pk }}">
+          {{ staff_member.employee_id }} &ndash;
+          {{ staff_member.user.get_full_name|default:staff_member.user.username }}
+        </option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="attendance-button">
+        View Attendance
+      </button>
+    </form>
+  </section>
+  {% endif %}
+
+  {% if viewing_employee %}
+  <div class="viewing-banner">
+    <div>
+      <strong>
+        Viewing:
+        {{ employee.user.get_full_name|default:employee.user.username }}
+      </strong>
+
+      <span class="muted">
+        You are still logged in as the owner. Check-in and check-out
+        actions are protected.
+      </span>
+    </div>
+
+    <a
+      href="{% url 'staff:my_attendance' %}"
+      class="attendance-button button-secondary"
+    >
+      Exit Employee View
+    </a>
+  </div>
+  {% endif %}
+
+  {% if employee %}
+  <section class="attendance-card employee-card">
+    <div>
+      <h2>
+        {{ employee.user.get_full_name|default:employee.user.username }}
+      </h2>
+
+      <div class="employee-meta">
+        <span>Employee ID: {{ employee.employee_id }}</span>
+
+        <span>
+          Role: {{ employee.user.get_role_display }}
+        </span>
+
+        {% if employee.shift %}
+        <span>
+          Shift:
+          {{ employee.shift.name }}
+          &middot;
+          {{ employee.shift.start_time|time:"H:i" }}
+          &ndash;
+          {{ employee.shift.end_time|time:"H:i" }}
+        </span>
+        {% else %}
+        <span>No shift assigned</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="current-status">
+      {% if open_attendance %}
+      <p>
+        <strong>Currently checked in</strong><br>
+        <span class="muted">
+          Since {{ open_attendance.check_in|date:"d M Y, H:i:s" }}
+        </span>
+      </p>
+
+      {% if viewing_employee %}
+      <div class="preview-note">
+        Check-out is disabled in Owner View.
+      </div>
+      {% else %}
+      <form method="post" action="{% url 'staff:attendance_action' %}">
+        {% csrf_token %}
+        <button
+          type="submit"
+          name="action"
+          value="check_out"
+          class="attendance-button"
+        >
+          Check Out
+        </button>
+      </form>
+      {% endif %}
+
+      {% else %}
+      <p>
+        <strong>Not checked in</strong><br>
+        <span class="muted">
+          Check-in is available during the assigned shift.
+        </span>
+      </p>
+
+      {% if viewing_employee %}
+      <div class="preview-note">
+        Check-in is disabled in Owner View.
+      </div>
+      {% else %}
+      <form method="post" action="{% url 'staff:attendance_action' %}">
+        {% csrf_token %}
+
+        <button
+          type="submit"
+          name="action"
+          value="check_in"
+          class="attendance-button"
+          {% if not employee.shift or not employee.shift.is_active %}
+          disabled
+          {% endif %}
+        >
+          Check In
+        </button>
+      </form>
+      {% endif %}
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="attendance-card">
+    <div class="card-header">
+      <h2>Attendance History</h2>
+      <span class="muted">
+        Previous check-in, check-out and working-hour records
+      </span>
+    </div>
+
+    <div class="table-scroll">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>DUTY DATE</th>
+            <th>SCHEDULE</th>
+            <th>CHECK IN</th>
+            <th>CHECK OUT</th>
+            <th>ARRIVAL</th>
+            <th>WORKED TIME</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in page_obj %}
+          <tr>
+            <td>{{ record.work_date|date:"d M Y" }}</td>
+
+            <td>
+              {{ record.scheduled_start|date:"d M H:i" }}
+              &ndash;
+              {{ record.scheduled_end|date:"d M H:i" }}
+            </td>
+
+            <td>
+              {{ record.check_in|date:"d M H:i:s" }}
+            </td>
+
+            <td>
+              {% if record.check_out %}
+              {{ record.check_out|date:"d M H:i:s" }}
+              {% else %}
+              Still checked in
+              {% endif %}
+            </td>
+
+            <td>{{ record.arrival_status }}</td>
+            <td>{{ record.worked_time }}</td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="6" class="empty-row">
+              No attendance records are available for this employee.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="pagination">
+      {% if page_obj.has_previous %}
+      <a
+        href="?page={{ page_obj.previous_page_number }}{% if viewing_employee %}&amp;employee={{ employee.pk }}{% endif %}"
+      >
+        Previous
+      </a>
+      {% endif %}
+
+      <span>
+        Page {{ page_obj.number }}
+        of {{ page_obj.paginator.num_pages }}
+      </span>
+
+      {% if page_obj.has_next %}
+      <a
+        href="?page={{ page_obj.next_page_number }}{% if viewing_employee %}&amp;employee={{ employee.pk }}{% endif %}"
+      >
+        Next
+      </a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if not show_owner_hub and not employee %}
+  <section class="attendance-card unavailable-card">
+    <h2>Attendance profile unavailable</h2>
+    <p class="muted">
+      Your account does not currently have an active employee profile.
+      Please contact the restaurant administrator.
+    </p>
+  </section>
+  {% endif %}
+</section>
+{% endtimezone %}
+{% endblock %}

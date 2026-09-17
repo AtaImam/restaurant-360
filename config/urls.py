@@ -8,7 +8,6 @@ urlpatterns = [
     path("auth/", include("users.urls", namespace="users")),
 
     path("admin/", admin.site.urls),
-
     path("menu/", include("menu.urls")),
     path("kitchen/", include("kitchen.urls")),
     path("dashboard/", include("dashboard.urls")),
@@ -16,4 +15,9 @@ urlpatterns = [
     path("inventory/", include("inventory.urls")),
     path("menu-management/", include("menu.management_urls")),
     path("pos/", include("pos.urls")),
+    path("staff/", include("staff.urls")),
+    path(
+    "restaurant-management/",
+    include("restaurant.urls", namespace="restaurant"),
+    ),
 ]

@@ -76,5 +76,13 @@ def transition_order_status(order, new_status, *, allowed_targets=None):
         locked_order.status = new_status
         locked_order.save(update_fields=["status"])
 
+        from staff.operations import handle_order_status_change
+
+        handle_order_status_change(
+            order_id=locked_order.pk,
+            previous_status=current_status,
+            new_status=new_status,
+        )
+
     order.status = locked_order.status
     return locked_order

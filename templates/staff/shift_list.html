@@ -1,0 +1,473 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Work Shifts | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .shift-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .shift-page * {
+    box-sizing: border-box;
+  }
+
+  .shift-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .shift-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .shift-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .shift-primary-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 17px;
+    border-radius: 8px;
+    background: #f97316;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .team-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .team-tab:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+
+  .team-tab.active {
+    color: #ffffff;
+    background: #f97316;
+  }
+
+  .shift-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .shift-stat {
+    min-height: 112px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .shift-stat-label {
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .shift-stat-value {
+    font-size: 27px;
+    font-weight: 800;
+  }
+
+  .shift-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .shift-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 19px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .shift-card-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .shift-card-header span {
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .shift-table-scroll {
+    overflow-x: auto;
+  }
+
+  .shift-table {
+    width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .shift-table th,
+  .shift-table td {
+    padding: 16px 18px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: middle;
+  }
+
+  .shift-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .shift-name {
+    color: #111827;
+    font-weight: 750;
+  }
+
+  .shift-secondary {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .shift-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .shift-active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .shift-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .shift-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .shift-edit-button,
+  .shift-status-button {
+    display: inline-flex;
+    min-height: 33px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .shift-edit-button {
+    border: 1px solid #fed7aa;
+    background: #fff7ed;
+    color: #ea580c;
+  }
+
+  .shift-status-button {
+    border: 0;
+    color: #ffffff;
+  }
+
+  .activate-button {
+    background: #16a34a;
+  }
+
+  .deactivate-button {
+    background: #dc2626;
+  }
+
+  .disabled-button {
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  .shift-empty {
+    padding: 40px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .shift-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 17px 21px;
+  }
+
+  .shift-page-link {
+    margin-left: 10px;
+    color: #ea580c;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 800px) {
+    .shift-page {
+      padding: 18px;
+    }
+
+    .shift-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="shift-page">
+  <header class="shift-header">
+    <div>
+      <h1>Work Shifts</h1>
+      <p>Manage staff duty schedules and grace periods.</p>
+    </div>
+
+    <a
+      href="{% url 'staff:shift_create' %}"
+      class="shift-primary-button"
+    >
+      + Add Shift
+    </a>
+  </header>
+
+  {% include "staff/_team_tabs.html" %}
+
+  <div class="shift-summary">
+    <article class="shift-stat">
+      <div class="shift-stat-label">Total Shifts</div>
+      <div class="shift-stat-value">{{ total_shifts }}</div>
+    </article>
+
+    <article class="shift-stat">
+      <div class="shift-stat-label">Active</div>
+      <div class="shift-stat-value" style="color: #15803d;">
+        {{ active_shifts }}
+      </div>
+    </article>
+
+    <article class="shift-stat">
+      <div class="shift-stat-label">Inactive</div>
+      <div class="shift-stat-value" style="color: #dc2626;">
+        {{ inactive_shifts }}
+      </div>
+    </article>
+  </div>
+
+  <section class="shift-card">
+    <div class="shift-card-header">
+      <h2>Shift Schedule</h2>
+      <span>
+        {{ page_obj.paginator.count }}
+        shift{{ page_obj.paginator.count|pluralize }}
+      </span>
+    </div>
+
+    <div class="shift-table-scroll">
+      <table class="shift-table">
+        <thead>
+          <tr>
+            <th>SHIFT</th>
+            <th>RESTAURANT</th>
+            <th>SCHEDULE</th>
+            <th>GRACE PERIOD</th>
+            <th>ASSIGNED STAFF</th>
+            <th>STATUS</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for shift in page_obj %}
+          <tr>
+            <td>
+              <span class="shift-name">{{ shift.name }}</span>
+
+              {% if shift.end_time < shift.start_time %}
+              <span class="shift-secondary">
+                Overnight shift
+              </span>
+              {% endif %}
+            </td>
+
+            <td>{{ shift.restaurant.name }}</td>
+
+            <td>
+              {{ shift.start_time|time:"H:i" }}
+              –
+              {{ shift.end_time|time:"H:i" }}
+
+              {% if shift.end_time < shift.start_time %}
+              <span class="shift-secondary">
+                Ends next day
+              </span>
+              {% endif %}
+            </td>
+
+            <td>{{ shift.grace_minutes }} minutes</td>
+
+            <td>
+              {{ shift.assigned_count }}
+              employee{{ shift.assigned_count|pluralize }}
+            </td>
+
+            <td>
+              {% if shift.is_active %}
+              <span class="shift-badge shift-active">Active</span>
+              {% else %}
+              <span class="shift-badge shift-inactive">Inactive</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="shift-actions">
+                <a
+                  href="{% url 'staff:shift_edit' shift_id=shift.pk %}"
+                  class="shift-edit-button"
+                >
+                  Edit
+                </a>
+
+                {% if shift.is_active %}
+                  {% if shift.assigned_count %}
+                  <span
+                    class="shift-status-button disabled-button"
+                    title="Unassign active employees before deactivating"
+                  >
+                    In Use
+                  </span>
+                  {% else %}
+                  <form
+                    method="post"
+                    action="{% url 'staff:shift_set_status' shift_id=shift.pk %}"
+                  >
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      name="action"
+                      value="deactivate"
+                      class="shift-status-button deactivate-button"
+                    >
+                      Deactivate
+                    </button>
+                  </form>
+                  {% endif %}
+                {% else %}
+                <form
+                  method="post"
+                  action="{% url 'staff:shift_set_status' shift_id=shift.pk %}"
+                >
+                  {% csrf_token %}
+                  <button
+                    type="submit"
+                    name="action"
+                    value="activate"
+                    class="shift-status-button activate-button"
+                  >
+                    Activate
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="7" class="shift-empty">
+              No shifts found. Add your first work shift.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="shift-pagination">
+      <span>
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+
+      <div>
+        {% if page_obj.has_previous %}
+        <a
+          href="?page={{ page_obj.previous_page_number }}"
+          class="shift-page-link"
+        >
+          Previous
+        </a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}"
+          class="shift-page-link"
+        >
+          Next
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

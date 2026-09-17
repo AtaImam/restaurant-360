@@ -1,0 +1,507 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Payroll | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .payroll-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .payroll-page * {
+    box-sizing: border-box;
+  }
+
+  .payroll-header {
+    margin-bottom: 24px;
+  }
+
+  .payroll-header h1 {
+    margin: 0 0 7px;
+    font-size: 30px;
+  }
+
+  .payroll-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .team-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .team-tab:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+
+  .team-tab.active {
+    color: #ffffff;
+    background: #f97316;
+  }
+
+  .payroll-generator {
+    margin-bottom: 24px;
+    padding: 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .payroll-generator h2 {
+    margin: 0 0 5px;
+    font-size: 18px;
+  }
+
+  .payroll-generator p {
+    margin: 0 0 18px;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .payroll-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.7fr) auto;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .payroll-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .payroll-input {
+    width: 100%;
+    height: 43px;
+    padding: 0 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .payroll-input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+  }
+
+  .generate-button {
+    height: 43px;
+    padding: 0 17px;
+    border: 0;
+    border-radius: 8px;
+    background: #f97316;
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .payroll-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .payroll-stat {
+    min-height: 112px;
+    padding: 19px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .payroll-stat-label {
+    margin-bottom: 10px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .payroll-stat-value {
+    font-size: 23px;
+    font-weight: 800;
+  }
+
+  .payroll-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+  }
+
+  .payroll-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 19px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .payroll-card-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .payroll-card-header span {
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .payroll-table-scroll {
+    overflow-x: auto;
+  }
+
+  .payroll-table {
+    width: 100%;
+    min-width: 1200px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .payroll-table th,
+  .payroll-table td {
+    padding: 15px 17px;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: middle;
+  }
+
+  .payroll-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .employee-name {
+    color: #111827;
+    font-weight: 750;
+  }
+
+  .payroll-secondary {
+    display: block;
+    margin-top: 4px;
+    color: #8a94a3;
+    font-size: 11px;
+  }
+
+  .payroll-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .status-draft {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-paid {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .paid-button {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 0;
+    border-radius: 7px;
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .payroll-empty {
+    padding: 42px 20px !important;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .payroll-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 17px 21px;
+  }
+
+  .payroll-page-link {
+    margin-left: 10px;
+    color: #ea580c;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 1100px) {
+    .payroll-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 750px) {
+    .payroll-page {
+      padding: 18px;
+    }
+
+    .payroll-form,
+    .payroll-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="payroll-page">
+  <header class="payroll-header">
+    <h1>Payroll</h1>
+    <p>Generate and manage monthly staff salary records.</p>
+  </header>
+
+  {% include "staff/_team_tabs.html" %}
+
+  <section class="payroll-generator">
+    <h2>Generate Monthly Payroll</h2>
+    <p>
+      Existing employee/month records are safely skipped.
+    </p>
+
+    <form method="post" class="payroll-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="generate">
+
+      <div class="payroll-field">
+        <label for="payroll-restaurant">Restaurant</label>
+        <select
+          id="payroll-restaurant"
+          name="restaurant"
+          class="payroll-input"
+        >
+          {% for restaurant in restaurants %}
+          <option
+            value="{{ restaurant.pk }}"
+            {% if selected_restaurant_id == restaurant.pk %}selected{% endif %}
+          >
+            {{ restaurant.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="payroll-field">
+        <label for="payroll-month">Payroll Month</label>
+        <input
+          id="payroll-month"
+          type="month"
+          name="month"
+          value="{{ selected_month_value }}"
+          class="payroll-input"
+          required
+        >
+      </div>
+
+      <button type="submit" class="generate-button">
+        Generate Payroll
+      </button>
+    </form>
+  </section>
+
+  <div class="payroll-summary">
+    <article class="payroll-stat">
+      <div class="payroll-stat-label">Records</div>
+      <div class="payroll-stat-value">{{ record_count }}</div>
+      <span class="payroll-secondary">
+        {{ draft_count }} draft · {{ paid_count }} paid
+      </span>
+    </article>
+
+    <article class="payroll-stat">
+      <div class="payroll-stat-label">Basic Salary</div>
+      <div class="payroll-stat-value">
+        ৳{{ total_basic|floatformat:2 }}
+      </div>
+    </article>
+
+    <article class="payroll-stat">
+      <div class="payroll-stat-label">Bonus</div>
+      <div class="payroll-stat-value" style="color: #15803d;">
+        ৳{{ total_bonus|floatformat:2 }}
+      </div>
+    </article>
+
+    <article class="payroll-stat">
+      <div class="payroll-stat-label">Deductions</div>
+      <div class="payroll-stat-value" style="color: #dc2626;">
+        ৳{{ total_deductions|floatformat:2 }}
+      </div>
+    </article>
+
+    <article class="payroll-stat">
+      <div class="payroll-stat-label">Net Payroll</div>
+      <div class="payroll-stat-value" style="color: #2563eb;">
+        ৳{{ total_net|floatformat:2 }}
+      </div>
+    </article>
+  </div>
+
+  <section class="payroll-card">
+    <div class="payroll-card-header">
+      <h2>{{ selected_month|date:"F Y" }} Payroll</h2>
+      <span>{{ selected_restaurant.name }}</span>
+    </div>
+
+    <div class="payroll-table-scroll">
+      <table class="payroll-table">
+        <thead>
+          <tr>
+            <th>EMPLOYEE</th>
+            <th>BASIC</th>
+            <th>BONUS</th>
+            <th>ATTENDANCE</th>
+            <th>LEAVE</th>
+            <th>ADVANCE</th>
+            <th>NET SALARY</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for payroll in page_obj %}
+          <tr>
+            <td>
+              <span class="employee-name">
+                {{ payroll.employee.user.get_full_name|default:payroll.employee.user.username }}
+              </span>
+              <span class="payroll-secondary">
+                {{ payroll.employee.employee_id }}
+              </span>
+            </td>
+
+            <td>৳{{ payroll.basic_salary|floatformat:2 }}</td>
+            <td>৳{{ payroll.bonus|floatformat:2 }}</td>
+
+            <td>
+              ৳{{ payroll.attendance_deduction|floatformat:2 }}
+            </td>
+
+            <td>
+              ৳{{ payroll.leave_deduction|floatformat:2 }}
+            </td>
+
+            <td>
+              ৳{{ payroll.advance_deduction|floatformat:2 }}
+            </td>
+
+            <td>
+              <strong>৳{{ payroll.net_salary|floatformat:2 }}</strong>
+            </td>
+
+            <td>
+              {% if payroll.status == "paid" %}
+              <span class="payroll-badge status-paid">Paid</span>
+              {% else %}
+              <span class="payroll-badge status-draft">Draft</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if payroll.status == "draft" %}
+              <form
+                method="post"
+                action="{% url 'staff:payroll_mark_paid' payroll_id=payroll.pk %}"
+              >
+                {% csrf_token %}
+                <button type="submit" class="paid-button">
+                  Mark Paid
+                </button>
+              </form>
+              {% else %}
+              <span class="payroll-secondary">
+                {{ payroll.paid_at|date:"d M Y, H:i" }}
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="9" class="payroll-empty">
+              No payroll records found. Select a month and generate payroll.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="payroll-pagination">
+      <span>
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+
+      <div>
+        {% if page_obj.has_previous %}
+        <a
+          href="?page={{ page_obj.previous_page_number }}&amp;restaurant={{ selected_restaurant_id }}&amp;month={{ selected_month_value }}"
+          class="payroll-page-link"
+        >
+          Previous
+        </a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}&amp;restaurant={{ selected_restaurant_id }}&amp;month={{ selected_month_value }}"
+          class="payroll-page-link"
+        >
+          Next
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from inventory.services import reserve_stock_for_order
 from orders.models import Order, OrderItem
 from restaurant.models import Restaurant, Table
+from staff.operations import register_new_order
 
 from .models import Category, MenuItem
 from .tracking_views import get_order_status_data
@@ -772,6 +773,11 @@ def checkout(
 
                 reserve_stock_for_order(
                     order
+                )
+                transaction.on_commit(
+                    lambda order_id=order.pk: register_new_order(
+                        order_id
+                    )
                 )
 
         except ValidationError as error:

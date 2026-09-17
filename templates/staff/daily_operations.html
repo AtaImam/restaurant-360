@@ -1,0 +1,875 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Daily Operations | Restaurant 360{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .operations-page {
+    max-width: 1550px;
+    margin: auto;
+    padding: 30px;
+    color: #111827;
+  }
+
+  .operations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .operations-header h1 {
+    margin: 0 0 7px;
+    font-size: 32px;
+  }
+
+  .muted {
+    color: #6b7280;
+  }
+
+  .date-badge {
+    padding: 10px 14px;
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-weight: 700;
+  }
+
+  .operations-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: white;
+  }
+
+  .operations-tabs a {
+    padding: 11px 15px;
+    border-radius: 9px;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .operations-tabs a.active {
+    background: #f97316;
+    color: white;
+  }
+
+  .message {
+    margin-bottom: 16px;
+    padding: 13px 16px;
+    border: 1px solid #fed7aa;
+    border-radius: 9px;
+    background: #fff7ed;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .summary-card {
+    padding: 19px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: white;
+  }
+
+  .summary-card span {
+    display: block;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .summary-card strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 27px;
+  }
+
+  .operations-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(330px, 0.6fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .operations-card {
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    background: white;
+  }
+
+  .card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px 22px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .card-heading h2 {
+    margin: 0 0 5px;
+    font-size: 20px;
+  }
+
+  .card-body {
+    padding: 22px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .form-field {
+    min-width: 0;
+  }
+
+  .form-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .form-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    background: white;
+    font: inherit;
+  }
+
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    outline: 2px solid #fb923c;
+    outline-offset: 1px;
+  }
+
+  .primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 11px 17px;
+    border: 1px solid #f97316;
+    border-radius: 9px;
+    background: #f97316;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .small-button {
+    padding: 7px 11px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  .complete-button {
+    border-color: #16a34a;
+    background: #16a34a;
+  }
+
+  .form-actions {
+    margin-top: 17px;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .operations-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .operations-table th,
+  .operations-table td {
+    padding: 14px 17px;
+    border-bottom: 1px solid #f0f1f3;
+    vertical-align: middle;
+  }
+
+  .operations-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .employee-name {
+    font-weight: 700;
+  }
+
+  .employee-subtext {
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .status-present {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-checked-out {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .status-assigned {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .status-ready {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  .status-completed {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-open {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .assignment-list {
+    display: grid;
+    gap: 11px;
+  }
+
+  .assignment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 11px;
+    background: #fafafa;
+  }
+
+  .assignment-item strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .notification-list {
+    display: grid;
+  }
+
+  .notification-item {
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f1f3;
+  }
+
+  .notification-item:last-child {
+    border-bottom: 0;
+  }
+
+  .notification-item strong {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .notification-new {
+    padding-left: 12px;
+    border-left: 3px solid #f97316;
+  }
+
+  .empty-state {
+    padding: 35px 20px;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .task-description {
+    max-width: 340px;
+    color: #6b7280;
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  @media (max-width: 1150px) {
+    .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .operations-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .operations-page {
+      padding: 18px;
+    }
+
+    .summary-grid,
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-field.full {
+      grid-column: auto;
+    }
+
+    .assignment-item {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="operations-page">
+  <header class="operations-header">
+    <div>
+      <h1>Daily Operations</h1>
+      <div class="muted">
+        Assign today&rsquo;s tables and operational tasks to
+        checked-in staff.
+      </div>
+    </div>
+
+    <div class="date-badge">
+      {{ work_date|date:"d M Y" }}
+      &middot; {{ restaurant.name }}
+    </div>
+  </header>
+
+  {% include "staff/_team_tabs.html" %}
+
+  {% for message in messages %}
+  <div class="message" role="status">
+    {{ message }}
+  </div>
+  {% endfor %}
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <span>Attended Today</span>
+      <strong>{{ present_count }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Currently Working</span>
+      <strong>{{ working_count }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Assigned Tables</span>
+      <strong>{{ assigned_table_count }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Unassigned Tables</span>
+      <strong>{{ unassigned_table_count }}</strong>
+    </article>
+
+    <article class="summary-card">
+      <span>Open Tasks</span>
+      <strong>{{ open_task_count }}</strong>
+    </article>
+  </section>
+
+  <div class="operations-grid">
+    <main>
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Today&rsquo;s Staff</h2>
+            <span class="muted">
+              Generated automatically from attendance records
+            </span>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="operations-table">
+            <thead>
+              <tr>
+                <th>EMPLOYEE</th>
+                <th>ROLE</th>
+                <th>SHIFT</th>
+                <th>ATTENDANCE</th>
+                <th>ASSIGNED TABLES</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for record in present_records %}
+              <tr>
+                <td>
+                  <div class="employee-name">
+                    {{ record.employee.user.get_full_name|default:record.employee.user.username }}
+                  </div>
+                  <div class="employee-subtext">
+                    {{ record.employee.employee_id }}
+                  </div>
+                </td>
+
+                <td>
+                  {{ record.employee.user.get_role_display }}
+                </td>
+
+                <td>
+                  {% if record.employee.shift %}
+                  {{ record.employee.shift.name }}
+                  <div class="employee-subtext">
+                    {{ record.employee.shift.start_time|time:"H:i" }}
+                    &ndash;
+                    {{ record.employee.shift.end_time|time:"H:i" }}
+                  </div>
+                  {% else %}
+                  Not assigned
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if record.check_out %}
+                  <span class="status-badge status-checked-out">
+                    Checked out
+                  </span>
+                  {% else %}
+                  <span class="status-badge status-present">
+                    Present
+                  </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if record.employee.user.role == "waiter" %}
+                    {% for assignment in record.table_assignments.all %}
+                      {% if assignment.is_active %}
+                      <span class="status-badge status-assigned">
+                        Table {{ assignment.table.table_number }}
+                      </span>
+                      {% endif %}
+                    {% empty %}
+                    <span class="muted">No table assigned</span>
+                    {% endfor %}
+                  {% else %}
+                  <span class="muted">Task-based role</span>
+                  {% endif %}
+                </td>
+              </tr>
+
+              {% empty %}
+              <tr>
+                <td colspan="5" class="empty-state">
+                  No staff attendance has been recorded today.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Table Assignments</h2>
+            <span class="muted">
+              A waiter can handle multiple tables for the day
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="assignment-list">
+            {% for assignment in table_assignments %}
+            <article class="assignment-item">
+              <div>
+                <strong>
+                  Table {{ assignment.table.table_number }}
+                </strong>
+                <span class="muted">
+                  {{ assignment.waiter.user.get_full_name|default:assignment.waiter.user.username }}
+                  &middot; {{ assignment.waiter.employee_id }}
+                </span>
+              </div>
+
+              <span class="status-badge status-assigned">
+                Assigned
+              </span>
+            </article>
+
+            {% empty %}
+            <div class="empty-state">
+              No tables have been assigned today.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Staff Tasks</h2>
+            <span class="muted">
+              Assigned work has one simple completion action
+            </span>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="operations-table">
+            <thead>
+              <tr>
+                <th>EMPLOYEE</th>
+                <th>TASK</th>
+                <th>RELATED TO</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for task in tasks %}
+              <tr>
+                <td>
+                  <div class="employee-name">
+                    {{ task.employee.user.get_full_name|default:task.employee.user.username }}
+                  </div>
+                  <div class="employee-subtext">
+                    {{ task.employee.employee_id }}
+                  </div>
+                </td>
+
+                <td>
+                  <strong>{{ task.title }}</strong>
+                  {% if task.instructions %}
+                  <div class="task-description">
+                    {{ task.instructions }}
+                  </div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if task.related_order %}
+                  Order #{{ task.related_order.pk }}
+                  {% elif task.related_table %}
+                  Table {{ task.related_table.table_number }}
+                  {% else %}
+                  General
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if task.is_completed %}
+                  <span class="status-badge status-completed">
+                    Completed
+                  </span>
+                  {% else %}
+                  <span class="status-badge status-open">
+                    Assigned
+                  </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if not task.is_completed %}
+                  <form
+                    method="post"
+                    action="{% url 'staff:daily_task_complete' task.pk %}"
+                  >
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      class="primary-button small-button complete-button"
+                    >
+                      Complete
+                    </button>
+                  </form>
+                  {% else %}
+                  <span class="muted">
+                    {{ task.completed_at|date:"H:i" }}
+                  </span>
+                  {% endif %}
+                </td>
+              </tr>
+
+              {% empty %}
+              <tr>
+                <td colspan="5" class="empty-state">
+                  No staff tasks have been assigned today.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Live Table Service</h2>
+            <span class="muted">
+              Orders automatically connect to their assigned waiter
+            </span>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="operations-table">
+            <thead>
+              <tr>
+                <th>ORDER</th>
+                <th>TABLE</th>
+                <th>WAITER</th>
+                <th>ORDER STATUS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for service in active_services %}
+              <tr>
+                <td>#{{ service.order.pk }}</td>
+
+                <td>
+                  {% if service.order.table %}
+                  Table {{ service.order.table.table_number }}
+                  {% else %}
+                  Takeaway
+                  {% endif %}
+                </td>
+
+                <td>
+                  {{ service.waiter.user.get_full_name|default:service.waiter.user.username }}
+                </td>
+
+                <td>
+                  {% if service.order.status == "READY" %}
+                  <span class="status-badge status-ready">
+                    Food Ready
+                  </span>
+                  {% else %}
+                  <span class="status-badge status-assigned">
+                    {{ service.order.get_status_display }}
+                  </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if service.order.status == "READY" %}
+                  <form
+                    method="post"
+                    action="{% url 'staff:waiter_serve_order' service.order.pk %}"
+                  >
+                    {% csrf_token %}
+                    <input
+                      type="hidden"
+                      name="next"
+                      value="daily_operations"
+                    >
+                    <button
+                      type="submit"
+                      class="primary-button small-button"
+                    >
+                      Served
+                    </button>
+                  </form>
+                  {% else %}
+                  <span class="muted">Waiting</span>
+                  {% endif %}
+                </td>
+              </tr>
+
+              {% empty %}
+              <tr>
+                <td colspan="5" class="empty-state">
+                  No active assigned table orders.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Assign Table</h2>
+            <span class="muted">
+              Only checked-in waiters are listed
+            </span>
+          </div>
+        </div>
+
+        <form
+          method="post"
+          action="{% url 'staff:daily_table_assign' %}"
+          class="card-body"
+        >
+          {% csrf_token %}
+
+          <div class="form-field">
+            <label for="{{ table_form.attendance.id_for_label }}">
+              {{ table_form.attendance.label }}
+            </label>
+            {{ table_form.attendance }}
+          </div>
+
+          <div class="form-field" style="margin-top: 15px;">
+            <label for="{{ table_form.table.id_for_label }}">
+              {{ table_form.table.label }}
+            </label>
+            {{ table_form.table }}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-button">
+              Assign Table
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Assign Task</h2>
+            <span class="muted">
+              Create work for any checked-in employee
+            </span>
+          </div>
+        </div>
+
+        <form
+          method="post"
+          action="{% url 'staff:daily_task_assign' %}"
+          class="card-body"
+        >
+          {% csrf_token %}
+
+          <div class="form-grid">
+            <div class="form-field full">
+              <label for="{{ task_form.attendance.id_for_label }}">
+                {{ task_form.attendance.label }}
+              </label>
+              {{ task_form.attendance }}
+            </div>
+
+            <div class="form-field full">
+              <label for="{{ task_form.title.id_for_label }}">
+                {{ task_form.title.label }}
+              </label>
+              {{ task_form.title }}
+            </div>
+
+            <div class="form-field full">
+              <label for="{{ task_form.instructions.id_for_label }}">
+                {{ task_form.instructions.label }}
+              </label>
+              {{ task_form.instructions }}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ task_form.related_order.id_for_label }}">
+                {{ task_form.related_order.label }}
+              </label>
+              {{ task_form.related_order }}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ task_form.related_table.id_for_label }}">
+                {{ task_form.related_table.label }}
+              </label>
+              {{ task_form.related_table }}
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-button">
+              Assign Task
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="operations-card">
+        <div class="card-heading">
+          <div>
+            <h2>Notifications</h2>
+            <span class="muted">Latest operational updates</span>
+          </div>
+        </div>
+
+        <div class="card-body notification-list">
+          {% for notification in notifications %}
+          <article
+            class="notification-item {% if not notification.is_read %}notification-new{% endif %}"
+          >
+            <strong>{{ notification.title }}</strong>
+            <div class="muted">
+              {{ notification.message }}
+            </div>
+            <div class="employee-subtext">
+              {{ notification.created_at|date:"d M, H:i" }}
+            </div>
+          </article>
+
+          {% empty %}
+          <div class="empty-state">
+            No notifications yet.
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </aside>
+  </div>
+</section>
+{% endblock %}

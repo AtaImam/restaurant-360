@@ -64,7 +64,7 @@
 
   .summary-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 22px;
   }
@@ -272,6 +272,11 @@
     background: #e8f8f0;
   }
 
+  .status-OCCUPIED {
+    color: #c2410c;
+    background: #ffedd5;
+  }
+
   .status-WAITING {
     color: #b27409;
     background: #fff5d9;
@@ -295,6 +300,18 @@
   .status-OUT_OF_SERVICE {
     color: #a54a4a;
     background: #faeaea;
+  }
+
+  .action-button.close-service {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+  }
+
+  .action-button.close-service:hover {
+    background: #ea580c;
+    color: #fff;
+    border-color: #ea580c;
   }
 
   .table-information {
@@ -361,17 +378,150 @@
     object-fit: contain;
   }
 
-  .qr-links {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+  .table-qr-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 10px 16px;
+    background: #fbfcfd;
+    border-top: 1px solid #edf0f5;
   }
 
-  .qr-link {
-    color: #ef5d2a;
+  .qr-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 29px;
+    padding: 4px 6px;
+    border: 1px solid #e0e4ec;
+    border-radius: 6px;
+    background: #fff;
+    color: #475569;
     font-size: 10px;
     font-weight: 700;
     text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .qr-action-btn:hover {
+    color: #ef5b28;
+    border-color: #ffb79c;
+    background: #fff6f2;
+  }
+
+  /* View QR Modal */
+  .qr-modal-card {
+    max-width: 440px;
+    text-align: center;
+  }
+
+  .qr-preview-container {
+    display: inline-block;
+    padding: 16px;
+    margin: 4px auto 16px;
+    background: #ffffff;
+    border: 2px dashed #e2e8f0;
+    border-radius: 16px;
+  }
+
+  .qr-preview-container img {
+    width: 200px;
+    height: 200px;
+    display: block;
+    object-fit: contain;
+    margin: 0 auto;
+  }
+
+  .qr-info-badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .qr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #334155;
+  }
+
+  .qr-badge.branch {
+    background: #fff7ed;
+    color: #c2410c;
+  }
+
+  .qr-url-section {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+
+  .qr-url-section label {
+    display: block;
+    margin-bottom: 6px;
+    color: #485166;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .qr-url-bar {
+    display: flex;
+    gap: 8px;
+  }
+
+  .qr-url-bar input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid #d5dae2;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-family: monospace;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .qr-copy-btn {
+    padding: 8px 14px;
+    border: 1px solid #d5dae2;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .qr-copy-btn:hover {
+    border-color: #ef5b28;
+    color: #ef5b28;
+  }
+
+  .copy-success-indicator {
+    font-size: 11px;
+    font-weight: 600;
+    color: #16a34a;
+    margin-top: 5px;
+  }
+
+  .qr-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    padding-top: 14px;
+    border-top: 1px solid #edf0f5;
   }
 
   .table-actions {
@@ -578,10 +728,20 @@
       <p>Manage restaurant tables, capacity and operational status.</p>
     </div>
 
-    <button type="button" class="primary-button" id="openCreateTable">
-      <span>＋</span>
-      <span>Add New Table</span>
-    </button>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <a href="{% url 'pos_dashboard' %}" class="secondary-button" style="text-decoration: none;">
+        <span>▦</span>
+        <span>Open POS</span>
+      </a>
+      <a href="{% url 'restaurant:floor_management' %}" class="secondary-button" style="text-decoration: none;">
+        <span>▧</span>
+        <span>Floors</span>
+      </a>
+      <button type="button" class="primary-button" id="openCreateTable">
+        <span>＋</span>
+        <span>Add New Table</span>
+      </button>
+    </div>
   </div>
 
   <div class="summary-grid">
@@ -598,6 +758,14 @@
       <div class="summary-copy">
         <span>Available</span>
         <strong>{{ summary.available }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon orange">🔴</div>
+      <div class="summary-copy">
+        <span>Occupied</span>
+        <strong>{{ summary.occupied }}</strong>
       </div>
     </article>
 
@@ -697,12 +865,53 @@
                 <strong>Order #{{ table.active_order.id }}</strong><br>
                 {{ table.active_order.get_status_display }} ·
                 ৳{{ table.active_order.total_amount }}
+                {% if table.has_unpaid_orders %}
+                  <div style="margin-top:2px; font-size:10px; color:#c2410c; font-weight:700;">● Payment Pending</div>
+                {% endif %}
+              {% elif table.is_occupied %}
+                <strong style="color:#c2410c;">Guest Session Active</strong><br>
+                <span style="font-size:10.5px; color:#6b7280;">Orders served/paid · Table occupied</span>
               {% else %}
                 No active order for this table.
               {% endif %}
             </div>
 
 
+
+            <div class="table-qr-actions">
+              <button
+                type="button"
+                class="qr-action-btn view-qr-trigger"
+                data-id="{{ table.id }}"
+                data-table-number="{{ table.table_number }}"
+                data-branch="{{ table.branch.name|default:restaurant.name }}"
+                data-qr-url="{% if table.qr_code %}{{ table.qr_code.url }}{% endif %}"
+                data-menu-url="{{ table.safe_menu_url }}"
+                data-download-url="{% url 'restaurant:qr_download' table.id %}"
+                data-print-url="{% url 'restaurant:qr_print' table.id %}"
+                data-fetch-url="{% url 'restaurant:qr_view' table.id %}"
+                title="View QR Code"
+              >
+                <span>👁</span> View QR
+              </button>
+
+              <a
+                href="{% url 'restaurant:qr_download' table.id %}"
+                class="qr-action-btn download-qr-link"
+                title="Download QR Code"
+              >
+                <span>⬇</span> Download QR
+              </a>
+
+              <a
+                href="{% url 'restaurant:qr_print' table.id %}"
+                target="_blank"
+                class="qr-action-btn print-qr-link"
+                title="Print QR Code"
+              >
+                <span>🖨</span> Print QR
+              </a>
+            </div>
 
             <div class="table-actions">
               <button
@@ -718,15 +927,28 @@
                 Edit Table
               </button>
 
-              <form
-                method="post"
-                action="{% url 'restaurant:table_toggle' table.id %}"
-              >
-                {% csrf_token %}
-                <button type="submit" class="action-button" style="width:100%;">
-                  {% if table.is_active %}Deactivate{% else %}Activate{% endif %}
-                </button>
-              </form>
+              {% if table.can_close_service %}
+                <form
+                  method="post"
+                  action="{% url 'restaurant:table_close_service' table.id %}"
+                  onsubmit="return confirm('Close dining session for Table {{ table.table_number }} and make it available?');"
+                >
+                  {% csrf_token %}
+                  <button type="submit" class="action-button close-service" style="width:100%;" title="Free table service">
+                    Free Table
+                  </button>
+                </form>
+              {% else %}
+                <form
+                  method="post"
+                  action="{% url 'restaurant:table_toggle' table.id %}"
+                >
+                  {% csrf_token %}
+                  <button type="submit" class="action-button" style="width:100%;">
+                    {% if table.is_active %}Deactivate{% else %}Activate{% endif %}
+                  </button>
+                </form>
+              {% endif %}
             </div>
           </article>
         {% endfor %}
@@ -813,8 +1035,58 @@
             Save Table
           </button>
         </div>
+</div>
+
+<!-- View QR Modal -->
+<div class="modal-backdrop" id="viewQrModal">
+  <div class="table-modal qr-modal-card">
+    <div class="modal-header">
+      <div>
+        <h2 id="viewQrModalTitle">Table QR Code</h2>
+        <p>Scan with phone camera to view menu and order.</p>
       </div>
-    </form>
+
+      <button type="button" class="modal-close" id="closeViewQrModal">
+        ×
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="qr-preview-container">
+        <img id="viewQrImage" src="" alt="Table QR Code">
+        <div id="viewQrPlaceholder" style="display:none; color:#94a3b8; padding:30px 10px;">
+          No QR code available
+        </div>
+      </div>
+
+      <div class="qr-info-badges">
+        <span class="qr-badge" id="viewQrTableNumber">Table -</span>
+        <span class="qr-badge branch" id="viewQrBranchName">Branch: -</span>
+      </div>
+
+      <div class="qr-url-section">
+        <label for="viewQrMenuUrl">Customer Menu URL</label>
+        <div class="qr-url-bar">
+          <input type="text" id="viewQrMenuUrl" readonly value="">
+          <button type="button" class="qr-copy-btn" id="copyMenuUrlBtn">Copy</button>
+        </div>
+        <div id="copySuccessMsg" class="copy-success-indicator" style="display:none;">
+          ✓ Link copied to clipboard!
+        </div>
+      </div>
+
+      <div class="qr-modal-footer">
+        <a id="viewQrDownloadBtn" href="#" class="primary-button" style="text-decoration:none;">
+          <span>⬇</span> Download QR
+        </a>
+        <a id="viewQrPrintBtn" href="#" target="_blank" class="secondary-button" style="text-decoration:none;">
+          <span>🖨</span> Print QR
+        </a>
+        <button type="button" class="secondary-button" id="closeViewQrModalBtn">
+          Close
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -822,6 +1094,7 @@
 {% block extra_js %}
 <script>
   (function () {
+    // --- Table Modal ---
     const modal = document.getElementById("tableModal");
     const form = document.getElementById("tableForm");
     const title = document.getElementById("tableModalTitle");
@@ -882,9 +1155,126 @@
       }
     });
 
+    // --- View QR Modal ---
+    const viewQrModal = document.getElementById("viewQrModal");
+    const viewQrImage = document.getElementById("viewQrImage");
+    const viewQrPlaceholder = document.getElementById("viewQrPlaceholder");
+    const viewQrTableNumber = document.getElementById("viewQrTableNumber");
+    const viewQrBranchName = document.getElementById("viewQrBranchName");
+    const viewQrMenuUrl = document.getElementById("viewQrMenuUrl");
+    const viewQrDownloadBtn = document.getElementById("viewQrDownloadBtn");
+    const viewQrPrintBtn = document.getElementById("viewQrPrintBtn");
+    const copyMenuUrlBtn = document.getElementById("copyMenuUrlBtn");
+    const copySuccessMsg = document.getElementById("copySuccessMsg");
+
+    function openViewQrModal(data) {
+      viewQrTableNumber.textContent = "Table " + data.tableNumber;
+      viewQrBranchName.textContent = data.branch ? "Branch: " + data.branch : "";
+      viewQrBranchName.style.display = data.branch ? "inline-flex" : "none";
+      viewQrMenuUrl.value = data.menuUrl || "";
+
+      if (data.qrUrl) {
+        viewQrImage.src = data.qrUrl;
+        viewQrImage.style.display = "block";
+        viewQrPlaceholder.style.display = "none";
+      } else {
+        viewQrImage.src = "";
+        viewQrImage.style.display = "none";
+        viewQrPlaceholder.style.display = "block";
+      }
+
+      viewQrDownloadBtn.href = data.downloadUrl || "#";
+      viewQrPrintBtn.href = data.printUrl || "#";
+      if (copySuccessMsg) copySuccessMsg.style.display = "none";
+
+      viewQrModal.classList.add("open");
+    }
+
+    function closeViewQrModal() {
+      viewQrModal.classList.remove("open");
+    }
+
+    document.querySelectorAll(".view-qr-trigger").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const data = {
+          id: button.dataset.id,
+          tableNumber: button.dataset.tableNumber,
+          branch: button.dataset.branch,
+          qrUrl: button.dataset.qrUrl,
+          menuUrl: button.dataset.menuUrl,
+          downloadUrl: button.dataset.downloadUrl,
+          printUrl: button.dataset.printUrl,
+          fetchUrl: button.dataset.fetchUrl,
+        };
+
+        if (!data.qrUrl || !data.menuUrl) {
+          fetch(data.fetchUrl, {
+            headers: {
+              "Accept": "application/json",
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (json) {
+              if (json.success) {
+                data.qrUrl = json.qr_url;
+                data.menuUrl = json.menu_url;
+                data.downloadUrl = json.download_url;
+                data.printUrl = json.print_url;
+                button.dataset.qrUrl = json.qr_url;
+                button.dataset.menuUrl = json.menu_url;
+              }
+              openViewQrModal(data);
+            })
+            .catch(function () {
+              openViewQrModal(data);
+            });
+        } else {
+          openViewQrModal(data);
+        }
+      });
+    });
+
+    document.getElementById("closeViewQrModal").addEventListener(
+      "click",
+      closeViewQrModal
+    );
+
+    document.getElementById("closeViewQrModalBtn").addEventListener(
+      "click",
+      closeViewQrModal
+    );
+
+    viewQrModal.addEventListener("click", function (event) {
+      if (event.target === viewQrModal) {
+        closeViewQrModal();
+      }
+    });
+
+    if (copyMenuUrlBtn) {
+      copyMenuUrlBtn.addEventListener("click", function () {
+        if (!viewQrMenuUrl.value) return;
+        navigator.clipboard.writeText(viewQrMenuUrl.value).then(function () {
+          copySuccessMsg.style.display = "block";
+          setTimeout(function () {
+            copySuccessMsg.style.display = "none";
+          }, 2000);
+        }).catch(function () {
+          viewQrMenuUrl.select();
+          document.execCommand("copy");
+          copySuccessMsg.style.display = "block";
+          setTimeout(function () {
+            copySuccessMsg.style.display = "none";
+          }, 2000);
+        });
+      });
+    }
+
+    // Escape key closes open modal
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
-        closeModal();
+        if (modal.classList.contains("open")) closeModal();
+        if (viewQrModal.classList.contains("open")) closeViewQrModal();
       }
     });
   })();

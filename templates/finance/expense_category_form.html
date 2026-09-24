@@ -1,0 +1,91 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{% if is_edit %}Edit Category{% else %}Add Category{% endif %} | Restaurant 360{% endblock %}
+{% block page_title %}Expense Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-card {
+    max-width: 600px;
+    margin: 30px auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .field-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+  .btn-submit {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-cancel {
+    background: #ffffff;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <h2 style="margin: 0 0 6px; font-size: 20px; font-weight: 700;">{% if is_edit %}Edit Expense Category{% else %}New Expense Category{% endif %}</h2>
+  <p style="margin: 0 0 20px; color: #6b7280; font-size: 13px;">Group and classify business expenses.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="field-group">
+      <label>Category Name *</label>
+      {{ form.name }}
+    </div>
+
+    <div class="field-group">
+      <label>Description</label>
+      {{ form.description }}
+    </div>
+
+    <div class="field-group" style="flex-direction: row; align-items: center; gap: 8px;">
+      {{ form.is_active }}
+      <label for="{{ form.is_active.id_for_label }}" style="margin: 0; cursor: pointer;">Active Category</label>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+      <a href="{% url 'finance:category_list' %}" class="btn-cancel">Cancel</a>
+      <button type="submit" class="btn-submit">Save Category</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

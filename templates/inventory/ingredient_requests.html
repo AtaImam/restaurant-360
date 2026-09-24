@@ -1,0 +1,336 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Stock & Ingredient Requests | Restaurant 360{% endblock %}
+{% block page_title %}Stock Requests{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content {
+        max-width: 1500px;
+        margin: auto;
+        padding: 30px;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 4px;
+        color: #111827;
+    }
+    .page-header p {
+        font-size: 13px;
+        color: #6b7280;
+    }
+    .filters-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .filter-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .filter-pill {
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+        transition: all 0.15s;
+    }
+    .filter-pill.active {
+        background: #f97316;
+        color: #ffffff;
+        border-color: #f97316;
+    }
+    .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th {
+        padding: 14px 18px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
+        text-align: left;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .table td {
+        padding: 14px 18px;
+        font-size: 13px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #111827;
+        vertical-align: middle;
+    }
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .badge-pending { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .badge-approved { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .badge-ordered { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-received { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+
+    .badge-priority-low { background: #f3f4f6; color: #4b5563; }
+    .badge-priority-medium { background: #e0f2fe; color: #0369a1; }
+    .badge-priority-high { background: #ffedd5; color: #c2410c; }
+    .badge-priority-urgent { background: #fee2e2; color: #b91c1c; font-weight: 800; }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+    .btn-approve { background: #10b981; color: white; }
+    .btn-approve:hover { background: #059669; }
+    .btn-reject { background: #f3f4f6; color: #b91c1c; border-color: #fecaca; }
+    .btn-reject:hover { background: #fee2e2; }
+    .btn-convert { background: #f97316; color: white; }
+    .btn-convert:hover { background: #ea580c; }
+
+    /* Modal / details styling */
+    .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+        background: white;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div>
+            <h1>Kitchen Stock Requests</h1>
+            <p>Review ingredient requests from Kitchen staff, approve, reject, or convert to Purchase Orders.</p>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters-bar">
+        <div class="filter-pills">
+            <a href="?{% if selected_priority %}priority={{ selected_priority }}{% endif %}" class="filter-pill {% if not selected_status %}active{% endif %}">All Statuses</a>
+            {% for s_val, s_label in statuses %}
+            <a href="?status={{ s_val }}{% if selected_priority %}&priority={{ selected_priority }}{% endif %}" class="filter-pill {% if selected_status == s_val %}active{% endif %}">{{ s_label }}</a>
+            {% endfor %}
+        </div>
+        <div>
+            <select onchange="location.href='?status={{ selected_status }}&priority='+this.value" style="padding:6px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:12px;">
+                <option value="">All Priorities</option>
+                {% for p_val, p_label in priorities %}
+                <option value="{{ p_val }}" {% if selected_priority == p_val %}selected{% endif %}>{{ p_label }} Priority</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- REQUESTS TABLE -->
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Req #</th>
+                    <th>Ingredient</th>
+                    <th>Requested Qty</th>
+                    <th>Priority</th>
+                    <th>Needed Date</th>
+                    <th>Requested By</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td style="font-weight:700;">#{{ req.id }}</td>
+                    <td>
+                        <div style="font-weight:700;">{{ req.ingredient.name }}</div>
+                        <div style="font-size:11px; color:#6b7280;">{{ req.ingredient.category.name|default:"General" }} • Current stock: {{ req.ingredient.current_stock }} {{ req.ingredient.unit }}</div>
+                        {% if req.reason %}
+                        <div style="font-size:11px; color:#b45309; margin-top:2px;">Reason: {{ req.reason }}</div>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:800; font-size:14px;">
+                        {{ req.quantity }} <span style="font-size:12px; font-weight:500; color:#6b7280;">{{ req.ingredient.unit }}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-priority-{{ req.priority|lower }}">{{ req.get_priority_display }}</span>
+                    </td>
+                    <td>
+                        {% if req.needed_date %}{{ req.needed_date|date:"M d, Y" }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <div>{{ req.requested_by.get_full_name|default:req.requested_by.username|default:"Staff" }}</div>
+                        <div style="font-size:10px; color:#9ca3af;">{{ req.created_at|timesince }} ago</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ req.status|lower }}">{{ req.get_status_display }}</span>
+                        {% if req.rejection_reason %}
+                        <div style="font-size:10px; color:#b91c1c; margin-top:2px;">Reason: {{ req.rejection_reason }}</div>
+                        {% endif %}
+                        {% if req.purchase_order %}
+                        <div style="font-size:11px; margin-top:2px;">
+                            <a href="{% url 'purchase_detail' req.purchase_order.id %}" style="color:#2563eb; text-decoration:underline;">PO #{{ req.purchase_order.id }}</a>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right;">
+                        <div style="display:flex; justify-content:flex-end; gap:6px; flex-wrap:wrap;">
+                            {% if req.status == 'PENDING' %}
+                            <form method="post" action="{% url 'approve_ingredient_request' req.id %}" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn-action btn-approve">✓ Approve</button>
+                            </form>
+                            <button type="button" class="btn-action btn-reject" onclick="openRejectModal('{{ req.id }}', '{{ req.ingredient.name }}')">✕ Reject</button>
+
+                            {% elif req.status == 'APPROVED' %}
+                            <button type="button" class="btn-action btn-convert" onclick="openConvertModal('{{ req.id }}', '{{ req.ingredient.name }}', '{{ req.quantity }}', '{{ req.ingredient.unit }}', '{{ req.ingredient.current_pack_price }}')">＋ Create PO</button>
+                            <button type="button" class="btn-action btn-reject" onclick="openRejectModal('{{ req.id }}', '{{ req.ingredient.name }}')">✕ Reject</button>
+
+                            {% elif req.status == 'ORDERED' %}
+                            <a href="{% url 'purchase_detail' req.purchase_order.id %}" class="btn-action" style="background:#f3f4f6; color:#1f2937;">View PO #{{ req.purchase_order.id }}</a>
+
+                            {% elif req.status == 'RECEIVED' %}
+                            <span style="font-size:11px; color:#15803d; font-weight:700;">✓ In Stock</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:40px; color:#6b7280;">
+                        No ingredient requests found matching criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-backdrop" id="rejectModal">
+    <div class="modal-box">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">Reject Stock Request</h3>
+        <p id="rejectModalText" style="font-size:13px; color:#6b7280; margin-bottom:16px;"></p>
+        <form method="post" id="rejectForm" action="">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:12px; font-weight:600; margin-bottom:6px;">Reason for Rejection</label>
+                <textarea name="rejection_reason" rows="3" required placeholder="Explain why this request is being rejected..." style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" onclick="closeRejectModal()" style="padding:8px 14px; border:1px solid #d1d5db; border-radius:6px; background:white; cursor:pointer;">Cancel</button>
+                <button type="submit" style="padding:8px 14px; border:none; border-radius:6px; background:#b91c1c; color:white; font-weight:600; cursor:pointer;">Confirm Reject</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- CONVERT TO PO MODAL -->
+<div class="modal-backdrop" id="convertModal">
+    <div class="modal-box">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:8px;">Convert Request to Purchase Order</h3>
+        <p id="convertModalText" style="font-size:13px; color:#6b7280; margin-bottom:16px;"></p>
+        <form method="post" id="convertForm" action="">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px;">Select Supplier *</label>
+                <select name="supplier_id" required style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+                    <option value="">-- Select Supplier --</option>
+                    {% for sup in suppliers %}
+                    <option value="{{ sup.id }}">{{ sup.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px;">Pack Price ($)</label>
+                    <input type="number" step="0.01" min="0" name="pack_price" id="convertPackPrice" style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px;">Invoice # (optional)</label>
+                    <input type="text" name="invoice_number" placeholder="INV-..." style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button type="button" onclick="closeConvertModal()" style="padding:8px 14px; border:1px solid #d1d5db; border-radius:6px; background:white; cursor:pointer;">Cancel</button>
+                <button type="submit" style="padding:8px 14px; border:none; border-radius:6px; background:#f97316; color:white; font-weight:600; cursor:pointer;">Create Purchase Order</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openRejectModal(reqId, name) {
+    document.getElementById('rejectModalText').textContent = 'Reject request #' + reqId + ' for ' + name + '.';
+    document.getElementById('rejectForm').action = '/inventory/requests/' + reqId + '/reject/';
+    document.getElementById('rejectModal').classList.add('open');
+}
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('open');
+}
+
+function openConvertModal(reqId, name, qty, unit, price) {
+    document.getElementById('convertModalText').textContent = 'Generating Purchase Order for ' + qty + ' ' + unit + ' of ' + name + '.';
+    document.getElementById('convertPackPrice').value = price;
+    document.getElementById('convertForm').action = '/inventory/requests/' + reqId + '/convert-to-po/';
+    document.getElementById('convertModal').classList.add('open');
+}
+function closeConvertModal() {
+    document.getElementById('convertModal').classList.remove('open');
+}
+</script>
+{% endblock %}

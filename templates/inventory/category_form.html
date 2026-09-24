@@ -208,15 +208,21 @@
 {% block content %}
 <div class="content">
 
-            <div class="page-header">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
 
-                <h1>
-                    {{ page_title }}
-                </h1>
+                <div>
+                    <h1>
+                        {{ page_title }}
+                    </h1>
 
-                <p>
-                    Create or update an ingredient group used to organize inventory items.
-                </p>
+                    <p>
+                        Create or update an ingredient group used to organize inventory items.
+                    </p>
+                </div>
+
+                <a href="{% url 'inventory_category_list' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-dark); text-decoration: none;">
+                    ← Back to Groups
+                </a>
 
             </div>
 

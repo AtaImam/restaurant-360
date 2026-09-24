@@ -3,195 +3,408 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Checkout</title>
-
+    <title>Checkout | {{ restaurant.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       body {
-        font-family: Arial, sans-serif;
-        background: #f7f7f7;
-        color: #222;
+        font-family: 'Inter', -apple-system, sans-serif;
+        background: #f7f7f8;
+        color: #18181b;
+        min-height: 100vh;
       }
 
       .container {
-        max-width: 700px;
-        margin: 40px auto;
-        padding: 0 16px;
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
       }
 
-      .header {
-        margin-bottom: 25px;
+      /* Header */
+      .checkout-header {
+        margin-bottom: 24px;
+      }
+      .checkout-header h1 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        margin-bottom: 4px;
+      }
+      .checkout-header p {
+        font-size: 13px;
+        color: #71717a;
       }
 
-      .header h1 {
-        margin-bottom: 6px;
-      }
-
-      .restaurant-info {
-        color: #666;
-      }
-
-      .box {
+      /* Card */
+      .card {
         background: white;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+        border: 1px solid #e4e4e7;
+        border-radius: 18px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      }
+      .card-head {
+        padding: 15px 20px 12px;
+        border-bottom: 1px solid #f1f1f1;
+        font-size: 13px;
+        font-weight: 700;
+        color: #52525b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      .box h2 {
-        font-size: 18px;
-        margin-bottom: 16px;
-      }
-
+      /* Items */
       .order-item {
         display: flex;
         justify-content: space-between;
-        gap: 15px;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
+        gap: 16px;
+        padding: 12px 20px;
+        border-bottom: 1px solid #f4f4f5;
+        font-size: 13px;
+      }
+      .order-item:last-child { border-bottom: none; }
+      .item-name { font-weight: 600; }
+      .item-qty { color: #71717a; font-size: 12px; margin-top: 2px; }
+      .item-price { font-weight: 700; white-space: nowrap; }
+
+      /* Totals */
+      .totals { padding: 16px 20px; display: flex; flex-direction: column; gap: 7px; }
+      .total-line { display: flex; justify-content: space-between; font-size: 13px; color: #71717a; }
+      .total-line.grand { font-size: 19px; font-weight: 900; color: #18181b; margin-top: 4px; padding-top: 10px; border-top: 1px solid #e4e4e7; }
+
+      /* Error */
+      .error-box {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #b91c1c;
+        margin-bottom: 14px;
       }
 
-      .order-item:last-child {
-        border-bottom: none;
-      }
-
-      .item-name {
-        font-weight: bold;
-      }
-
-      .quantity {
-        color: #666;
-        font-size: 14px;
-        margin-top: 4px;
-      }
-
-      .total {
+      /* Segment options (order type, payment timing) */
+      .segment { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 20px; }
+      .seg-option { display: none; }
+      .seg-label {
         display: flex;
-        justify-content: space-between;
-        font-size: 21px;
-        font-weight: bold;
-      }
-
-      .order-type {
-        display: block;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        margin-bottom: 12px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 12px 10px;
+        border: 2px solid #e4e4e7;
+        border-radius: 12px;
         cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #52525b;
+        background: #fafafa;
+        transition: all 0.18s;
+      }
+      .seg-label:hover { border-color: #f97316; color: #f97316; }
+      .seg-option:checked + .seg-label {
+        border-color: #f97316;
+        background: #fff7ed;
+        color: #ea580c;
+        box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
       }
 
-      .order-type input {
-        margin-right: 8px;
+      /* Payment methods (3-col) */
+      .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px 20px; }
+      .method-opt { display: none; }
+      .method-lbl {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border: 2px solid #e4e4e7;
+        border-radius: 12px;
+        cursor: pointer;
+        background: #fafafa;
+        transition: all 0.18s;
       }
+      .method-lbl:hover { border-color: #f97316; }
+      .method-opt:checked + .method-lbl {
+        border-color: #f97316;
+        background: #fff7ed;
+        box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+      }
+      .method-icon { font-size: 22px; }
+      .method-name { font-size: 10px; font-weight: 700; color: #52525b; }
+      .method-opt:checked + .method-lbl .method-name { color: #ea580c; }
 
+      /* Payment method panel (initially hidden for PAY_LATER) */
+      #payMethodPanel { display: none; }
+      #payMethodPanel.visible { display: block; }
+
+      /* Submit */
       .place-order {
         width: 100%;
         border: none;
-        background: #111;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
         color: white;
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: bold;
+        padding: 16px;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 800;
         cursor: pointer;
+        letter-spacing: 0.02em;
+        box-shadow: 0 8px 24px rgba(249,115,22,0.28);
+        transition: all 0.2s;
+        margin-top: 4px;
       }
-
-      .place-order:hover {
-        opacity: 0.85;
+      .place-order:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 32px rgba(249,115,22,0.38);
       }
+      .place-order:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-      .back {
+      .back-link {
         display: block;
         text-align: center;
         margin-top: 16px;
-        color: #555;
+        font-size: 13px;
+        color: #71717a;
         text-decoration: none;
       }
+      .back-link:hover { color: #f97316; }
 
-      @media (max-width: 600px) {
-        .container {
-          margin-top: 25px;
-        }
+      .pay-timing-note {
+        font-size: 11px;
+        color: #71717a;
+        text-align: center;
+        padding: 0 20px 14px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 480px) {
+        .method-grid { gap: 7px; }
+        .method-lbl { padding: 10px 4px; }
+        .method-icon { font-size: 18px; }
       }
     </style>
   </head>
 
   <body>
     <div class="container">
-      <div class="header">
+
+      <div class="checkout-header">
         <h1>Checkout</h1>
-
-        <p class="restaurant-info">
-          {{ restaurant.name }} · Table {{ table.table_number }}
-        </p>
-      </div>
-
-      <div class="box">
-        <h2>Your Order</h2>
-
-        {% for item_id, item in cart.items %}
-
-        <div class="order-item">
-          <div>
-            <p class="item-name">{{ item.name }}</p>
-
-            <p class="quantity">Quantity: {{ item.quantity }}</p>
-          </div>
-
-          <strong> ৳{{ item.subtotal }} </strong>
-        </div>
-
-        {% endfor %}
-      </div>
-
-      <div class="box">
-        <div class="total">
-          <span>Total</span>
-          <span>৳{{ total }}</span>
-        </div>
+        <p>{{ restaurant.name }} · Table {{ table.table_number }}</p>
       </div>
 
       {% if stock_error %}
-      <div class="box" role="alert" style="color: #b91c1c; border: 1px solid #fecaca;">
-        {{ stock_error }}
+      <div class="error-box">⚠️ {{ stock_error }}</div>
+      {% endif %}
+
+      <!-- Order summary -->
+      <div class="card">
+        <div class="card-head">🧾 Your Order</div>
+        {% for item_id, item in cart.items %}
+        <div class="order-item">
+          <div>
+            <div class="item-name">{{ item.name }}</div>
+            {% if item.addon_names %}
+              <div style="font-size: 11px; color: #ea580c; font-weight: 600; margin: 2px 0;">
+                + {{ item.addon_names|join:", " }}
+              </div>
+            {% endif %}
+            <div class="item-qty">× {{ item.quantity }}</div>
+          </div>
+          <div class="item-price">৳{{ item.subtotal }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Coupon / Offer Card -->
+      <div class="card">
+        <div class="card-head">🏷️ Coupon &amp; Offers</div>
+        <div style="padding: 16px 20px;">
+          <form method="GET" action="{% url 'checkout' restaurant.id table.id %}" style="display:flex; gap:8px; margin-bottom: 8px;">
+            <input type="text" name="coupon_code" value="{{ coupon_code|default:'' }}" placeholder="Enter coupon code"
+                   style="flex:1; padding: 10px 14px; border: 1.5px solid #e4e4e7; border-radius: 10px; font-size: 13px; text-transform: uppercase;">
+            <button type="submit" style="background:#111827; color:white; border:none; border-radius:10px; padding:10px 16px; font-weight:700; font-size:12px; cursor:pointer;">Apply</button>
+            {% if coupon_code %}
+            <a href="{% url 'checkout' restaurant.id table.id %}" style="display:flex; align-items:center; color:#ef4444; text-decoration:none; font-size:12px; font-weight:600;">Remove</a>
+            {% endif %}
+          </form>
+          {% if coupon_error %}
+          <div style="color: #dc2626; font-size: 12px; font-weight: 600; margin-top: 4px;">⚠️ {{ coupon_error }}</div>
+          {% elif pricing.applied_coupon %}
+          <div style="color: #16a34a; font-size: 12px; font-weight: 700; margin-top: 4px;">
+            ✓ Offer applied: {{ pricing.coupon_name_snapshot }} (−৳{{ pricing.discount_amount }})
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if table_session_summary and table_session_summary.existing_orders %}
+      <!-- Active Table Session Summary -->
+      <div class="card" style="border-left: 4px solid #f97316; background: #fffaf5;">
+        <div class="card-head" style="color: #c2410c; background: #fff7ed;">
+          <span>🍽️ Active Sitting · Table {{ table.table_number }}</span>
+          <span style="font-size: 11px; margin-left: auto; background: #ffedd5; padding: 2px 8px; border-radius: 999px; font-weight: 700;">
+            {{ table_session_summary.orders_count }} previous order{{ table_session_summary.orders_count|pluralize }}
+          </span>
+        </div>
+        <div style="padding: 12px 20px; font-size: 12.5px;">
+          <div style="color: #71717a; margin-bottom: 8px;">Earlier orders placed in this sitting:</div>
+          {% for ex_order in table_session_summary.existing_orders %}
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #fed7aa;">
+            <div>
+              <strong>Order #{{ ex_order.id }}</strong>
+              <span style="font-size: 11px; color: #71717a; margin-left: 6px;">
+                ({{ ex_order.items.all|length }} item{{ ex_order.items.all|length|pluralize }})
+              </span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-weight: 700;">৳{{ ex_order.total_amount }}</span>
+              <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 4px; {% if ex_order.payment_status == 'PAID' %}background:#dcfce7; color:#15803d;{% else %}background:#fee2e2; color:#b91c1c;{% endif %}">
+                {{ ex_order.get_payment_status_display }}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+          <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 6px; font-weight: 700; color: #9a3412;">
+            <span>Previous Sitting Total:</span>
+            <span>৳{{ table_session_summary.session_total }}</span>
+          </div>
+          {% if table_session_summary.unpaid_total > 0 %}
+          <div style="display: flex; justify-content: space-between; color: #dc2626; font-size: 12px; margin-top: 2px; font-weight: 700;">
+            <span>Outstanding Table Balance:</span>
+            <span>৳{{ table_session_summary.unpaid_total }}</span>
+          </div>
+          {% endif %}
+        </div>
       </div>
       {% endif %}
 
-      <form method="POST">
+      <!-- Totals -->
+      <div class="card">
+        <div class="totals">
+          <div class="total-line">
+            <span style="color: #71717a; font-weight: 600;">Current Order Subtotal</span>
+            <span>৳{{ pricing.subtotal|default:total }}</span>
+          </div>
+          {% if pricing.discount_amount and pricing.discount_amount > 0 %}
+          <div class="total-line" style="color: #16a34a; font-weight: 700;">
+            <span>Discount ({{ pricing.coupon_name_snapshot }})</span>
+            <span>− ৳{{ pricing.discount_amount }}</span>
+          </div>
+          {% endif %}
+          {% if pricing.service_charge %}<div class="total-line"><span>Service charge ({{ operating_settings.service_percent }}%)</span><span>৳{{ pricing.service_charge }}</span></div>{% endif %}
+          {% if pricing.vat_amount %}<div class="total-line"><span>VAT ({{ operating_settings.vat_percent }}%)</span><span>৳{{ pricing.vat_amount }}</span></div>{% endif %}
+          <div class="total-line grand" style="border-top: 1px dashed #e4e4e7; margin-top: 8px; padding-top: 10px;">
+            <span>Total for This Order</span>
+            <span>৳{{ pricing.total_amount|default:total }}</span>
+          </div>
+          {% if table_session_summary and table_session_summary.existing_orders %}
+          <div class="total-line" style="border-top: 2px solid #fed7aa; margin-top: 10px; padding-top: 10px; font-weight: 800; color: #c2410c; font-size: 15px;">
+            <span>Combined Running Table Bill</span>
+            <span>৳{{ table_session_summary.combined_total }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <form method="POST" id="checkoutForm">
         {% csrf_token %}
+        <input type="hidden" name="coupon_code" value="{{ coupon_code|default:'' }}">
 
-        <div class="box">
-          <h2>Order Type</h2>
+        <!-- Order type -->
+        <div class="card">
+          <div class="card-head">🍽️ Order Type</div>
+          <div class="segment">
+            <input class="seg-option" type="radio" name="order_type" id="type_dinein" value="DINE_IN" {% if operating_settings.allow_dine_in %}checked{% else %}disabled{% endif %}>
+            <label class="seg-label" for="type_dinein">🪑 Dine In</label>
 
-          <label class="order-type">
-            <input type="radio" name="order_type" value="DINE_IN" checked />
-
-            Dine In
-          </label>
-
-          <label class="order-type">
-            <input type="radio" name="order_type" value="TAKEAWAY" />
-
-            Takeaway
-          </label>
+            <input class="seg-option" type="radio" name="order_type" id="type_takeaway" value="TAKEAWAY" {% if not operating_settings.allow_takeaway %}disabled{% elif not operating_settings.allow_dine_in %}checked{% endif %}>
+            <label class="seg-label" for="type_takeaway">🥡 Takeaway</label>
+          </div>
         </div>
 
-        <button type="submit" class="place-order">
+        <!-- Payment timing -->
+        <div class="card">
+          <div class="card-head">💰 When to Pay?</div>
+          <div class="segment">
+            <input class="seg-option" type="radio" name="payment_timing" id="timing_later" value="PAY_LATER" {% if operating_settings.allow_pay_later %}checked{% else %}disabled{% endif %}>
+            <label class="seg-label" for="timing_later">⏳ Pay Later</label>
+
+            <input class="seg-option" type="radio" name="payment_timing" id="timing_now" value="PAY_NOW" {% if not operating_settings.allow_pay_now %}disabled{% elif not operating_settings.allow_pay_later %}checked{% endif %}>
+            <label class="seg-label" for="timing_now">✓ Pay Now</label>
+          </div>
+          <div class="pay-timing-note" id="timingNote">
+            You will pay at the counter after your meal.
+          </div>
+
+          <!-- Payment method selector — visible only for PAY_NOW -->
+          <div id="payMethodPanel">
+            <div class="card-head" style="border-top: 1px solid #f1f1f1;">💳 Payment Method</div>
+            <div class="method-grid">
+              {% for value, label in payment_method_choices %}
+              <div>
+                <input class="method-opt" type="radio" name="payment_method"
+                       id="pm_{{ value }}" value="{{ value }}"
+                       {% if forloop.first %}checked{% endif %}>
+                <label class="method-lbl" for="pm_{{ value }}">
+                  <span class="method-icon">
+                    {% if value == "CASH" %}💵
+                    {% elif value == "CARD" %}💳
+                    {% else %}📱{% endif %}
+                  </span>
+                  <span class="method-name">{{ label }}</span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            <div style="margin-top: 12px;">
+              <input type="text" name="payment_reference" id="customer_pay_reference" placeholder="Transaction / Reference ID (optional)"
+                     style="width: 100%; padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 12.5px; box-sizing: border-box; background: #fff;">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="place-order" id="placeOrderBtn">
           Place Order · ৳{{ total }}
         </button>
       </form>
 
-      <a href="{% url 'cart' restaurant.id table.id %}" class="back">
-        ← Back to Cart
-      </a>
+      <a href="{% url 'cart' restaurant.id table.id %}" class="back-link">← Back to Cart</a>
     </div>
+
+    <script>
+      (function () {
+        const timingNow = document.getElementById('timing_now');
+        const timingLater = document.getElementById('timing_later');
+        const methodPanel = document.getElementById('payMethodPanel');
+        const timingNote = document.getElementById('timingNote');
+        const placeBtn = document.getElementById('placeOrderBtn');
+
+        const notes = {
+          PAY_NOW: 'Pay now — your order will be confirmed after payment.',
+          PAY_LATER: 'You will pay at the counter after your meal.',
+        };
+
+        function onTimingChange() {
+          const isNow = timingNow.checked;
+          methodPanel.classList.toggle('visible', isNow);
+          timingNote.textContent = isNow ? notes.PAY_NOW : notes.PAY_LATER;
+        }
+
+        timingNow.addEventListener('change', onTimingChange);
+        timingLater.addEventListener('change', onTimingChange);
+        onTimingChange();
+
+        document.getElementById('checkoutForm').addEventListener('submit', function () {
+          placeBtn.disabled = true;
+          placeBtn.textContent = 'Placing order…';
+        });
+      })();
+    </script>
   </body>
 </html>

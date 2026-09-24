@@ -1,0 +1,540 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{{ page_title }} | Restaurant 360{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 30px;
+  }
+  .form-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 28px 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-group .help-text {
+    font-size: 11px;
+    color: #6b7280;
+  }
+  .form-input, .form-select {
+    height: 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #111827;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: #f97316;
+  }
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    cursor: pointer;
+  }
+  .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #f97316;
+    cursor: pointer;
+  }
+  /* Options Table */
+  .options-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .options-table th {
+    background: #f9fafb;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #4b5563;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .options-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .btn-remove-row {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .btn-remove-row:hover {
+    background: #fecaca;
+  }
+  .btn-add-row {
+    background: #fff;
+    border: 1px dashed #d1d5db;
+    color: #f97316;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-add-row:hover {
+    border-color: #f97316;
+    background: #fff7ed;
+  }
+  /* Items selector */
+  .items-selector-box {
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fafafa;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+  }
+  .item-checkbox-row {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .item-checkbox-row input {
+    accent-color: #f97316;
+  }
+  .actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .btn-submit {
+    background: #f97316;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-submit:hover {
+    background: #ea580c;
+  }
+  .btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn-cancel:hover {
+    background: #e5e7eb;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+  <div style="margin-bottom: 20px;">
+    <a href="{% url 'addon_group_list' %}" style="font-size: 13px; color: #6b7280; text-decoration: none; font-weight: 600;">
+      ← Back to Addon Groups
+    </a>
+    <h1 style="font-size: 24px; font-weight: 800; color: #111827; margin-top: 6px;">{{ page_title }}</h1>
+  </div>
+
+  {% if error_message %}
+    <div style="padding: 14px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
+      {{ error_message }}
+    </div>
+  {% endif %}
+
+  <form method="post" id="addonGroupForm">
+    {% csrf_token %}
+
+    <!-- 1. Group Information -->
+    <div class="form-card">
+      <div class="section-title">
+        <span>Group Information</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Group Name *</label>
+          <input type="text" id="name" name="name" value="{{ form_name }}" placeholder="e.g. Choose Sauce, Extra Cheese, Spice Level" class="form-input" required>
+          <span class="help-text">Display name shown to customer and waiter.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="selection_type">Selection Type *</label>
+          <select id="selection_type" name="selection_type" class="form-select" onchange="toggleSelectionRules()">
+            <option value="SINGLE" {% if form_selection_type == 'SINGLE' %}selected{% endif %}>Single Selection (Radio - Choose 1)</option>
+            <option value="MULTIPLE" {% if form_selection_type == 'MULTIPLE' %}selected{% endif %}>Multiple Selection (Checkbox - Choose Many)</option>
+          </select>
+          <span class="help-text">Single forces exactly/at most one choice. Multiple allows choosing several.</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="justify-content: center;">
+          <label class="checkbox-label" style="margin-top: 10px;">
+            <input type="checkbox" name="is_required" id="is_required" {% if form_is_required %}checked{% endif %} onchange="toggleSelectionRules()">
+            <span>Required Selection (Must choose before ordering)</span>
+          </label>
+          <span class="help-text" style="margin-left: 28px;">Customer cannot add to cart without choosing from this group.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="display_order">Display Order</label>
+          <input type="number" id="display_order" name="display_order" value="{{ form_display_order|default:'0' }}" class="form-input" min="0">
+        </div>
+      </div>
+
+      <!-- Multiple Selection Limits (Min / Max) -->
+      <div id="multiple_limits_row" class="form-row" style="{% if form_selection_type != 'MULTIPLE' %}display: none;{% endif %} background: #f9fafb; padding: 14px; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <div class="form-group">
+          <label for="min_selection">Minimum Options Required</label>
+          <input type="number" id="min_selection" name="min_selection" value="{{ form_min_selection|default:'0' }}" class="form-input" min="0">
+          <span class="help-text">Least number of options customer must pick (0 for optional).</span>
+        </div>
+
+        <div class="form-group">
+          <label for="max_selection">Maximum Options Allowed</label>
+          <input type="number" id="max_selection" name="max_selection" value="{{ form_max_selection }}" placeholder="Leave blank for unlimited" class="form-input" min="1">
+          <span class="help-text">Maximum choices allowed (e.g. choose up to 3 toppings).</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_active" {% if form_is_active %}checked{% endif %}>
+          <span>Active (Available for ordering)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 2. Addon Options (Choices & Inventory Requirements) -->
+    <div class="form-card">
+      <div class="section-title">
+        <span>Addon Options (Choices, Prices &amp; Inventory Mapping)</span>
+        <button type="button" class="btn-add-row" onclick="addOptionCard()">+ Add Option</button>
+      </div>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 16px;">
+        Define option choices. Optionally map ingredients to each option (e.g. <em>Extra Cheese +৳40 → Cheese 20 G</em>, <em>Extra Patty +৳100 → Beef Patty 1 PCS</em>). Modifiers without ingredients will continue working without inventory deduction.
+      </p>
+
+      <div id="optionsContainer">
+        {% for row in option_rows %}
+          <div class="option-card-box" id="option_card_{{ row.key }}" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 14px; align-items: start;">
+              <div>
+                <label style="font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">Option Name *</label>
+                <input type="hidden" name="option_key[]" value="{{ row.key }}">
+                <input type="hidden" name="option_id[]" value="{{ row.id|default:'' }}">
+                <input type="text" name="option_name[]" value="{{ row.name }}" placeholder="e.g. Extra Cheese" class="form-input" style="width: 100%; margin-top: 4px;" required>
+              </div>
+              <div>
+                <label style="font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">Extra Price (৳)</label>
+                <input type="number" name="option_price[]" value="{{ row.price|default:'0.00' }}" step="0.01" min="0" class="form-input" style="width: 100%; margin-top: 4px; font-weight: 600;" required>
+              </div>
+              <div>
+                <label style="font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">Status</label>
+                <select name="option_active[]" class="form-select" style="width: 100%; margin-top: 4px;">
+                  <option value="1" {% if row.is_active %}selected{% endif %}>Active</option>
+                  <option value="0" {% if not row.is_active %}selected{% endif %}>Inactive</option>
+                </select>
+              </div>
+              <div style="padding-top: 22px;">
+                <button type="button" class="btn-remove-row" onclick="removeOptionCard('{{ row.key }}')" title="Remove Option">✕</button>
+              </div>
+            </div>
+
+            <!-- Ingredient Requirements Section -->
+            <div style="margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                  <span>📦</span> Stock Consumption (Optional Ingredients)
+                </span>
+                <button type="button" onclick="addIngredientRow('{{ row.key }}')" style="font-size: 11px; font-weight: 700; color: #ea580c; background: #fff7ed; border: 1px solid #fed7aa; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  + Add Ingredient Requirement
+                </button>
+              </div>
+              <div id="ingredients_list_{{ row.key }}" style="display: flex; flex-direction: column; gap: 8px;">
+                {% for ing in row.ingredients %}
+                  <div class="ing-row" style="display: flex; align-items: center; gap: 10px; background: #ffffff; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <select name="option_ingredient_{{ row.key }}[]" class="form-select ing-select" style="flex: 2; height: 34px; font-size: 12px;" onchange="updateIngUnit(this)" required>
+                      <option value="">-- Choose Ingredient --</option>
+                      {% for ingredient in available_ingredients %}
+                        <option value="{{ ingredient.id }}" data-unit="{{ ingredient.base_unit }}" {% if ingredient.id == ing.ingredient_id %}selected{% endif %}>
+                          {{ ingredient.name }} ({{ ingredient.category.name }}) - {{ ingredient.base_unit }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+                      <input type="number" name="option_quantity_{{ row.key }}[]" value="{{ ing.quantity }}" step="0.001" min="0.001" placeholder="Quantity" class="form-input" style="width: 100%; height: 34px; font-size: 12px;" required>
+                      <span class="ing-unit-label" style="font-size: 11px; font-weight: 700; color: #64748b; min-width: 32px;"></span>
+                    </div>
+                    <button type="button" onclick="removeIngredientRow(this, '{{ row.key }}')" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer;" title="Remove Ingredient">✕</button>
+                  </div>
+                {% empty %}
+                  <div class="no-ing-placeholder" style="font-size: 11px; color: #94a3b8; font-style: italic; padding: 4px 0;">
+                    No ingredients required. This addon will not consume stock.
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <button type="button" class="btn-add-row" onclick="addOptionCard()">+ Add Option Row</button>
+    </div>
+
+    <!-- 3. Assign to Menu Items -->
+    <div class="form-card">
+      <div class="section-title">
+        <span>Assign to Menu Items ({{ restaurant.name }})</span>
+        <div style="font-size: 12px;">
+          <a href="javascript:void(0)" onclick="selectAllItems(true)" style="color: #f97316; font-weight: 600; margin-right: 10px;">Select All</a>
+          <a href="javascript:void(0)" onclick="selectAllItems(false)" style="color: #6b7280; font-weight: 600;">Deselect All</a>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">
+        Choose which menu items will offer this addon group. You can also assign addon groups directly when editing a Menu Item.
+      </p>
+
+      <div class="items-selector-box">
+        {% for item in available_menu_items %}
+          <label class="item-checkbox-row">
+            <input type="checkbox" name="menu_items" value="{{ item.id }}" class="item-checkbox" {% if item.id in selected_menu_item_ids %}checked{% endif %}>
+            <span>
+              <strong>{{ item.name }}</strong>
+              <span style="color: #6b7280; font-size: 11px;">({{ item.category.name }})</span>
+            </span>
+          </label>
+        {% empty %}
+          <div style="grid-column: 1 / -1; padding: 12px; text-align: center; color: #9ca3af;">
+            No menu items found for this restaurant.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Submit Row -->
+    <div class="actions-row">
+      <a href="{% url 'addon_group_list' %}" class="btn-cancel">Cancel</a>
+      <button type="submit" class="btn-submit">{{ button_text }}</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  let optionCounter = {{ option_rows|length|default:1 }} + 10;
+
+  const availableIngredients = [
+    {% for ing in available_ingredients %}
+      { id: {{ ing.id }}, name: "{{ ing.name|escapejs }}", category: "{{ ing.category.name|escapejs }}", unit: "{{ ing.base_unit|escapejs }}" },
+    {% endfor %}
+  ];
+
+  function toggleSelectionRules() {
+    const selType = document.getElementById("selection_type").value;
+    const limitsRow = document.getElementById("multiple_limits_row");
+    const isReq = document.getElementById("is_required").checked;
+    const minInput = document.getElementById("min_selection");
+
+    if (selType === "MULTIPLE") {
+      limitsRow.style.display = "grid";
+      if (isReq && (!minInput.value || parseInt(minInput.value, 10) < 1)) {
+        minInput.value = "1";
+      }
+    } else {
+      limitsRow.style.display = "none";
+    }
+  }
+
+  function addOptionCard() {
+    optionCounter++;
+    const key = "opt_new_" + optionCounter;
+    const container = document.getElementById("optionsContainer");
+    const div = document.createElement("div");
+    div.className = "option-card-box";
+    div.id = "option_card_" + key;
+    div.style = "background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);";
+    div.innerHTML = `
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 14px; align-items: start;">
+        <div>
+          <label style="font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">Option Name *</label>
+          <input type="hidden" name="option_key[]" value="${key}">
+          <input type="hidden" name="option_id[]" value="">
+          <input type="text" name="option_name[]" placeholder="e.g. Extra Sauce" class="form-input" style="width: 100%; margin-top: 4px;" required>
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">Extra Price (৳)</label>
+          <input type="number" name="option_price[]" value="0.00" step="0.01" min="0" class="form-input" style="width: 100%; margin-top: 4px; font-weight: 600;" required>
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">Status</label>
+          <select name="option_active[]" class="form-select" style="width: 100%; margin-top: 4px;">
+            <option value="1" selected>Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+        <div style="padding-top: 22px;">
+          <button type="button" class="btn-remove-row" onclick="removeOptionCard('${key}')" title="Remove Option">✕</button>
+        </div>
+      </div>
+      <div style="margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+            <span>📦</span> Stock Consumption (Optional Ingredients)
+          </span>
+          <button type="button" onclick="addIngredientRow('${key}')" style="font-size: 11px; font-weight: 700; color: #ea580c; background: #fff7ed; border: 1px solid #fed7aa; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+            + Add Ingredient Requirement
+          </button>
+        </div>
+        <div id="ingredients_list_${key}" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="no-ing-placeholder" style="font-size: 11px; color: #94a3b8; font-style: italic; padding: 4px 0;">
+            No ingredients required. This addon will not consume stock.
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+    div.querySelector('input[name="option_name[]"]').focus();
+  }
+
+  function removeOptionCard(key) {
+    const container = document.getElementById("optionsContainer");
+    if (container.querySelectorAll(".option-card-box").length > 1) {
+      const card = document.getElementById("option_card_" + key);
+      if (card) card.remove();
+    } else {
+      alert("At least one option is required.");
+    }
+  }
+
+  function addIngredientRow(optionKey) {
+    const list = document.getElementById("ingredients_list_" + optionKey);
+    if (!list) return;
+    const placeholder = list.querySelector(".no-ing-placeholder");
+    if (placeholder) placeholder.remove();
+
+    let optionsHtml = '<option value="">-- Choose Ingredient --</option>';
+    availableIngredients.forEach(function(ing) {
+      optionsHtml += `<option value="${ing.id}" data-unit="${ing.unit}">${ing.name} (${ing.category}) - ${ing.unit}</option>`;
+    });
+
+    const row = document.createElement("div");
+    row.className = "ing-row";
+    row.style = "display: flex; align-items: center; gap: 10px; background: #ffffff; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0;";
+    row.innerHTML = `
+      <select name="option_ingredient_${optionKey}[]" class="form-select ing-select" style="flex: 2; height: 34px; font-size: 12px;" onchange="updateIngUnit(this)" required>
+        ${optionsHtml}
+      </select>
+      <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+        <input type="number" name="option_quantity_${optionKey}[]" value="1.000" step="0.001" min="0.001" placeholder="Quantity" class="form-input" style="width: 100%; height: 34px; font-size: 12px;" required>
+        <span class="ing-unit-label" style="font-size: 11px; font-weight: 700; color: #64748b; min-width: 32px;"></span>
+      </div>
+      <button type="button" onclick="removeIngredientRow(this, '${optionKey}')" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer;" title="Remove Ingredient">✕</button>
+    `;
+    list.appendChild(row);
+  }
+
+  function removeIngredientRow(btn, optionKey) {
+    const list = document.getElementById("ingredients_list_" + optionKey);
+    btn.closest(".ing-row").remove();
+    if (list && list.querySelectorAll(".ing-row").length === 0) {
+      list.innerHTML = `
+        <div class="no-ing-placeholder" style="font-size: 11px; color: #94a3b8; font-style: italic; padding: 4px 0;">
+          No ingredients required. This addon will not consume stock.
+        </div>
+      `;
+    }
+  }
+
+  function updateIngUnit(selectElem) {
+    const selectedOpt = selectElem.options[selectElem.selectedIndex];
+    const unit = selectedOpt ? selectedOpt.getAttribute("data-unit") || "" : "";
+    const label = selectElem.closest(".ing-row").querySelector(".ing-unit-label");
+    if (label) label.textContent = unit;
+  }
+
+  function selectAllItems(checked) {
+    document.querySelectorAll(".item-checkbox").forEach(function(cb) {
+      cb.checked = checked;
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".ing-select").forEach(function(sel) {
+      updateIngUnit(sel);
+    });
+  });
+</script>
+{% endblock %}

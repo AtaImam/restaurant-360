@@ -1,0 +1,138 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Stock Count Audits | Restaurant 360{% endblock %}
+{% block page_title %}Stock Count Audits{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content {
+        max-width: 1500px;
+        margin: auto;
+        padding: 30px;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 25px;
+        margin-bottom: 6px;
+    }
+    .page-header p {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 16px;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th {
+        padding: 14px 18px;
+        font-size: 11px;
+        color: #6b7280;
+        text-align: left;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .table td {
+        padding: 14px 18px;
+        font-size: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #111827;
+    }
+    .badge {
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .badge-green { background: #f0fdf4; color: #16a34a; }
+    .badge-red { background: #fef2f2; color: #dc2626; }
+    .badge-gray { background: #f3f4f6; color: #4b5563; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for message in messages %}
+                <div style="padding: 12px 16px; border-radius: 8px; font-size: 12px; margin-bottom: 8px; {% if message.tags == 'error' %}background: #fef2f2; color: #dc2626;{% else %}background: #f0fdf4; color: #16a34a;{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div>
+            <h1>Physical Stock Counts &amp; Audits</h1>
+            <p>Periodic physical counts compared against expected system quantities and variance adjustments.</p>
+        </div>
+        <a href="{% url 'stock_count_create' %}" class="btn-primary">
+            + New Stock Count
+        </a>
+    </div>
+
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>AUDIT DATE</th>
+                    <th>INGREDIENT</th>
+                    <th>EXPECTED (SYSTEM)</th>
+                    <th>ACTUAL (PHYSICAL)</th>
+                    <th>VARIANCE</th>
+                    <th>NOTE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for count in counts %}
+                <tr>
+                    <td style="color: #6b7280;">{{ count.counted_at|date:"M d, Y H:i" }}</td>
+                    <td style="font-weight: 600;">{{ count.ingredient.name }}</td>
+                    <td>{{ count.system_quantity }} {{ count.ingredient.cost_unit }}</td>
+                    <td style="font-weight: 700;">{{ count.actual_quantity }} {{ count.ingredient.cost_unit }}</td>
+                    <td>
+                        {% if count.variance > 0 %}
+                            <span class="badge badge-green">+{{ count.variance }} {{ count.ingredient.cost_unit }} (Surplus)</span>
+                        {% elif count.variance < 0 %}
+                            <span class="badge badge-red">{{ count.variance }} {{ count.ingredient.cost_unit }} (Shortage)</span>
+                        {% else %}
+                            <span class="badge badge-gray">0.00 (Matched)</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: #4b5563;">{{ count.note|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                        No physical stock audits recorded yet. Click "+ New Stock Count" to perform an inventory count.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

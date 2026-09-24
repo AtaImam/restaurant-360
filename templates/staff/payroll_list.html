@@ -340,9 +340,14 @@
         >
       </div>
 
-      <button type="submit" class="generate-button">
-        Generate Payroll
-      </button>
+      <div style="display: flex; gap: 8px;">
+        <button type="submit" name="action" value="generate" class="generate-button">
+          Generate Payroll
+        </button>
+        <button type="submit" name="action" value="recalculate" class="generate-button" style="background: #0284c7;">
+          Recalculate Drafts
+        </button>
+      </div>
     </form>
   </section>
 
@@ -446,21 +451,27 @@
             </td>
 
             <td>
-              {% if payroll.status == "draft" %}
-              <form
-                method="post"
-                action="{% url 'staff:payroll_mark_paid' payroll_id=payroll.pk %}"
-              >
-                {% csrf_token %}
-                <button type="submit" class="paid-button">
-                  Mark Paid
-                </button>
-              </form>
-              {% else %}
-              <span class="payroll-secondary">
-                {{ payroll.paid_at|date:"d M Y, H:i" }}
-              </span>
-              {% endif %}
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <a href="{% url 'staff:payroll_detail' payroll_id=payroll.pk %}" style="color: #ea580c; font-weight: 700; font-size: 13px; text-decoration: none;">
+                  Payslip
+                </a>
+                {% if payroll.status == "draft" %}
+                <form
+                  method="post"
+                  action="{% url 'staff:payroll_mark_paid' payroll_id=payroll.pk %}"
+                  style="margin: 0;"
+                >
+                  {% csrf_token %}
+                  <button type="submit" class="paid-button">
+                    Mark Paid
+                  </button>
+                </form>
+                {% else %}
+                <span class="payroll-secondary">
+                  {{ payroll.paid_at|date:"d M Y, H:i" }}
+                </span>
+                {% endif %}
+              </div>
             </td>
           </tr>
 

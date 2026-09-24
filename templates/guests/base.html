@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="same-origin">
+    <title>{% block title %}Guest Services | Restaurant 360{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f7f7f8;
+        color: #18181b;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+
+      .guest-container {
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      .brand-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        text-decoration: none;
+        color: #18181b;
+      }
+
+      .brand-logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: #ffffff;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 18px;
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+      }
+
+      .brand-name {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+      }
+
+      .guest-card {
+        background: #ffffff;
+        border: 1px solid #e4e4e7;
+        border-radius: 20px;
+        padding: 32px 28px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        color: #18181b;
+        margin-bottom: 6px;
+      }
+
+      h2 {
+        font-size: 17px;
+        font-weight: 750;
+        color: #18181b;
+        margin: 16px 0 6px;
+      }
+
+      p {
+        font-size: 14px;
+        color: #71717a;
+        line-height: 1.5;
+        margin-bottom: 16px;
+      }
+
+      .branch-meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 9999px;
+        color: #c2410c;
+        font-size: 12px;
+        font-weight: 650;
+        margin-bottom: 18px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #3f3f46;
+        margin-bottom: 6px;
+        margin-top: 14px;
+      }
+
+      input[type="text"],
+      input[type="tel"],
+      input[type="date"],
+      input[type="time"],
+      input[type="number"],
+      textarea,
+      select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid #e4e4e7;
+        border-radius: 12px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #18181b;
+        background: #ffffff;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+      }
+
+      /* Radio options for rating - support both div#id_rating and ul */
+      #id_rating,
+      ul:has(input[type="radio"]) {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        gap: 8px;
+        margin: 10px 0 16px;
+      }
+
+      #id_rating > div,
+      ul:has(input[type="radio"]) li {
+        flex: 1;
+      }
+
+      #id_rating label,
+      ul:has(input[type="radio"]) label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 12px 6px;
+        background: #ffffff;
+        border: 2px solid #e4e4e7;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 750;
+        color: #3f3f46;
+        transition: all 0.15s ease;
+        margin: 0;
+      }
+
+      #id_rating input[type="radio"],
+      ul:has(input[type="radio"]) input[type="radio"] {
+        accent-color: #f97316;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
+      #id_rating label:hover,
+      ul:has(input[type="radio"]) label:hover {
+        border-color: #fed7aa;
+        background: #fff7ed;
+        color: #ea580c;
+      }
+
+      #id_rating label:has(input[type="radio"]:checked),
+      ul:has(input[type="radio"]) label:has(input[type="radio"]:checked) {
+        border-color: #f97316;
+        background: #fff7ed;
+        color: #ea580c;
+        box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+      }
+
+      button[type="submit"],
+      .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 14px 20px;
+        background: #f97316;
+        color: #ffffff;
+        border: none;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.18s;
+        box-shadow: 0 4px 14px rgba(249, 115, 22, 0.32);
+        font-family: inherit;
+        text-align: center;
+        text-decoration: none;
+        margin-top: 22px;
+      }
+
+      button[type="submit"]:hover,
+      .btn-primary:hover {
+        background: #ea580c;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(249, 115, 22, 0.42);
+      }
+
+      .btn-secondary {
+        display: inline-block;
+        padding: 10px 18px;
+        background: #ffffff;
+        color: #52525b;
+        border: 1px solid #e4e4e7;
+        border-radius: 12px;
+        font-size: 13.5px;
+        font-weight: 650;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+      }
+
+      .btn-secondary:hover {
+        background: #f4f4f5;
+        border-color: #d4d4d8;
+        color: #18181b;
+        text-decoration: none;
+      }
+
+      /* Messages */
+      .success,
+      .alert-success {
+        padding: 16px 18px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 14px;
+        color: #166534;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.45;
+        margin-bottom: 18px;
+      }
+
+      .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 10px;
+        color: #dc2626;
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .helptext, small {
+        display: block;
+        color: #71717a;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      a {
+        color: #f97316;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 16px 12px;
+        }
+        .guest-card {
+          padding: 24px 18px;
+          border-radius: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="guest-container">
+      <div class="brand-badge">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">Restaurant 360</span>
+      </div>
+      <main class="guest-card">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </body>
+</html>

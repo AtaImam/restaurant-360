@@ -6,6 +6,8 @@ from . import operations_views, views
 app_name = "staff"
 
 urlpatterns = [
+    path("leave/<int:leave_id>/cancel/", views.leave_cancel, name="leave_cancel"),
+    path("operations/notifications/<int:notification_id>/read/", operations_views.notification_mark_read, name="notification_mark_read"),
     path(
         "operations/",
         operations_views.daily_operations,
@@ -30,6 +32,11 @@ urlpatterns = [
         "operations/orders/<int:order_id>/serve/",
         operations_views.waiter_serve_order,
         name="waiter_serve_order",
+    ),
+    path(
+        "operations/orders/<int:order_id>/claim/",
+        operations_views.waiter_claim_order,
+        name="waiter_claim_order",
     ),
     path(
         "employees/",
@@ -104,6 +111,11 @@ urlpatterns = [
         name="payroll_mark_paid",
     ),
     path(
+        "payroll/<int:payroll_id>/detail/",
+        views.payroll_detail,
+        name="payroll_detail",
+    ),
+    path(
         "leave/create-for-staff/",
         views.staff_leave_create,
         name="staff_leave_create",
@@ -132,6 +144,11 @@ urlpatterns = [
         "attendance/",
         views.attendance_list,
         name="attendance_list",
+    ),
+    path(
+        "attendance/force-checkout/<int:attendance_id>/",
+        views.attendance_force_checkout,
+        name="attendance_force_checkout",
     ),
     path(
         "attendance/my/",

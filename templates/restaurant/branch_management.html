@@ -1,0 +1,261 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Branch Management | Restaurant 360{% endblock %}
+{% block page_title %}Branch Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .branch-page {
+    padding: 28px;
+    min-height: calc(100vh - 80px);
+    background: #f7f8fc;
+  }
+  .branch-page * { box-sizing: border-box; }
+
+  .branch-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+  }
+  .branch-heading h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    font-weight: 750;
+    color: #182033;
+  }
+  .branch-heading p { margin: 0; color: #778096; font-size: 14px; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #f97316; color: #fff; border: 0;
+    border-radius: 9px; padding: 0 18px; height: 40px;
+    font: inherit; font-size: 13px; font-weight: 650;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: #ea6c08; }
+
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; color: #374151; border: 1px solid #d1d5db;
+    border-radius: 8px; padding: 0 14px; height: 36px;
+    font: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-secondary:hover { background: #f9fafb; border-color: #9ca3af; }
+
+  .btn-danger {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; color: #dc2626; border: 1px solid #fca5a5;
+    border-radius: 8px; padding: 0 14px; height: 36px;
+    font: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-danger:hover { background: #fef2f2; }
+
+  .messages-list { list-style: none; padding: 0; margin: 0 0 20px; }
+  .msg { padding: 11px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 8px; }
+  .msg.success { background: #f0fdf4; color: #166534; border-left: 4px solid #16a34a; }
+  .msg.error   { background: #fef2f2; color: #991b1b; border-left: 4px solid #dc2626; }
+  .msg.warning { background: #fefce8; color: #854d0e; border-left: 4px solid #ca8a04; }
+
+  .branch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+
+  .branch-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+    position: relative;
+    transition: box-shadow .18s;
+  }
+  .branch-card:hover { box-shadow: 0 4px 18px rgba(17,24,39,.07); }
+
+  .branch-card.is-main { border-top: 3px solid #f97316; }
+  .branch-card.is-inactive { opacity: .6; }
+
+  .branch-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .branch-name {
+    font-size: 17px; font-weight: 720; color: #111827; margin: 0 0 4px;
+  }
+  .branch-code {
+    font-size: 11px; font-weight: 700; color: #9ca3af;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+  }
+  .badge-main { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  .badge-active { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+  .badge-inactive { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+
+  .branch-meta {
+    display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .branch-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label { font-size: 10.5px; font-weight: 600; color: #9ca3af; text-transform: uppercase; }
+  .meta-value { font-size: 14px; font-weight: 600; color: #374151; }
+
+  .branch-detail { font-size: 12.5px; color: #6b7280; margin-bottom: 4px; }
+
+  .branch-actions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .active-indicator {
+    position: absolute; top: 14px; right: 14px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34,197,94,.2);
+  }
+
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: #9ca3af;
+  }
+  .empty-state h3 { color: #4b5563; font-size: 18px; margin-bottom: 8px; }
+
+  @media (max-width: 600px) {
+    .branch-page { padding: 16px; }
+    .branch-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="branch-page">
+  {% if messages %}
+    <ul class="messages-list">
+      {% for msg in messages %}
+        <li class="msg {{ msg.tags }}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="branch-header">
+    <div class="branch-heading">
+      <h1>Branch Management</h1>
+      <p>Manage all branches for {{ restaurant.name }}. The Main Branch is always preserved.</p>
+    </div>
+    <a href="{% url 'restaurant:branch_create' %}" class="btn-primary" id="btn-add-branch">
+      <span>＋</span> Add Branch
+    </a>
+  </div>
+
+  {% if branches %}
+    <div class="branch-grid">
+      {% for branch in branches %}
+        <div class="branch-card{% if branch.is_main %} is-main{% endif %}{% if not branch.is_active %} is-inactive{% endif %}">
+
+          {% if branch.is_active and active_branch and active_branch.id == branch.id %}
+            <div class="active-indicator" title="Currently active branch"></div>
+          {% endif %}
+
+          <div class="branch-card-header">
+            <div>
+              <p class="branch-name">{{ branch.name }}</p>
+              <p class="branch-code">{{ branch.code }}</p>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+              {% if branch.is_main %}
+                <span class="badge badge-main">★ Main</span>
+              {% endif %}
+              {% if branch.is_active %}
+                <span class="badge badge-active">Active</span>
+              {% else %}
+                <span class="badge badge-inactive">Inactive</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="branch-meta">
+            <div class="branch-meta-item">
+              <span class="meta-label">Floors</span>
+              <span class="meta-value">{{ branch.floor_count }}</span>
+            </div>
+            <div class="branch-meta-item">
+              <span class="meta-label">Tables</span>
+              <span class="meta-value">{{ branch.table_count }}</span>
+            </div>
+          </div>
+
+          {% if branch.address %}
+            <p class="branch-detail">📍 {{ branch.address|truncatechars:60 }}</p>
+          {% endif %}
+          {% if branch.phone %}
+            <p class="branch-detail">📞 {{ branch.phone }}</p>
+          {% endif %}
+          {% if branch.email %}
+            <p class="branch-detail">✉ {{ branch.email }}</p>
+          {% endif %}
+
+          <div class="branch-actions">
+            <a href="{% url 'restaurant:branch_edit' branch.id %}" class="btn-secondary" id="btn-edit-branch-{{ branch.id }}">
+              Edit
+            </a>
+
+            {% if can_switch_branch %}
+              <form method="post" action="{% url 'restaurant:switch_branch' %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="branch_id" value="{{ branch.id }}">
+                <button type="submit" class="btn-secondary" id="btn-switch-branch-{{ branch.id }}"
+                  title="Switch to this branch">
+                  Switch To
+                </button>
+              </form>
+            {% endif %}
+
+            <form method="post" action="{% url 'restaurant:branch_toggle' branch.id %}" style="display:inline;">
+              {% csrf_token %}
+              {% if branch.is_main and branch.is_active %}
+                <button type="button" class="btn-secondary" disabled title="Main Branch cannot be deactivated">
+                  Deactivate
+                </button>
+              {% elif branch.is_active %}
+                <button type="submit" class="btn-secondary" id="btn-deactivate-branch-{{ branch.id }}"
+                  onclick="return confirm('Deactivate branch \'{{ branch.name }}\'?')">
+                  Deactivate
+                </button>
+              {% else %}
+                <button type="submit" class="btn-secondary" id="btn-activate-branch-{{ branch.id }}">
+                  Activate
+                </button>
+              {% endif %}
+            </form>
+
+            {% if not branch.is_main %}
+              <form method="post" action="{% url 'restaurant:branch_delete' branch.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger" id="btn-delete-branch-{{ branch.id }}"
+                  onclick="return confirm('Permanently delete branch \'{{ branch.name }}\'? This cannot be undone.')">
+                  Delete
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No branches yet</h3>
+      <p>Add your first branch to get started.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

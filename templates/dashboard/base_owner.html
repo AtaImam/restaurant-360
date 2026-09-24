@@ -294,6 +294,78 @@
         display: none !important;
       }
 
+      .menu-item.is-disabled,
+      .submenu-item.is-disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        color: #9ca3af;
+      }
+
+      .menu-item.is-disabled:hover,
+      .submenu-item.is-disabled:hover {
+        background: transparent !important;
+        color: #9ca3af !important;
+      }
+
+      .menu-item.is-disabled .menu-icon,
+      .submenu-item.is-disabled .submenu-icon {
+        background: #f3f4f6 !important;
+        color: #9ca3af !important;
+      }
+
+      .sidebar-badge-soon {
+        margin-left: auto;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 2px 6px;
+        border-radius: 9999px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        color: #9ca3af;
+        line-height: 1;
+      }
+
+      .topbar-logout-btn {
+        background: #f3f4f6;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-light);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .topbar-logout-btn:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        color: #dc2626;
+      }
+
+      #branchSwitcherMenu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(17, 24, 39, 0.10);
+        min-width: 200px;
+        z-index: 2000;
+        overflow: hidden;
+      }
+
+      #branchSwitcherMenu.open {
+        display: block !important;
+      }
+
       .main {
         margin-left: var(--sidebar-width);
         min-height: 100vh;
@@ -500,7 +572,7 @@
       })();
     </script>
 
-    {% with current_url=request.resolver_match.url_name %}
+    {% with current_url=request.resolver_match.url_name is_auth=request.user.is_authenticated role=request.user.role|default:"" is_super=request.user.is_superuser %}
       <aside class="sidebar" id="appSidebar">
         <div class="brand">
           <div class="brand-logo">R</div>
@@ -517,280 +589,338 @@
         </div>
 
         <div class="sidebar-menu" id="sidebarMenu">
-          <div class="menu-section sidebar-searchable">
-            <a href="{% url 'owner_dashboard' %}" class="menu-item sidebar-link {% if current_url == 'owner_dashboard' %}active{% endif %}" data-label="dashboard">
-              <span class="menu-icon">▦</span>
-              <span class="menu-text">Dashboard</span>
-            </a>
-          </div>
+          {% if not is_auth or is_super or role == "admin" or role == "owner" or role == "manager" %}
+            {# ================= MANAGER / OWNER SIDEBAR ================= #}
+            <div class="menu-section sidebar-searchable">
+              <a href="{% url 'owner_dashboard' %}" class="menu-item sidebar-link {% if current_url == 'owner_dashboard' %}active{% endif %}" data-label="dashboard">
+                <span class="menu-icon">▦</span>
+                <span class="menu-text">Dashboard</span>
+              </a>
+            </div>
 
-          <div class="menu-section">
-            <div class="menu-title">OPERATIONS</div>
-            <a href="{% url 'orders_list' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'orders_list' or current_url == 'order_detail' %}active{% endif %}" data-label="orders">
-              <span class="menu-icon">▤</span>
-              <span class="menu-text">Orders</span>
-            </a>
-            <a href="#" class="menu-item sidebar-searchable" data-label="pos">
-              <span class="menu-icon">▦</span>
-              <span class="menu-text">POS</span>
-            </a>
-            <a href="#" class="menu-item sidebar-searchable" data-label="waiter">
-              <span class="menu-icon">□</span>
-              <span class="menu-text">Waiter</span>
-            </a>
-            <a href="{% url 'kitchen_dashboard' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'kitchen_dashboard' %}active{% endif %}" data-label="kitchen display kds">
-              <span class="menu-icon">◉</span>
-              <span class="menu-text">Kitchen Display</span>
-            </a>
-          </div>
+            <div class="menu-section">
+              <div class="menu-title">OPERATIONS</div>
+              <a href="{% url 'orders_list' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'orders_list' or current_url == 'order_detail' or current_url == 'stale_orders_list' %}active{% endif %}" data-label="orders order list">
+                <span class="menu-icon">▤</span>
+                <span class="menu-text">Orders</span>
+              </a>
+              <a href="{% url 'pos_dashboard' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'pos_dashboard' %}active{% endif %}" data-label="pos point of sale billing">
+                <span class="menu-icon">▦</span>
+                <span class="menu-text">POS</span>
+              </a>
+              <a href="{% url 'staff:daily_operations' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'daily_operations' or current_url == 'daily_table_assign' or current_url == 'daily_task_assign' %}active{% endif %}" data-label="waiter operations tasks tables">
+                <span class="menu-icon">□</span>
+                <span class="menu-text">Waiter Operations</span>
+              </a>
+              <a href="{% url 'kitchen_dashboard' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'kitchen_dashboard' %}active{% endif %}" data-label="kitchen display kds">
+                <span class="menu-icon">◉</span>
+                <span class="menu-text">Kitchen Display</span>
+              </a>
+            </div>
 
-          <div class="menu-section">
-            <div class="menu-title">MENU &amp; BRANCHES</div>
-            <div class="nav-group {% if current_url == 'category_list' or current_url == 'category_create' or current_url == 'category_edit' or current_url == 'menu_item_list' or current_url == 'menu_item_create' or current_url == 'recipe_builder' %}open has-active{% endif %}" data-group="menu-management">
-              <button type="button" class="menu-group-toggle sidebar-searchable" data-label="menu management">
-                <span class="menu-icon">◈</span>
-                <span class="menu-text">Menu Management</span>
-                <span class="menu-chevron">⌄</span>
-              </button>
-              <div class="submenu">
-                <a href="{% url 'category_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'category_list' or current_url == 'category_create' or current_url == 'category_edit' %}active{% endif %}" data-label="menu categories categories">
-                  <span class="submenu-icon">▤</span>
-                  <span>Menu Categories</span>
-                </a>
-                <a href="{% url 'menu_item_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'menu_item_list' or current_url == 'menu_item_create' or current_url == 'recipe_builder' %}active{% endif %}" data-label="menu items recipes">
-                  <span class="submenu-icon">□</span>
-                  <span>Menu Items</span>
-                </a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="addons add ons">
-                  <span class="submenu-icon">+</span>
-                  <span>Addons</span>
-                </a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="coupons offers">
-                  <span class="submenu-icon">%</span>
-                  <span>Coupons &amp; Offers</span>
-                </a>
+            <div class="menu-section">
+              <div class="menu-title">MENU &amp; BRANCHES</div>
+              <div class="nav-group {% if current_url in 'category_list category_create category_edit category_delete menu_item_list menu_item_create menu_item_edit recipe_builder addon_group_list addon_group_create addon_group_edit' %}open has-active{% endif %}" data-group="menu-management">
+                <button type="button" class="menu-group-toggle sidebar-searchable" data-label="menu management">
+                  <span class="menu-icon">◈</span>
+                  <span class="menu-text">Menu Management</span>
+                  <span class="menu-chevron">⌄</span>
+                </button>
+                <div class="submenu">
+                  <a href="{% url 'category_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'category_list category_create category_edit' %}active{% endif %}" data-label="menu categories categories">
+                    <span class="submenu-icon">▤</span>
+                    <span>Menu Categories</span>
+                  </a>
+                  <a href="{% url 'menu_item_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'menu_item_list menu_item_create menu_item_edit recipe_builder' %}active{% endif %}" data-label="menu items recipes">
+                    <span class="submenu-icon">□</span>
+                    <span>Menu Items</span>
+                  </a>
+                  <a href="{% url 'addon_group_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'addon_group_list addon_group_create addon_group_edit' %}active{% endif %}" data-label="addons add ons modifiers">
+                    <span class="submenu-icon">+</span>
+                    <span>Addons</span>
+                  </a>
+                  <a href="{% url 'coupon_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'coupon_list coupon_create coupon_edit' %}active{% endif %}" data-label="coupons offers discounts">
+                    <span class="submenu-icon">%</span>
+                    <span>Coupons &amp; Offers</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="nav-group {% if current_url in 'branch_list branch_create branch_edit floor_management floor_update floor_toggle table_management table_update table_toggle table_close_service' %}open has-active{% endif %}" data-group="branch-management">
+                <button type="button" class="menu-group-toggle sidebar-searchable" data-label="branch management">
+                  <span class="menu-icon">&#9635;</span>
+                  <span class="menu-text">Branch Management</span>
+                  <span class="menu-chevron">&#8964;</span>
+                </button>
+                <div class="submenu">
+                  <a href="{% url 'restaurant:branch_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'branch_list branch_create branch_edit' %}active{% endif %}" data-label="branches branch management">
+                    <span class="submenu-icon">&#9635;</span>
+                    <span>Branches</span>
+                  </a>
+                  <a href="{% url 'restaurant:floor_management' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'floor_management floor_update floor_toggle' %}active{% endif %}" data-label="floors floor management">
+                    <span class="submenu-icon">&#9637;</span>
+                    <span>Floors</span>
+                  </a>
+                  <a href="{% url 'restaurant:table_management' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'table_management table_update table_toggle table_close_service' %}active{% endif %}" data-label="tables table management qr">
+                    <span class="submenu-icon">&#9633;</span>
+                    <span>Table Management</span>
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div
-              class="nav-group {% if current_url == 'floor_management' or current_url == 'table_management' %}open has-active{% endif %}"
-              data-group="branch-management"
-            >
-              <button
-                type="button"
-                class="menu-group-toggle sidebar-searchable"
-                data-label="branch management"
-              >
-                <span class="menu-icon">&#9635;</span>
-                <span class="menu-text">Branch Management</span>
-                <span class="menu-chevron">&#8964;</span>
-              </button>
-
-              <div class="submenu">
-                <a
-                  href="#"
-                  class="submenu-item sidebar-searchable"
-                  data-label="branches"
-                >
-                  <span class="submenu-icon">&#9635;</span>
-                  <span>Branches</span>
-                </a>
-
-                <a
-                  href="{% url 'restaurant:floor_management' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'floor_management' %}active{% endif %}"
-                  data-label="floors floor management"
-                >
-                  <span class="submenu-icon">&#9637;</span>
-                  <span>Floors</span>
-                </a>
-
-                <a
-                  href="{% url 'restaurant:table_management' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'table_management' %}active{% endif %}"
-                  data-label="tables table management"
-                >
-                  <span class="submenu-icon">&#9633;</span>
-                  <span>Table Management</span>
-                </a>
-              </div>
+            <div class="menu-section">
+              <div class="menu-title">GUESTS</div>
+              {% if not is_auth or role == 'owner' or role == 'admin' or is_super %}
+              <a href="{% url 'guests:feedback_list' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'feedback_list' %}active{% endif %}" data-label="feedback guest feedback reviews ratings">
+                <span class="menu-icon">★</span>
+                <span class="menu-text">Feedback</span>
+              </a>
+              {% endif %}
+              <a href="{% url 'guests:reservations' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'reservations reservation_action' %}active{% endif %}" data-label="reservations booking">
+                <span class="menu-icon">◷</span>
+                <span class="menu-text">Reservations</span>
+              </a>
             </div>
-          </div>
 
-          <div class="menu-section">
-            <div class="menu-title">GUESTS</div>
-            <a href="#" class="menu-item sidebar-searchable" data-label="customers guests"><span class="menu-icon">◎</span><span class="menu-text">Customers</span></a>
-            <a href="#" class="menu-item sidebar-searchable" data-label="feedback reviews"><span class="menu-icon">★</span><span class="menu-text">Feedback</span></a>
-            <a href="#" class="menu-item sidebar-searchable" data-label="reservations booking"><span class="menu-icon">◷</span><span class="menu-text">Reservations</span></a>
-          </div>
-
-                    <div class="menu-section">
-            <div class="menu-title">STAFF</div>
-
-            {% if user.is_authenticated and user.is_active and user.is_active_staff %}
-            <a
-              href="{% url 'staff:my_attendance' %}"
-              class="menu-item sidebar-searchable"
-              data-label="my attendance check in check out"
-            >
-              <span class="menu-icon">&#9719;</span>
-              <span class="menu-text">My Attendance</span>
-            </a>
-
-            {% if not user.is_superuser and user.role != "admin" and user.role != "owner" %}
-            <a
-              href="{% url 'staff:my_leave' %}"
-              class="menu-item sidebar-searchable {% if current_url == 'my_leave' %}active{% endif %}"
-              data-label="my leave leave request"
-            >
-              <span class="menu-icon">&#9638;</span>
-              <span class="menu-text">My Leave</span>
-            </a>
-            {% endif %}
-
-            {% if user.is_superuser or user.role == "admin" or user.role == "owner" or user.role == "manager" %}
-            <div
-              class="nav-group {% if current_url == 'employee_list' or current_url == 'employee_create' or current_url == 'employee_detail' or current_url == 'employee_edit' or current_url == 'employee_assign_shift' or current_url == 'daily_operations' or current_url == 'shift_list' or current_url == 'shift_create' or current_url == 'shift_edit' or current_url == 'attendance_list' or current_url == 'leave_list' or current_url == 'leave_review' or current_url == 'payroll_list' or current_url == 'payroll_mark_paid' or current_url == 'salary_advance_list' or current_url == 'salary_advance_review' %}open has-active{% endif %}"
-              data-group="staff-team"
-            >
-              <button
-                type="button"
-                class="menu-group-toggle sidebar-searchable"
-                data-label="team staff management"
-              >
-                <span class="menu-icon">&#9826;</span>
-                <span class="menu-text">Team</span>
-                <span class="menu-chevron">&#8964;</span>
-              </button>
-              <div class="submenu">
-                <a
-                  href="{% url 'staff:employee_list' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'employee_list' or current_url == 'employee_create' or current_url == 'employee_detail' or current_url == 'employee_edit' or current_url == 'employee_assign_shift' %}active{% endif %}"
-                  data-label="staff employees team"
-                >
-                  <span class="submenu-icon">&#9826;</span>
-                  <span>Staff</span>
+            <div class="menu-section">
+              <div class="menu-title">STAFF</div>
+              {% if user.is_authenticated and user.is_active and user.is_active_staff %}
+                <a href="{% url 'staff:my_attendance' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'my_attendance attendance_action' %}active{% endif %}" data-label="my attendance check in check out">
+                  <span class="menu-icon">&#9719;</span>
+                  <span class="menu-text">My Attendance</span>
                 </a>
+              {% endif %}
 
-                <a
-                  href="{% url 'staff:daily_operations' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'daily_operations' %}active{% endif %}"
-                  data-label="daily operations table assignment staff tasks"
-                >
-                  <span class="submenu-icon">&#9881;</span>
-                  <span>Daily Operations</span>
-                </a>
-
-                <a
-                  href="{% url 'staff:shift_list' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'shift_list' or current_url == 'shift_create' or current_url == 'shift_edit' %}active{% endif %}"
-                  data-label="work shifts duty schedule"
-                >
-                  <span class="submenu-icon">&#9716;</span>
-                  <span>Work Shifts</span>
-                </a>
-
-                <a
-                  href="{% url 'staff:attendance_list' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'attendance_list' %}active{% endif %}"
-                  data-label="team attendance staff attendance"
-                >
-                  <span class="submenu-icon">&#9719;</span>
-                  <span>Attendance</span>
-                </a>
-
-                <a
-                  href="{% url 'staff:leave_list' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'leave_list' or current_url == 'leave_review' %}active{% endif %}"
-                  data-label="team leave leave management"
-                >
-                  <span class="submenu-icon">&#9638;</span>
-                  <span>Leave</span>
-                </a>
-
-                <a
-                  href="{% url 'staff:payroll_list' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'payroll_list' or current_url == 'payroll_mark_paid' %}active{% endif %}"
-                  data-label="payroll salary staff payment"
-                >
-                  <span class="submenu-icon">$</span>
-                  <span>Payroll</span>
-                </a>
-
-                <a
-                  href="{% url 'staff:salary_advance_list' %}"
-                  class="submenu-item sidebar-searchable {% if current_url == 'salary_advance_list' or current_url == 'salary_advance_review' %}active{% endif %}"
-                  data-label="advance salaries salary advance"
-                >
-                  <span class="submenu-icon">&#8645;</span>
-                  <span>Advance Salaries</span>
-                </a>
-              </div>
-
-            </div>
-            {% endif %}
-            {% endif %}
-          </div>
-          <div class="menu-section">
-            <div class="menu-title">BACK OFFICE</div>
-            <div class="nav-group {% if current_url == 'inventory_category_list' or current_url == 'inventory_category_create' or current_url == 'inventory_category_edit' or current_url == 'ingredient_list' or current_url == 'ingredient_create' or current_url == 'ingredient_detail' or current_url == 'ingredient_edit' %}open has-active{% endif %}" data-group="inventory">
-              <button type="button" class="menu-group-toggle sidebar-searchable" data-label="inventory">
-                <span class="menu-icon">▧</span>
-                <span class="menu-text">Inventory</span>
-                <span class="menu-chevron">⌄</span>
-              </button>
-              <div class="submenu">
-                <a href="{% url 'inventory_category_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'inventory_category_list' or current_url == 'inventory_category_create' or current_url == 'inventory_category_edit' %}active{% endif %}" data-label="ingredient groups inventory categories">
-                  <span class="submenu-icon">▤</span>
-                  <span>Ingredient Groups</span>
-                </a>
-                <a href="{% url 'ingredient_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'ingredient_list' or current_url == 'ingredient_create' or current_url == 'ingredient_detail' or current_url == 'ingredient_edit' %}active{% endif %}" data-label="inventory items ingredients">
-                  <span class="submenu-icon">▧</span>
-                  <span>Inventory Items</span>
-                </a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="stock transactions stock ledger"><span class="submenu-icon">▧</span><span>Stock Transactions</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="wastage waste"><span class="submenu-icon">!</span><span>Wastage</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="suppliers vendors"><span class="submenu-icon">⇄</span><span>Suppliers</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="purchase orders"><span class="submenu-icon">▣</span><span>Purchase Orders</span></a>
+              <div class="nav-group {% if current_url in 'employee_list employee_create employee_detail employee_edit employee_assign_shift daily_operations shift_list shift_create shift_edit attendance_list leave_list leave_review staff_leave_create payroll_list payroll_mark_paid salary_advance_list salary_advance_review' %}open has-active{% endif %}" data-group="staff-team">
+                <button type="button" class="menu-group-toggle sidebar-searchable" data-label="team staff management">
+                  <span class="menu-icon">&#9826;</span>
+                  <span class="menu-text">Team</span>
+                  <span class="menu-chevron">&#8964;</span>
+                </button>
+                <div class="submenu">
+                  <a href="{% url 'staff:employee_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'employee_list employee_create employee_detail employee_edit employee_assign_shift' %}active{% endif %}" data-label="staff employees team">
+                    <span class="submenu-icon">&#9826;</span>
+                    <span>Staff</span>
+                  </a>
+                  <a href="{% url 'staff:daily_operations' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'daily_operations' %}active{% endif %}" data-label="daily operations table assignment staff tasks">
+                    <span class="submenu-icon">&#9881;</span>
+                    <span>Daily Operations</span>
+                  </a>
+                  <a href="{% url 'staff:shift_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'shift_list shift_create shift_edit' %}active{% endif %}" data-label="work shifts duty schedule">
+                    <span class="submenu-icon">&#9716;</span>
+                    <span>Work Shifts</span>
+                  </a>
+                  <a href="{% url 'staff:attendance_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'attendance_list' %}active{% endif %}" data-label="team attendance staff attendance">
+                    <span class="submenu-icon">&#9719;</span>
+                    <span>Attendance</span>
+                  </a>
+                  <a href="{% url 'staff:leave_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'leave_list leave_review staff_leave_create' %}active{% endif %}" data-label="team leave leave management">
+                    <span class="submenu-icon">&#9638;</span>
+                    <span>Leave</span>
+                  </a>
+                  <a href="{% url 'staff:payroll_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'payroll_list payroll_mark_paid' %}active{% endif %}" data-label="payroll salary staff payment">
+                    <span class="submenu-icon">৳</span>
+                    <span>Payroll</span>
+                  </a>
+                  <a href="{% url 'staff:salary_advance_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'salary_advance_list salary_advance_review' %}active{% endif %}" data-label="advance salaries salary advance">
+                    <span class="submenu-icon">&#8645;</span>
+                    <span>Advance Salaries</span>
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div class="nav-group" data-group="expense-management">
-              <button type="button" class="menu-group-toggle sidebar-searchable" data-label="expense management expenses">
-                <span class="menu-icon">$</span>
-                <span class="menu-text">Expense Management</span>
-                <span class="menu-chevron">⌄</span>
-              </button>
-              <div class="submenu">
-                <a href="#" class="submenu-item sidebar-searchable" data-label="expense categories"><span class="submenu-icon">▤</span><span>Expense Categories</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="expenses"><span class="submenu-icon">$</span><span>Expenses</span></a>
+            <div class="menu-section">
+              <div class="menu-title">BACK OFFICE</div>
+              <div class="nav-group {% if current_url in 'inventory_category_list inventory_category_create inventory_category_edit ingredient_list ingredient_create ingredient_detail ingredient_edit supplier_list supplier_create supplier_edit purchase_list purchase_create purchase_detail waste_list waste_create stock_count_list stock_count_create stock_transaction_list ingredient_request_list' %}open has-active{% endif %}" data-group="inventory">
+                <button type="button" class="menu-group-toggle sidebar-searchable" data-label="inventory">
+                  <span class="menu-icon">▧</span>
+                  <span class="menu-text">Inventory</span>
+                  <span class="menu-chevron">⌄</span>
+                </button>
+                <div class="submenu">
+                  <a href="{% url 'inventory_category_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'inventory_category_list inventory_category_create inventory_category_edit' %}active{% endif %}" data-label="ingredient groups inventory categories">
+                    <span class="submenu-icon">▤</span>
+                    <span>Ingredient Groups</span>
+                  </a>
+                  <a href="{% url 'ingredient_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'ingredient_list ingredient_create ingredient_detail ingredient_edit' %}active{% endif %}" data-label="inventory items ingredients stock">
+                    <span class="submenu-icon">▧</span>
+                    <span>Inventory Items</span>
+                  </a>
+                  <a href="{% url 'ingredient_request_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'ingredient_request_list' %}active{% endif %}" data-label="stock requests kitchen requisitions">
+                    <span class="submenu-icon">📨</span>
+                    <span>Stock Requests</span>
+                  </a>
+                  <a href="{% url 'stock_count_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'stock_count_list stock_count_create' %}active{% endif %}" data-label="stock count audit physical inventory">
+                    <span class="submenu-icon">✓</span>
+                    <span>Stock Counts</span>
+                  </a>
+                  <a href="{% url 'stock_transaction_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'stock_transaction_list' %}active{% endif %}" data-label="stock transactions stock ledger audit trail">
+                    <span class="submenu-icon">▧</span>
+                    <span>Stock Transactions</span>
+                  </a>
+                  <a href="{% url 'waste_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'waste_list waste_create' %}active{% endif %}" data-label="wastage waste loss">
+                    <span class="submenu-icon">!</span>
+                    <span>Wastage</span>
+                  </a>
+                  <a href="{% url 'supplier_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'supplier_list supplier_create supplier_edit' %}active{% endif %}" data-label="suppliers vendors">
+                    <span class="submenu-icon">⇄</span>
+                    <span>Suppliers</span>
+                  </a>
+                  <a href="{% url 'purchase_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'purchase_list purchase_create purchase_detail' %}active{% endif %}" data-label="purchase orders po receiving">
+                    <span class="submenu-icon">▣</span>
+                    <span>Purchase Orders</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="nav-group {% if current_url in 'category_list category_create category_edit expense_list expense_create expense_edit' %}has-active open{% endif %}" data-group="expense-management">
+                <button type="button" class="menu-group-toggle sidebar-searchable" data-label="expense management expenses">
+                  <span class="menu-icon">৳</span>
+                  <span class="menu-text">Expense Management</span>
+                  <span class="menu-chevron">⌄</span>
+                </button>
+                <div class="submenu">
+                  <a href="{% url 'finance:category_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'category_list category_create category_edit' %}active{% endif %}" data-label="expense categories">
+                    <span class="submenu-icon">▤</span>
+                    <span>Expense Categories</span>
+                  </a>
+                  <a href="{% url 'finance:expense_list' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url in 'expense_list expense_create expense_edit' %}active{% endif %}" data-label="expenses">
+                    <span class="submenu-icon">৳</span>
+                    <span>Expenses</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="nav-group {% if current_url in 'sales_report item_sales_report stock_report purchase_report profit_loss_report' %}has-active open{% endif %}" data-group="reports">
+                <button type="button" class="menu-group-toggle sidebar-searchable" data-label="reports analytics">
+                  <span class="menu-icon">▥</span>
+                  <span class="menu-text">Reports</span>
+                  <span class="menu-chevron">⌄</span>
+                </button>
+                <div class="submenu">
+                  <a href="{% url 'finance:sales_report' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'sales_report' %}active{% endif %}" data-label="sales report">
+                    <span class="submenu-icon">▥</span>
+                    <span>Sales Report</span>
+                  </a>
+                  <a href="{% url 'finance:item_sales_report' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'item_sales_report' %}active{% endif %}" data-label="item sales report">
+                    <span class="submenu-icon">↗</span>
+                    <span>Item Sales</span>
+                  </a>
+                  <a href="{% url 'finance:stock_report' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'stock_report' %}active{% endif %}" data-label="stock report">
+                    <span class="submenu-icon">▧</span>
+                    <span>Stock Report</span>
+                  </a>
+                  <a href="{% url 'finance:purchase_report' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'purchase_report' %}active{% endif %}" data-label="purchase report">
+                    <span class="submenu-icon">▣</span>
+                    <span>Purchase Report</span>
+                  </a>
+                  <a href="{% url 'finance:profit_loss_report' %}" class="submenu-item sidebar-link sidebar-searchable {% if current_url == 'profit_loss_report' %}active{% endif %}" data-label="profit loss report pnl">
+                    <span class="submenu-icon">↘</span>
+                    <span>Profit &amp; Loss</span>
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div class="nav-group" data-group="reports">
-              <button type="button" class="menu-group-toggle sidebar-searchable" data-label="reports analytics">
-                <span class="menu-icon">▥</span>
-                <span class="menu-text">Reports</span>
-                <span class="menu-chevron">⌄</span>
-              </button>
-              <div class="submenu">
-                <a href="#" class="submenu-item sidebar-searchable" data-label="sales report"><span class="submenu-icon">▥</span><span>Sales Report</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="item sales report"><span class="submenu-icon">↗</span><span>Item Sales</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="stock report"><span class="submenu-icon">▧</span><span>Stock Report</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="purchase report"><span class="submenu-icon">▣</span><span>Purchase Report</span></a>
-                <a href="#" class="submenu-item sidebar-searchable" data-label="profit loss report pnl"><span class="submenu-icon">↘</span><span>Profit &amp; Loss</span></a>
-              </div>
+            <div class="menu-section">
+              <div class="menu-title">SYSTEM</div>
+              <span class="menu-item is-disabled sidebar-searchable" data-label="support tickets" title="Feature Coming Soon">
+                <span class="menu-icon">◉</span>
+                <span class="menu-text">Support &amp; Tickets</span>
+                <span class="sidebar-badge-soon">Soon</span>
+              </span>
+              {% if role == 'owner' %}
+              <a href="{% url 'business_settings:settings' %}" class="menu-item sidebar-link sidebar-searchable" data-label="settings system">
+                <span class="menu-icon">⚙</span><span class="menu-text">Settings</span>
+              </a>
+              {% endif %}
             </div>
-          </div>
 
-          <div class="menu-section">
-            <div class="menu-title">SYSTEM</div>
-            <a href="#" class="menu-item sidebar-searchable" data-label="support tickets"><span class="menu-icon">◉</span><span class="menu-text">Support &amp; Tickets</span></a>
-            <a href="#" class="menu-item sidebar-searchable" data-label="settings system"><span class="menu-icon">⚙</span><span class="menu-text">Settings</span></a>
-          </div>
+          {% elif role == "waiter" %}
+            {# ================= WAITER OPERATIONAL SIDEBAR ================= #}
+            <div class="menu-section">
+              <div class="menu-title">OPERATIONS</div>
+              <a href="{% url 'staff:daily_operations' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'daily_operations daily_table_assign daily_task_assign' %}active{% endif %}" data-label="waiter operations my tables tasks">
+                <span class="menu-icon">&#9881;</span>
+                <span class="menu-text">My Operations</span>
+              </a>
+              <a href="{% url 'pos_dashboard' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'pos_dashboard' %}active{% endif %}" data-label="pos point of sale new order">
+                <span class="menu-icon">▦</span>
+                <span class="menu-text">POS &amp; Orders</span>
+              </a>
+              <a href="{% url 'orders_list' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'orders_list order_detail' %}active{% endif %}" data-label="orders order list">
+                <span class="menu-icon">▤</span>
+                <span class="menu-text">Live Orders</span>
+              </a>
+              <a href="{% url 'restaurant:table_management' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'table_management' %}active{% endif %}" data-label="tables table status qr">
+                <span class="menu-icon">&#9633;</span>
+                <span class="menu-text">Tables</span>
+              </a>
+            </div>
+
+            <div class="menu-section">
+              <div class="menu-title">MY WORK</div>
+              <a href="{% url 'staff:my_attendance' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'my_attendance attendance_action' %}active{% endif %}" data-label="my attendance check in check out">
+                <span class="menu-icon">&#9719;</span>
+                <span class="menu-text">My Attendance</span>
+              </a>
+              <a href="{% url 'staff:my_leave' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'my_leave' %}active{% endif %}" data-label="my leave request">
+                <span class="menu-icon">&#9638;</span>
+                <span class="menu-text">My Leave</span>
+              </a>
+            </div>
+
+          {% elif role == "chief" or role == "kitchen_manager" %}
+            {# ================= KITCHEN OPERATIONAL SIDEBAR ================= #}
+            <div class="menu-section">
+              <div class="menu-title">KITCHEN</div>
+              <a href="{% url 'kitchen_dashboard' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'kitchen_dashboard' %}active{% endif %}" data-label="kitchen display kds orders prep">
+                <span class="menu-icon">◉</span>
+                <span class="menu-text">Kitchen Display</span>
+              </a>
+              <a href="{% url 'orders_list' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'orders_list order_detail' %}active{% endif %}" data-label="orders list">
+                <span class="menu-icon">▤</span>
+                <span class="menu-text">All Orders</span>
+              </a>
+            </div>
+
+            <div class="menu-section">
+              <div class="menu-title">MY WORK</div>
+              <a href="{% url 'staff:my_attendance' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'my_attendance attendance_action' %}active{% endif %}" data-label="my attendance check in check out">
+                <span class="menu-icon">&#9719;</span>
+                <span class="menu-text">My Attendance</span>
+              </a>
+              <a href="{% url 'staff:my_leave' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'my_leave' %}active{% endif %}" data-label="my leave request">
+                <span class="menu-icon">&#9638;</span>
+                <span class="menu-text">My Leave</span>
+              </a>
+            </div>
+
+          {% else %}
+            {# ================= GENERAL STAFF SIDEBAR ================= #}
+            <div class="menu-section">
+              <div class="menu-title">OPERATIONS</div>
+              <a href="{% url 'orders_list' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'orders_list order_detail' %}active{% endif %}" data-label="orders">
+                <span class="menu-icon">▤</span>
+                <span class="menu-text">Orders</span>
+              </a>
+            </div>
+            <div class="menu-section">
+              <div class="menu-title">MY WORK</div>
+              <a href="{% url 'staff:my_attendance' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url in 'my_attendance attendance_action' %}active{% endif %}" data-label="my attendance">
+                <span class="menu-icon">&#9719;</span>
+                <span class="menu-text">My Attendance</span>
+              </a>
+              <a href="{% url 'staff:my_leave' %}" class="menu-item sidebar-link sidebar-searchable {% if current_url == 'my_leave' %}active{% endif %}" data-label="my leave">
+                <span class="menu-icon">&#9638;</span>
+                <span class="menu-text">My Leave</span>
+              </a>
+            </div>
+          {% endif %}
         </div>
       </aside>
-    {% endwith %}
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -799,25 +929,67 @@
         <div class="topbar-left">
           <button type="button" class="mobile-menu-btn" aria-label="Open navigation">☰</button>
           <div class="restaurant-info">
-            <h3>{% block page_title %}FoodHub{% endblock %}</h3>
-            <p>Main Branch • Dhaka</p>
+            <h3>{% block page_title %}{{ request.user.restaurant.name|default:"FoodHub" }}{% endblock %}</h3>
+            <p>{{ request.user.restaurant.city|default:"Main Branch • Dhaka" }}</p>
           </div>
         </div>
 
         <div class="topbar-right">
-          <div class="top-icon">🔔</div>
-          <div class="profile">
-            <div class="profile-avatar">A</div>
-            <div class="profile-info">
-              <h4>Administrator</h4>
-              <p>Restaurant Owner</p>
+          {% if can_switch_branch and user_branches|length > 1 %}
+          <div class="branch-switcher" style="position:relative;" id="branchSwitcherWrap">
+            <button type="button" id="branchSwitcherBtn" onclick="document.getElementById('branchSwitcherMenu').classList.toggle('open')" style="display:inline-flex;align-items:center;gap:8px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0 13px;height:36px;font:inherit;font-size:13px;font-weight:650;color:#9a3412;cursor:pointer;white-space:nowrap;">
+              <span>&#9635;</span>
+              <span id="activeBranchLabel">{{ active_branch.name|default:"Select Branch" }}</span>
+              <span style="font-size:10px;color:#c2410c;">▼</span>
+            </button>
+            <div id="branchSwitcherMenu">
+              {% for b in user_branches %}
+              <form method="post" action="{% url 'restaurant:switch_branch' %}" style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="branch_id" value="{{ b.id }}">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" style="width:100%;text-align:left;padding:10px 16px;background:{% if active_branch and active_branch.id == b.id %}#fff7ed{% else %}transparent{% endif %};border:0;font:inherit;font-size:13px;color:{% if active_branch and active_branch.id == b.id %}#9a3412{% else %}#374151{% endif %};cursor:pointer;display:flex;align-items:center;gap:8px;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='{% if active_branch and active_branch.id == b.id %}#fff7ed{% else %}transparent{% endif %}'">
+                  {% if active_branch and active_branch.id == b.id %}<span style="font-size:11px;">✓</span>{% else %}<span style="font-size:11px;visibility:hidden;">✓</span>{% endif %}
+                  <span>{{ b.name }}</span>
+                  {% if b.is_main %}<span style="font-size:10px;color:#9ca3af;">(Main)</span>{% endif %}
+                </button>
+              </form>
+              {% endfor %}
             </div>
+          </div>
+          {% endif %}
+          <div class="profile">
+            {% if is_auth %}
+              <a href="{% url 'users:profile' %}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;" title="View Profile">
+                <div class="profile-avatar">
+                  {{ request.user.username|make_list|first|upper|default:"U" }}
+                </div>
+                <div class="profile-info">
+                  <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
+                  <p>{% if request.user.is_superuser %}Administrator{% else %}{{ request.user.get_role_display|default:role|title }}{% endif %}</p>
+                </div>
+              </a>
+              <form method="post" action="{% url 'users:logout' %}" style="margin: 0; display: inline-flex;">
+                {% csrf_token %}
+                <button type="submit" class="topbar-logout-btn" title="Sign out of Restaurant 360">Sign Out</button>
+              </form>
+            {% else %}
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="profile-avatar" style="background: #e5e7eb; color: #4b5563;">G</div>
+                <div class="profile-info">
+                  <h4>Staff Portal</h4>
+                  <p>Restaurant 360</p>
+                </div>
+              </div>
+              <a href="{% url 'users:login' %}" class="topbar-logout-btn" style="text-decoration: none;">Sign In</a>
+            {% endif %}
           </div>
         </div>
       </header>
 
       {% block content %}{% endblock %}
     </main>
+    {% endwith %}
 
     <script>
       (function () {
@@ -854,8 +1026,9 @@
           });
 
           groups.forEach(function (group) {
+            const hasActiveChild = group.querySelector(".submenu-item.active") !== null;
             const saved = localStorage.getItem("r360-sidebar-" + group.dataset.group);
-            setGroupState(group, group.classList.contains("has-active") || saved === "open", false);
+            setGroupState(group, group.classList.contains("has-active") || hasActiveChild || saved === "open", false);
           });
         }
 
@@ -872,8 +1045,9 @@
         }
 
         groups.forEach(function (group) {
+          const hasActiveChild = group.querySelector(".submenu-item.active") !== null;
           const saved = localStorage.getItem("r360-sidebar-" + group.dataset.group);
-          setGroupState(group, group.classList.contains("has-active") || saved === "open", false);
+          setGroupState(group, group.classList.contains("has-active") || hasActiveChild || saved === "open", false);
         });
 
         setSidebarCollapsed(localStorage.getItem(collapseStorageKey) === "true", false);
@@ -1007,6 +1181,14 @@
       "pagehide",
       saveSidebarPosition
     );
+
+    document.addEventListener("click", function (event) {
+      const wrap = document.getElementById("branchSwitcherWrap");
+      const menu = document.getElementById("branchSwitcherMenu");
+      if (wrap && menu && !wrap.contains(event.target)) {
+        menu.classList.remove("open");
+      }
+    });
   })();
 </script>
   </body>

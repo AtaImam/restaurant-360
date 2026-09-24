@@ -10,26 +10,130 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file if available
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / ".env")
+except ImportError:
+    pass
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u60hq_%9s1p)6#mtpbad++o0d_%nhb1eelfkhky0j6mb$gb#6&'
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    os.environ.get(
+        "SECRET_KEY",
+        "django-insecure-u60hq_%9s1p)6#mtpbad++o0d_%nhb1eelfkhky0j6mb$gb#6&",
+    ),
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-    '172.20.10.5',
-    'testserver',
-]
+DEBUG = os.environ.get(
+    "DJANGO_DEBUG",
+    os.environ.get("DEBUG", "True"),
+).lower() in ("true", "1", "yes")
+
+
+from urllib.parse import urlsplit
+
+
+def _normalize_origin_candidates(val: str) -> list[str]:
+    val = (val or "").strip().rstrip("/")
+    if not val:
+        return []
+    candidates = []
+    parts = [p.strip() for p in val.split(",") if p.strip()]
+    for part in parts:
+        if part.startswith(("http://", "https://")):
+            parsed = urlsplit(part)
+            if parsed.netloc:
+                candidates.append(f"{parsed.scheme}://{parsed.netloc}")
+                alt_scheme = "https" if parsed.scheme == "http" else "http"
+                candidates.append(f"{alt_scheme}://{parsed.netloc}")
+        else:
+            candidates.append(f"http://{part}")
+            candidates.append(f"https://{part}")
+    return candidates
+
+
+def _normalize_origin(val: str) -> str:
+    cands = _normalize_origin_candidates(val)
+    return cands[0] if cands else ""
+
+
+_allowed_hosts = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS",
+    os.environ.get("ALLOWED_HOSTS", ""),
+)
+if _allowed_hosts:
+    ALLOWED_HOSTS = [h.strip().lower() for h in _allowed_hosts.split(",") if h.strip()]
+elif DEBUG:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = [
+        "127.0.0.1",
+        "localhost",
+        "testserver",
+    ]
+
+# Public, phone-reachable origin. Never infer this from container/network interfaces.
+SITE_URL = os.environ.get("SITE_URL", "").strip().rstrip("/")
+
+if SITE_URL:
+    _site_parsed = urlsplit(SITE_URL if SITE_URL.startswith(("http://", "https://")) else f"http://{SITE_URL}")
+    if _site_parsed.hostname and _site_parsed.hostname.lower() not in ALLOWED_HOSTS and "*" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_site_parsed.hostname.lower())
+
+# CSRF trusted origins: configured from env and SITE_URL; never disable CSRF.
+CSRF_TRUSTED_ORIGINS = []
+_csrf_origins = os.environ.get(
+    "DJANGO_CSRF_TRUSTED_ORIGINS",
+    os.environ.get("CSRF_TRUSTED_ORIGINS", ""),
+)
+if _csrf_origins:
+    for cand in _normalize_origin_candidates(_csrf_origins):
+        if cand not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(cand)
+
+if SITE_URL:
+    for cand in _normalize_origin_candidates(SITE_URL):
+        if cand not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(cand)
+
+if _allowed_hosts:
+    site_port = ""
+    if SITE_URL:
+        _sp = urlsplit(SITE_URL if SITE_URL.startswith(("http://", "https://")) else f"http://{SITE_URL}")
+        if _sp.port:
+            site_port = f":{_sp.port}"
+    for host in _allowed_hosts.split(","):
+        host = host.strip()
+        if not host or host == "*" or host.startswith("."):
+            continue
+        if ":" in host:
+            for cand in _normalize_origin_candidates(host):
+                if cand not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(cand)
+        else:
+            for cand in _normalize_origin_candidates(host):
+                if cand not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(cand)
+            if site_port:
+                for cand in _normalize_origin_candidates(f"{host}{site_port}"):
+                    if cand not in CSRF_TRUSTED_ORIGINS:
+                        CSRF_TRUSTED_ORIGINS.append(cand)
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -50,6 +154,9 @@ INSTALLED_APPS = [
     'inventory',
     'pos',
     'staff.apps.StaffConfig',
+    'finance',
+    'guests',
+    'business_settings',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +181,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'restaurant.context_processors.active_branch_context',
             ],
         },
     },
@@ -87,8 +195,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': BASE_DIR / os.environ.get('DB_NAME', 'db.sqlite3'),
         # SQLite has no row-level SELECT FOR UPDATE. Acquire its write lock at
         # the start of atomic blocks so stock checks cannot race reservations.
         'OPTIONS': {
@@ -133,7 +241,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files (User uploads, QR codes, menu photos)
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email

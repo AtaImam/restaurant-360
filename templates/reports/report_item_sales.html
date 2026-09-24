@@ -1,0 +1,215 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Item Sales Report | Restaurant 360{% endblock %}
+{% block page_title %}Financial Reporting{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+  .report-header {
+    margin-bottom: 24px;
+  }
+  .report-header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .metric-card .title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .metric-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .card-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  .card-box h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .table-custom th {
+    background: #f9fafb;
+    padding: 12px 14px;
+    font-weight: 600;
+    color: #4b5563;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .table-custom td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .badge-category {
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .margin-good {
+    color: #15803d;
+    font-weight: 700;
+  }
+  .margin-mid {
+    color: #b45309;
+    font-weight: 700;
+  }
+  .margin-low {
+    color: #dc2626;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-page">
+  <div class="report-header">
+    <h1>Item Sales &amp; Margin Report</h1>
+    <p>Product performance, portions sold, recipe food costs, and gross contribution margins for {{ restaurant.name }}.</p>
+  </div>
+
+  {% include "reports/date_filter_snippet.html" %}
+
+  <!-- KPI Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="title">Total Portions Sold</div>
+      <div class="value">{{ total_quantity }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Items prepared</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Item Sales Revenue</div>
+      <div class="value">৳{{ total_sales|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Gross menu sales</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Recipe Food Cost</div>
+      <div class="value">৳{{ total_food_cost|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Ingredient cost of sold items</div>
+    </div>
+    <div class="metric-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+      <div class="title" style="color: #15803d;">Gross Margin</div>
+      <div class="value" style="color: #15803d;">{% if total_gross_margin < 0 %}-৳{{ total_gross_margin|stringformat:".2f"|slice:"1:" }}{% else %}৳{{ total_gross_margin|floatformat:2 }}{% endif %}</div>
+      <div style="font-size: 12px; color: #16a34a; margin-top: 4px;">Contribution profit</div>
+    </div>
+  </div>
+
+  <!-- Category Performance -->
+  <div class="card-box">
+    <h3>Sales by Category</h3>
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Units Sold</th>
+          <th>Sales Amount</th>
+          <th>Estimated Food Cost</th>
+          <th style="text-align: right;">Gross Margin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat_name, cdata in category_summary.items %}
+        <tr>
+          <td style="font-weight: 600;">{{ cat_name }}</td>
+          <td>{{ cdata.quantity }}</td>
+          <td>৳{{ cdata.sales_amount|floatformat:2 }}</td>
+          <td>৳{{ cdata.food_cost|floatformat:2 }}</td>
+          <td style="text-align: right; font-weight: 700; {% if cdata.gross_margin < 0 %}color: #dc2626;{% else %}color: #15803d;{% endif %}">
+            {% if cdata.gross_margin < 0 %}-৳{{ cdata.gross_margin|stringformat:".2f"|slice:"1:" }}{% else %}৳{{ cdata.gross_margin|floatformat:2 }}{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align: center; color: #9ca3af; padding: 20px;">No category sales data for this period.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Item Detail Table -->
+  <div class="card-box">
+    <h3>Itemized Sales &amp; Margin Breakdown</h3>
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Category</th>
+          <th>Units Sold</th>
+          <th>Total Sales</th>
+          <th>Cost / Unit</th>
+          <th>Total Cost</th>
+          <th>Gross Margin (৳)</th>
+          <th style="text-align: right;">Margin %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td style="font-weight: 600; color: #111827;">{{ it.name }}</td>
+          <td><span class="badge-category">{{ it.category }}</span></td>
+          <td style="font-weight: 600;">{{ it.quantity }}</td>
+          <td style="font-weight: 600;">৳{{ it.sales_amount|floatformat:2 }}</td>
+          <td>৳{{ it.food_cost_per_unit|floatformat:2 }}</td>
+          <td>৳{{ it.total_food_cost|floatformat:2 }}</td>
+          <td style="font-weight: 700; {% if it.gross_margin < 0 %}color: #dc2626;{% else %}color: #15803d;{% endif %}">
+            {% if it.gross_margin < 0 %}-৳{{ it.gross_margin|stringformat:".2f"|slice:"1:" }}{% else %}৳{{ it.gross_margin|floatformat:2 }}{% endif %}
+          </td>
+          <td style="text-align: right;">
+            {% if it.margin_percent >= 60 %}
+              <span class="margin-good">{{ it.margin_percent }}%</span>
+            {% elif it.margin_percent >= 40 %}
+              <span class="margin-mid">{{ it.margin_percent }}%</span>
+            {% else %}
+              <span class="margin-low">{{ it.margin_percent }}%</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align: center; color: #9ca3af; padding: 40px;">No items sold in the selected period.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

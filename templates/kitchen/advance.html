@@ -1,0 +1,86 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}Salary Advance{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>💳</span>
+        <span>Salary Advance Requests</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+        Request early salary advances and track approval status
+      </p>
+    </div>
+
+    <button type="button" class="btn btn-accent" onclick="document.getElementById('advanceModal').classList.add('open')">
+      <span>+</span>
+      <span>Request Advance</span>
+    </button>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px;">Date</th>
+          <th style="padding: 12px;">Amount</th>
+          <th style="padding: 12px;">Reason</th>
+          <th style="padding: 12px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in advances %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px; color: var(--text-muted);">{{ a.created_at|date:"M d, Y" }}</td>
+          <td style="padding: 12px; font-weight: 700;">৳{{ a.amount }}</td>
+          <td style="padding: 12px; color: var(--text);">{{ a.reason }}</td>
+          <td style="padding: 12px;">
+            <span class="badge {% if a.status == 'approved' %}badge-success{% elif a.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %}">
+              {{ a.get_status_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align: center; padding: 30px; color: var(--text-muted);">
+            No salary advance requests found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Advance Modal -->
+<div class="modal-overlay" id="advanceModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>💳 Request Salary Advance</span>
+      <button type="button" onclick="document.getElementById('advanceModal').classList.remove('open')" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+    </div>
+    <form method="post" action="{% url 'kitchen_salary_advance' %}">
+      {% csrf_token %}
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Advance Amount (৳)</label>
+          <input type="number" step="100" min="100" name="amount" class="btn btn-outline" style="width: 100%; text-align: left;" placeholder="e.g. 5000" required>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Reason for Request</label>
+          <textarea name="reason" rows="3" class="btn btn-outline" style="width: 100%; text-align: left; height: auto;" placeholder="State reason for advance..." required></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('advanceModal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-accent">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

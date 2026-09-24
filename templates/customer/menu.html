@@ -768,6 +768,7 @@
 <body>
 
 
+<p style="text-align:center"><a href="{% url 'guests:reserve' restaurant.id table.id %}">Reserve a Table</a></p>
 <header class="header">
 
     <div class="header-inner">
@@ -811,6 +812,15 @@
 
 </header>
 
+{% if messages %}
+<div style="max-width: 1050px; margin: 15px auto 0; padding: 0 18px;">
+    {% for message in messages %}
+    <div style="padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; font-weight: 600; {% if message.tags == 'error' %}background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;{% else %}background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <section class="hero">
 
@@ -980,6 +990,9 @@
 
                             <h3 class="food-name">
                                 {{ item.name }}
+                                {% if item.is_sold_out %}
+                                    <span style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle;">Sold Out</span>
+                                {% endif %}
                             </h3>
 
                         </a>
@@ -1011,29 +1024,45 @@
                                 </a>
 
 
-                                <form
-                                    method="post"
-                                    action="{% url 'add_to_cart' restaurant.id table.id item.id %}"
-                                    class="add-form"
-                                >
-
-                                    {% csrf_token %}
-
-                                    <input
-                                        type="hidden"
-                                        name="return_to"
-                                        value="menu"
-                                    >
+                                {% if item.is_sold_out %}
 
                                     <button
-                                        type="submit"
+                                        type="button"
                                         class="add-btn"
-                                        aria-label="Add {{ item.name }}"
+                                        disabled
+                                        style="background: #e5e7eb; color: #9ca3af; cursor: not-allowed;"
+                                        title="Sold Out"
                                     >
-                                        +
+                                        ✕
                                     </button>
 
-                                </form>
+                                {% else %}
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'add_to_cart' restaurant.id table.id item.id %}"
+                                        class="add-form"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <input
+                                            type="hidden"
+                                            name="return_to"
+                                            value="menu"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="add-btn"
+                                            aria-label="Add {{ item.name }}"
+                                        >
+                                            +
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
 
                             </div>
 

@@ -1,0 +1,30 @@
+{% extends 'guests/base.html' %}
+
+{% block title %}Rate Your Visit | {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ restaurant.name }}</h1>
+
+{% if submitted %}
+  <div class="success">
+    ✓ Thank you! Your feedback has been received.
+  </div>
+  <p style="text-align: center; color: #71717a; margin-top: 8px;">
+    We appreciate you dining with us and sharing your experience.
+  </p>
+  {% if order %}
+  <p style="text-align: center; font-size: 13px; color: #a1a1aa; margin-top: 4px;">
+    Feedback recorded for Order #{{ order.id }}
+  </p>
+  {% endif %}
+{% else %}
+  <h2>How was your experience?</h2>
+  <p>Leave an anonymous rating from 1 (poor) to 5 (excellent). No account needed.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Feedback</button>
+  </form>
+{% endif %}
+{% endblock %}

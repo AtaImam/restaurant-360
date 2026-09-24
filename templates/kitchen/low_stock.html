@@ -1,0 +1,153 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}Low Stock Alerts — Kitchen Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title" style="color: #b45309;">
+        <span>⚠️</span>
+        <span>Low Stock & Critical Depletion Alerts</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 3px;">
+        Ingredients depleted below minimum threshold or out of stock for <strong>{{ active_branch.name|default:"Active Branch" }}</strong>
+      </p>
+    </div>
+
+    <a href="{% url 'kitchen_ingredient_requests' %}" class="btn btn-outline" style="padding: 7px 14px; font-size: 13px;">
+      View All Requisitions
+    </a>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #fffbeb;">
+          <th style="padding: 12px 14px; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase;">Ingredient</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase;">Category</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase;">Available Stock</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase;">Min Alert Level</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase; min-width: 140px;">Stock Health %</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase;">Status</th>
+          <th style="padding: 12px 14px; text-align: right; font-weight: 700; color: #92400e; font-size: 11px; text-transform: uppercase;">Replenish</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in low_stocks %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 14px;">
+            <div style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">{{ row.ingredient.name }}</div>
+            <div style="font-size: 11px; color: var(--text-light); margin-top: 1px;">SKU: {{ row.ingredient.sku }}</div>
+          </td>
+          <td style="padding: 12px 14px; color: var(--text-muted);">
+            {{ row.ingredient.category.name|default:"Uncategorized" }}
+          </td>
+          <td style="padding: 12px 14px; font-weight: 800; color: #dc2626; font-size: 14px;">
+            {{ row.available_stock }} {{ row.ingredient.get_base_unit_display }}
+          </td>
+          <td style="padding: 12px 14px; color: var(--text-muted);">
+            {{ row.min_stock_alert }} {{ row.ingredient.get_base_unit_display }}
+          </td>
+          <td style="padding: 12px 14px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="flex: 1; background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; min-width: 70px;">
+                <div style="height: 100%; border-radius: 4px; width: {{ row.stock_percent }}%; background: {% if row.stock_status == 'OUT' %}#ef4444{% else %}#f59e0b{% endif %};"></div>
+              </div>
+              <span style="font-size: 11.5px; font-weight: 700; width: 34px; text-align: right; color: var(--text-dark);">
+                {{ row.stock_percent }}%
+              </span>
+            </div>
+          </td>
+          <td style="padding: 12px 14px;">
+            {% if row.stock_status == 'OUT' %}
+            <span class="badge badge-danger" style="font-size: 11.5px;">Out of Stock</span>
+            {% else %}
+            <span class="badge badge-warning" style="font-size: 11.5px;">Low Stock</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px; text-align: right;">
+            <button type="button" class="btn btn-accent" style="padding: 6px 14px; font-size: 12px;" onclick="openLowStockModal('{{ row.ingredient.id }}', '{{ row.ingredient.name|escapejs }}', '{{ row.suggested_qty }}', '{{ row.ingredient.get_base_unit_display|escapejs }}')">
+              ⚡ Request Stock
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px; color: #059669;">
+            <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+            <div style="font-weight: 800; font-size: 17px; color: #065f46;">All Stock Levels Healthy!</div>
+            <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">No ingredients currently fall below minimum alert levels in this branch.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Stock Request Modal -->
+<div class="modal-overlay" id="lowStockModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>📨 Request Stock Replenishment</span>
+      <button type="button" onclick="closeLowStockModal()" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+    </div>
+    <form method="post" action="{% url 'kitchen_ingredient_requests' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ingredient_id" id="modalIngId">
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Ingredient</label>
+          <input type="text" id="modalIngName" class="btn btn-outline" style="width: 100%; text-align: left;" readonly>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Requested Quantity</label>
+          <input type="number" step="0.001" min="0.001" name="quantity" id="modalSuggestedQty" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Priority</label>
+          <select name="priority" class="btn btn-outline" style="width: 100%; text-align: left;">
+            <option value="URGENT" selected>Urgent (Immediate Service Need)</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Needed By Date (Optional)</label>
+          <input type="date" name="needed_date" class="btn btn-outline" style="width: 100%; text-align: left;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Reason</label>
+          <textarea name="reason" rows="2" class="btn btn-outline" style="width: 100%; text-align: left; height: auto;">Critical depletion below minimum threshold</textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeLowStockModal()">Cancel</button>
+        <button type="submit" class="btn btn-accent">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openLowStockModal(ingId, ingName, suggestedQty, unit) {
+    document.getElementById('modalIngId').value = ingId;
+    document.getElementById('modalIngName').value = ingName + (unit ? ' (' + unit + ')' : '');
+    document.getElementById('modalSuggestedQty').value = suggestedQty;
+    document.getElementById('lowStockModal').classList.add('open');
+  }
+
+  function closeLowStockModal() {
+    document.getElementById('lowStockModal').classList.remove('open');
+  }
+</script>
+{% endblock %}

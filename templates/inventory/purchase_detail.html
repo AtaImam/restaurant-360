@@ -1,0 +1,204 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}PO #{{ purchase.id }} Details | Restaurant 360{% endblock %}
+{% block page_title %}Purchase Order #{{ purchase.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content {
+        max-width: 1000px;
+        margin: auto;
+        padding: 30px;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 25px;
+        margin-bottom: 6px;
+    }
+    .page-header p {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+    .info-label {
+        font-size: 11px;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+    .info-val {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+    }
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th {
+        padding: 12px 16px;
+        font-size: 11px;
+        color: #6b7280;
+        text-align: left;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .table td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .badge {
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .badge-green { background: #f0fdf4; color: #16a34a; }
+    .badge-yellow { background: #fefce8; color: #ca8a04; }
+    .badge-red { background: #fef2f2; color: #dc2626; }
+    .btn-receive {
+        background: #16a34a;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .btn-back {
+        background: #f3f4f6;
+        color: #1f2937;
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for message in messages %}
+                <div style="padding: 12px 16px; border-radius: 8px; font-size: 12px; margin-bottom: 8px; {% if message.tags == 'error' %}background: #fef2f2; color: #dc2626;{% else %}background: #f0fdf4; color: #16a34a;{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header">
+        <div>
+            <h1>Purchase Order #{{ purchase.id }}</h1>
+            <p>Created on {{ purchase.created_at|date:"M d, Y H:i" }}</p>
+        </div>
+        <div>
+            <a href="{% url 'purchase_list' %}" class="btn-back">← Back to List</a>
+            {% if purchase.status == "DRAFT" %}
+                <form method="POST" action="{% url 'purchase_receive' purchase.id %}" style="display:inline; margin-left:10px;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-receive">Receive &amp; Add to Stock</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="info-grid">
+            <div>
+                <div class="info-label">SUPPLIER</div>
+                <div class="info-val">{{ purchase.supplier.name }}</div>
+            </div>
+            <div>
+                <div class="info-label">INVOICE NUMBER</div>
+                <div class="info-val">{{ purchase.invoice_number|default:"-" }}</div>
+            </div>
+            <div>
+                <div class="info-label">PURCHASE DATE</div>
+                <div class="info-val">{{ purchase.purchase_date|date:"M d, Y" }}</div>
+            </div>
+            <div>
+                <div class="info-label">STATUS</div>
+                <div class="info-val">
+                    {% if purchase.status == "RECEIVED" %}
+                        <span class="badge badge-green">Received</span>
+                    {% elif purchase.status == "DRAFT" %}
+                        <span class="badge badge-yellow">Draft</span>
+                    {% else %}
+                        <span class="badge badge-red">{{ purchase.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if purchase.received_at %}
+            <div style="padding: 12px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 12px; color: #166534; margin-top: 10px;">
+                ✓ Stock received on <strong>{{ purchase.received_at|date:"M d, Y H:i" }}</strong>
+                {% if purchase.received_by %}by <strong>{{ purchase.received_by.get_full_name|default:purchase.received_by.username }}</strong>{% endif %}.
+                Physical inventory and ingredient prices were updated.
+            </div>
+        {% endif %}
+
+        {% if purchase.note %}
+            <div style="margin-top: 16px; font-size: 13px; color: #4b5563;">
+                <strong>Note:</strong> {{ purchase.note }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 16px;">Purchased Items</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>INGREDIENT</th>
+                    <th>PACK SIZE</th>
+                    <th>PACK QUANTITY</th>
+                    <th>PACK PRICE</th>
+                    <th style="text-align: right;">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in purchase.items.all %}
+                <tr>
+                    <td style="font-weight: 600;">{{ item.ingredient.name }}</td>
+                    <td>{{ item.ingredient.pack_size_description }}</td>
+                    <td>{{ item.pack_quantity }}</td>
+                    <td>৳{{ item.pack_price|floatformat:2 }}</td>
+                    <td style="text-align: right; font-weight: 700;">৳{{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: right; font-weight: 700; padding-top: 16px;">Grand Total:</td>
+                    <td style="text-align: right; font-weight: 800; font-size: 16px; color: #f97316; padding-top: 16px;">
+                        ৳{{ purchase.total_amount|floatformat:2 }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,589 @@
+{% extends 'dashboard/base_owner.html' %}
+
+{% block title %}Guest Feedback | Restaurant 360{% endblock %}
+{% block page_title %}Guest Feedback{% endblock %}
+
+{% block extra_css %}
+<style>
+  .guest-page {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 28px 32px 48px;
+  }
+
+  .guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .guest-title h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
+  }
+
+  .guest-title p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .branch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 9999px;
+    color: #c2410c;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  /* Summary Cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .summary-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .summary-card:hover {
+    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .summary-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .summary-card-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .summary-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .summary-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .summary-value-sub {
+    font-size: 14px;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+
+  .summary-subtext {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Star visuals */
+  .stars-mini {
+    display: inline-flex;
+    gap: 2px;
+    color: #f59e0b;
+    font-size: 13px;
+  }
+
+  .stars-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: #f59e0b;
+    font-size: 16px;
+  }
+
+  .star.filled {
+    color: #f59e0b;
+  }
+
+  .star.empty {
+    color: #e5e7eb;
+  }
+
+  .rating-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 750;
+    margin-left: 6px;
+  }
+
+  .rating-5 { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .rating-4 { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .rating-3 { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
+  .rating-2 { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  .rating-1 { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+  /* Main Table Card */
+  .table-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+  }
+
+  .table-card-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .table-card-badge {
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .feedback-table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .feedback-table th {
+    background: #f9fafb;
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+  }
+
+  .feedback-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+    font-size: 14px;
+    color: #1f2937;
+  }
+
+  .feedback-table tbody tr:hover {
+    background: #fafafa;
+  }
+
+  .order-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #f97316;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #fff7ed;
+    border: 1px solid #ffedd5;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .order-link:hover {
+    background: #ffedd5;
+    color: #ea580c;
+    border-color: #fed7aa;
+  }
+
+  .comment-box {
+    max-width: 420px;
+    line-height: 1.45;
+  }
+
+  .comment-quote {
+    color: #374151;
+    font-size: 13.5px;
+    word-break: break-word;
+  }
+
+  .comment-empty {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  .branch-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .time-cell {
+    white-space: nowrap;
+  }
+
+  .time-primary {
+    font-weight: 600;
+    color: #111827;
+    font-size: 13.5px;
+  }
+
+  .time-secondary {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 2px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    padding: 56px 24px;
+    text-align: center;
+  }
+
+  .empty-state-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fffbeb;
+    color: #f59e0b;
+    font-size: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 17px;
+    font-weight: 750;
+    color: #111827;
+    margin: 0 0 6px 0;
+  }
+
+  .empty-state p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  /* Pagination styles */
+  .pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .pagination-info strong {
+    color: #111827;
+  }
+
+  .pagination-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .page-btn:hover:not(.disabled):not(.active) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+
+  .page-btn.active {
+    background: #f97316;
+    border-color: #f97316;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .page-btn.disabled {
+    color: #9ca3af;
+    background: #f9fafb;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 768px) {
+    .guest-page {
+      padding: 18px 16px 36px;
+    }
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guest-page">
+  <!-- Header -->
+  <div class="guest-header">
+    <div class="guest-title">
+      <h1>Guest Feedback</h1>
+      <p>Customer reviews, dining satisfaction ratings and comments</p>
+    </div>
+    <div class="branch-pill">
+      <span>📍</span>
+      <span>Branch: {{ branch.name }}</span>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <!-- Average Rating Card -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #fffbeb; color: #f59e0b;">★</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Average Rating</div>
+        <div class="summary-value">
+          {% if average_rating != None %}
+            {{ average_rating|floatformat:1 }} <span class="summary-value-sub">/ 5.0</span>
+          {% else %}
+            —
+          {% endif %}
+        </div>
+        <div class="summary-subtext">
+          {% if average_rating != None %}
+            <div class="stars-mini">
+              {% for i in "12345" %}
+                {% if forloop.counter <= average_rating|floatformat:0 %}
+                  <span class="star filled">★</span>
+                {% else %}
+                  <span class="star empty">★</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <span>{{ feedback_count }} response{{ feedback_count|pluralize }}</span>
+          {% else %}
+            No ratings yet
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Responses Card -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #eff6ff; color: #2563eb;">💬</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Total Responses</div>
+        <div class="summary-value">{{ feedback_count|default:"0" }}</div>
+        <div class="summary-subtext">Submitted guest reviews</div>
+      </div>
+    </div>
+
+    <!-- 5-Star Count Card -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #f0fdf4; color: #16a34a;">🏆</div>
+      <div class="summary-card-body">
+        <div class="summary-label">5-Star Ratings</div>
+        <div class="summary-value" id="fiveStarCount">0</div>
+        <div class="summary-subtext">Top rated experiences</div>
+      </div>
+    </div>
+
+    <!-- Recent Feedback Card -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #f5f3ff; color: #7c3aed;">🕒</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Recent Feedback</div>
+        <div class="summary-value" style="font-size: 20px;">
+          {% if page_obj.0 %}
+            {{ page_obj.0.submitted_at|date:"M d, Y" }}
+          {% else %}
+            —
+          {% endif %}
+        </div>
+        <div class="summary-subtext">
+          {% if page_obj.0 %}
+            {{ page_obj.0.submitted_at|timesince }} ago
+          {% else %}
+            No submissions yet
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Table Card -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">Feedback Entries</div>
+      <div class="table-card-badge">{{ feedback_count }} Response{{ feedback_count|pluralize }}</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="feedback-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Rating</th>
+            <th>Comment</th>
+            <th>Branch</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for feedback in page_obj %}
+            <tr data-rating="{{ feedback.rating }}">
+              <td>
+                <a href="{% url 'order_detail' feedback.order_id %}" class="order-link">
+                  Order #{{ feedback.order_id }}
+                </a>
+              </td>
+              <td>
+                <div class="stars-display">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= feedback.rating %}
+                      <span class="star filled">★</span>
+                    {% else %}
+                      <span class="star empty">★</span>
+                    {% endif %}
+                  {% endfor %}
+                  <span class="rating-badge rating-{{ feedback.rating }}">
+                    {{ feedback.rating }}.0
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="comment-box">
+                  {% if feedback.comment %}
+                    <span class="comment-quote">{{ feedback.comment }}</span>
+                  {% else %}
+                    <span class="comment-empty">No written comment</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <span class="branch-tag">{{ feedback.order.branch.name|default:branch.name }}</span>
+              </td>
+              <td class="time-cell">
+                <div class="time-primary">{{ feedback.submitted_at|date:"M d, Y" }}</div>
+                <div class="time-secondary">{{ feedback.submitted_at|time:"h:i A" }}</div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5">
+                <div class="empty-state">
+                  <div class="empty-state-icon">★</div>
+                  <h3>No feedback yet</h3>
+                  <p>No feedback for this branch.</p>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include 'guests/pagination.html' %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const rows = document.querySelectorAll('tr[data-rating]');
+    let count5 = 0;
+    rows.forEach(function (r) {
+      if (r.getAttribute('data-rating') === '5') {
+        count5++;
+      }
+    });
+    const el = document.getElementById('fiveStarCount');
+    if (el) {
+      el.textContent = count5;
+    }
+  })();
+</script>
+{% endblock %}

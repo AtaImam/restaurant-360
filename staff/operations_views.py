@@ -8,6 +8,12 @@ from orders.models import Order
 from orders.services import transition_order_status
 from restaurant.models import Restaurant, Table
 
+from .access import staff_branch, staff_queryset
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.db.models import Q
+from datetime import timedelta
+
 from .models import (
     Attendance,
     DailyTableAssignment,
@@ -19,6 +25,7 @@ from .operations import (
     MANAGEMENT_ROLES,
     assign_staff_task,
     assign_table_to_waiter,
+    claim_order_service,
     complete_staff_task,
     ensure_restaurant_access,
     local_work_date,
@@ -30,34 +37,18 @@ from .operations_forms import (
 )
 
 
-def _restaurant_for_actor(actor):
-    require_operations_manager(actor)
-
-    if actor.restaurant_id:
-        return actor.restaurant
-
-    if actor.is_superuser or actor.role == "admin":
-        restaurant = Restaurant.objects.order_by("pk").first()
-
-        if restaurant is not None:
-            return restaurant
-
-    raise PermissionDenied(
-        "Your account is not assigned to a restaurant."
-    )
-
-
 @login_required
 @require_GET
 def daily_operations(request):
-    restaurant = _restaurant_for_actor(request.user)
+    branch = staff_branch(request)
+    restaurant = request.user.restaurant
     work_date = local_work_date()
 
     present_records = (
-        Attendance.objects
+        staff_queryset(request, Attendance)
         .filter(
             restaurant=restaurant,
-            work_date=work_date,
+            work_date__in=[work_date - timedelta(days=1), work_date, work_date + timedelta(days=1)],
         )
         .select_related(
             "employee__user",
@@ -70,16 +61,18 @@ def daily_operations(request):
         )
     )
 
+    present_records = present_records.filter(Q(work_date=work_date) | Q(check_out__isnull=True))
     open_attendance = present_records.filter(
         check_out__isnull=True
     )
 
     table_assignments = (
-        DailyTableAssignment.objects
+        staff_queryset(request, DailyTableAssignment)
         .filter(
             restaurant=restaurant,
-            work_date=work_date,
+            work_date__in=[work_date - timedelta(days=1), work_date, work_date + timedelta(days=1)],
             is_active=True,
+            attendance__check_out__isnull=True,
         )
         .select_related(
             "table",
@@ -95,7 +88,7 @@ def daily_operations(request):
     )
 
     unassigned_tables = (
-        Table.objects
+        staff_queryset(request, Table)
         .filter(
             restaurant=restaurant,
             is_active=True,
@@ -105,10 +98,10 @@ def daily_operations(request):
     )
 
     tasks = (
-        StaffTask.objects
+        staff_queryset(request, StaffTask)
         .filter(
             restaurant=restaurant,
-            work_date=work_date,
+            work_date__in=[work_date - timedelta(days=1), work_date, work_date + timedelta(days=1)],
         )
         .select_related(
             "employee__user",
@@ -124,11 +117,11 @@ def daily_operations(request):
     )
 
     active_services = (
-        OrderStaffService.objects
+        staff_queryset(request, OrderStaffService)
         .filter(
             order__restaurant=restaurant,
         )
-        .exclude(order__status="COMPLETED")
+        .exclude(order__status__in=["COMPLETED", "CANCELLED"])
         .select_related(
             "order__table",
             "waiter__user",
@@ -137,8 +130,16 @@ def daily_operations(request):
         .order_by("-assigned_at")
     )
 
+    is_waiter = request.user.role == "waiter" and not (
+        request.user.is_superuser or request.user.role in MANAGEMENT_ROLES
+    )
+    if is_waiter:
+        active_services = active_services.filter(waiter__user=request.user)
+        tasks = tasks.filter(employee__user=request.user)
+        table_assignments = table_assignments.filter(waiter__user=request.user)
+
     notifications = (
-        StaffNotification.objects
+        staff_queryset(request, StaffNotification)
         .filter(
             recipient=request.user,
             restaurant=restaurant,
@@ -153,16 +154,23 @@ def daily_operations(request):
     table_form = TableAssignmentForm(
         restaurant=restaurant,
         work_date=work_date,
+        branch=branch,
     )
 
     task_form = StaffTaskAssignmentForm(
         restaurant=restaurant,
         work_date=work_date,
+        branch=branch,
     )
 
     context = {
         "restaurant": restaurant,
+        "branch": branch,
+        "available_waiters": staff_queryset(request, get_user_model()).filter(role="waiter", is_active=True, is_active_staff=True, employee_profile__isnull=False),
+        "unassigned_orders": staff_queryset(request, Order).filter(staff_service__isnull=True).exclude(status__in=["SERVED", "COMPLETED", "CANCELLED"]).order_by("-created_at")[:50],
         "work_date": work_date,
+        "is_waiter": is_waiter,
+        "can_manage": not is_waiter,
         "present_records": present_records,
         "open_attendance": open_attendance,
         "table_assignments": table_assignments,
@@ -191,13 +199,15 @@ def daily_operations(request):
 @login_required
 @require_POST
 def daily_table_assign(request):
-    restaurant = _restaurant_for_actor(request.user)
+    branch = staff_branch(request)
+    restaurant = request.user.restaurant
     work_date = local_work_date()
 
     form = TableAssignmentForm(
         request.POST,
         restaurant=restaurant,
         work_date=work_date,
+        branch=branch,
     )
 
     if not form.is_valid():
@@ -248,13 +258,15 @@ def daily_table_assign(request):
 @login_required
 @require_POST
 def daily_task_assign(request):
-    restaurant = _restaurant_for_actor(request.user)
+    branch = staff_branch(request)
+    restaurant = request.user.restaurant
     work_date = local_work_date()
 
     form = StaffTaskAssignmentForm(
         request.POST,
         restaurant=restaurant,
         work_date=work_date,
+        branch=branch,
     )
 
     if not form.is_valid():
@@ -310,6 +322,7 @@ def daily_task_assign(request):
 @login_required
 @require_POST
 def daily_task_complete(request, task_id):
+    get_object_or_404(staff_queryset(request, StaffTask), pk=task_id)
     try:
         task, changed = complete_staff_task(
             actor=request.user,
@@ -350,7 +363,7 @@ def daily_task_complete(request, task_id):
 @require_POST
 def waiter_serve_order(request, order_id):
     service = get_object_or_404(
-        OrderStaffService.objects.select_related(
+        staff_queryset(request, OrderStaffService).select_related(
             "order",
             "waiter__user",
             "order__restaurant",
@@ -402,4 +415,38 @@ def waiter_serve_order(request, order_id):
     if next_url == "daily_operations":
         return redirect("staff:daily_operations")
 
+    return redirect("staff:daily_operations")
+
+
+@login_required
+@require_POST
+def waiter_claim_order(request, order_id):
+    get_object_or_404(staff_queryset(request, Order), pk=order_id)
+    waiter = request.user
+    if request.user.role in MANAGEMENT_ROLES and request.POST.get("waiter_id"):
+        waiter = get_object_or_404(staff_queryset(request, get_user_model()), pk=request.POST["waiter_id"], role="waiter", is_active=True, is_active_staff=True)
+    try:
+        service = claim_order_service(order_id, waiter)
+    except (ValidationError, PermissionDenied) as error:
+        messages.error(
+            request,
+            " ".join(getattr(error, "messages", [str(error)])),
+        )
+    else:
+        messages.success(
+            request,
+            f"Order #{service.order_id} claimed successfully.",
+        )
+
+    next_url = request.POST.get("next", "").strip()
+    if next_url == "daily_operations":
+        return redirect("staff:daily_operations")
+
+    return redirect("staff:daily_operations")
+
+@login_required
+@require_POST
+def notification_mark_read(request, notification_id):
+    notification = get_object_or_404(staff_queryset(request, StaffNotification), pk=notification_id, recipient=request.user)
+    staff_queryset(request, StaffNotification).filter(pk=notification.pk, is_read=False).update(is_read=True, read_at=timezone.now())
     return redirect("staff:daily_operations")

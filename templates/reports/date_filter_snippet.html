@@ -1,0 +1,35 @@
+<p class="report-scope" style="margin-bottom: 16px; font-weight: 700;">
+  {% if report_consolidated %}All Branches — Consolidated{% else %}Branch: {{ report_branch.name }}{% endif %}
+</p>
+<div class="filter-panel" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
+  <div class="date-presets" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+    <a href="?preset=today&amp;scope={{ report_scope }}" class="preset-link {% if date_filter.preset == 'today' %}active{% endif %}">Today</a>
+    <a href="?preset=yesterday&amp;scope={{ report_scope }}" class="preset-link {% if date_filter.preset == 'yesterday' %}active{% endif %}">Yesterday</a>
+    <a href="?preset=this_week&amp;scope={{ report_scope }}" class="preset-link {% if date_filter.preset == 'this_week' %}active{% endif %}">This Week</a>
+    <a href="?preset=this_month&amp;scope={{ report_scope }}" class="preset-link {% if date_filter.preset == 'this_month' %}active{% endif %}">This Month</a>
+    <a href="?preset=last_month&amp;scope={{ report_scope }}" class="preset-link {% if date_filter.preset == 'last_month' %}active{% endif %}">Last Month</a>
+  </div>
+
+  <form method="get" class="filter-row" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+    <input type="hidden" name="preset" value="custom">
+    {% if can_consolidate_reports %}
+    <div class="filter-group">
+      <label for="report-scope">Report scope</label>
+      <select id="report-scope" name="scope">
+        <option value="branch" {% if not report_consolidated %}selected{% endif %}>Active Branch: {{ active_branch.name }}</option>
+        <option value="all" {% if report_consolidated %}selected{% endif %}>All Branches — Consolidated</option>
+      </select>
+    </div>
+    {% endif %}
+    <div class="filter-group" style="display: flex; flex-direction: column; gap: 5px;">
+      <label style="font-size: 12px; font-weight: 600; color: #4b5563;">From Date</label>
+      <input type="date" name="start_date" value="{{ date_filter.start_date|date:'Y-m-d' }}" style="height: 38px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0 12px; font-size: 13px;">
+    </div>
+    <div class="filter-group" style="display: flex; flex-direction: column; gap: 5px;">
+      <label style="font-size: 12px; font-weight: 600; color: #4b5563;">To Date</label>
+      <input type="date" name="end_date" value="{{ date_filter.end_date|date:'Y-m-d' }}" style="height: 38px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0 12px; font-size: 13px;">
+    </div>
+    <button type="submit" class="btn-primary-custom" style="padding: 8px 18px; height: 38px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #2563eb; color: #fff; border: none; cursor: pointer;">Apply Filter</button>
+    <button type="button" onclick="window.print()" class="btn-secondary-custom" style="padding: 8px 16px; height: 38px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #f9fafb; border: 1px solid #d1d5db; cursor: pointer;">🖶 Print Report</button>
+  </form>
+</div>

@@ -1,0 +1,112 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}My Leave{% endblock %}
+
+{% block content %}
+<div class="waiter-leave-page">
+
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">Leave Requests</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Submit leave requests and monitor manager approval status.
+    </p>
+  </div>
+
+  <!-- NEW LEAVE REQUEST FORM CARD -->
+  <div class="card" style="padding: 20px;">
+    <div class="card-header" style="margin-bottom: 16px;">
+      <h3 class="card-title">
+        <span>📝</span>
+        <span>Submit Leave Request</span>
+      </h3>
+    </div>
+
+    <form method="post" action="{% url 'waiter:leave' %}">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px;">
+        
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Leave Type</label>
+          <select name="leave_type" required style="width: 100%; height: var(--touch-min); padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: #ffffff;">
+            {% for code, label in leave_types %}
+            <option value="{{ code }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Start Date</label>
+          <input type="date" name="start_date" required style="width: 100%; height: var(--touch-min); padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">End Date</label>
+          <input type="date" name="end_date" required style="width: 100%; height: var(--touch-min); padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px;">
+        </div>
+
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Reason for Leave</label>
+        <textarea name="reason" rows="3" required placeholder="Explain reason for taking leave..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; resize: vertical;"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="padding: 10px 22px;">
+        <span>Submit Leave Request</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- LEAVE REQUESTS HISTORY -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>📜</span>
+        <span>My Leave History</span>
+      </h3>
+    </div>
+
+    {% if leaves %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for l in leaves %}
+      <div style="padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #ffffff;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 14px; font-weight: 800; color: var(--text-dark);">{{ l.get_leave_type_display }}</span>
+              {% if l.status == 'approved' %}
+              <span class="badge badge-success">Approved</span>
+              {% elif l.status == 'rejected' %}
+              <span class="badge badge-danger">Rejected</span>
+              {% else %}
+              <span class="badge badge-warning">Pending Review</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">
+              📅 {{ l.start_date|date:"M d, Y" }} – {{ l.end_date|date:"M d, Y" }}
+            </div>
+          </div>
+          <span style="font-size: 11px; color: var(--text-light);">Submitted {{ l.created_at|timesince }} ago</span>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text); margin-top: 8px; background: #f9fafb; padding: 8px 10px; border-radius: 6px;">
+          {{ l.reason }}
+        </p>
+
+        {% if l.review_note %}
+        <div style="margin-top: 6px; font-size: 12px; color: #9a3412; background: #fff7ed; padding: 6px 10px; border-radius: 6px; border: 1px solid #fed7aa;">
+          <strong>Manager Note:</strong> {{ l.review_note }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+      No leave requests submitted yet.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

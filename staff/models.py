@@ -1,14 +1,24 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Shift(models.Model):
     restaurant = models.ForeignKey(
         "restaurant.Restaurant",
         on_delete=models.PROTECT,
+        related_name="staff_shifts",
+    )
+
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="staff_shifts",
     )
 
@@ -29,8 +39,8 @@ class Shift(models.Model):
         ordering = ["restaurant_id", "start_time", "name"]
         constraints = [
             models.UniqueConstraint(
-                fields=["restaurant", "name"],
-                name="staff_unique_shift_name_per_restaurant",
+                fields=["branch", "name"],
+                name="staff_unique_shift_name_per_branch",
             ),
             models.CheckConstraint(
                 condition=~models.Q(
@@ -43,6 +53,13 @@ class Shift(models.Model):
                 name="staff_shift_grace_max_120",
             ),
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.branch_id and self.restaurant_id:
+            main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+            if main_b:
+                self.branch = main_b
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.restaurant.name} - {self.name}"
@@ -118,6 +135,14 @@ class Attendance(models.Model):
         related_name="staff_attendance",
     )
 
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="staff_attendance",
+    )
+
     shift = models.ForeignKey(
         Shift,
         on_delete=models.PROTECT,
@@ -174,8 +199,69 @@ class Attendance(models.Model):
             ),
         ]
 
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.shift_id and self.shift and self.shift.branch_id:
+                self.branch_id = self.shift.branch_id
+            elif self.employee_id and self.employee.user and self.employee.user.branch_id:
+                self.branch_id = self.employee.user.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.employee.employee_id} - {self.work_date}"
+
+    @property
+    def is_late(self):
+        late_after = self.scheduled_start + timedelta(minutes=self.grace_minutes)
+        return self.check_in > late_after
+
+    @property
+    def late_minutes(self):
+        late_after = self.scheduled_start + timedelta(minutes=self.grace_minutes)
+        if self.check_in > late_after:
+            return max(0, int((self.check_in - late_after).total_seconds() // 60))
+        return 0
+
+    @property
+    def arrival_status(self):
+        return "Late" if self.is_late else "On time"
+
+    def get_effective_checkout(self, now=None):
+        if self.check_out:
+            return self.check_out
+        return now or timezone.now()
+
+    def get_worked_minutes(self, now=None):
+        end_time = self.get_effective_checkout(now)
+        if end_time < self.check_in:
+            return 0
+        return max(0, int((end_time - self.check_in).total_seconds() // 60))
+
+    @property
+    def worked_minutes(self):
+        return self.get_worked_minutes()
+
+    @property
+    def worked_time(self):
+        if not self.check_out:
+            return "In progress"
+        hours, minutes = divmod(self.worked_minutes, 60)
+        return f"{hours}h {minutes}m"
+
+    @property
+    def scheduled_minutes(self):
+        diff = (self.scheduled_end - self.scheduled_start).total_seconds()
+        return max(0, int(diff // 60))
+
+    @property
+    def overtime_minutes(self):
+        if not self.check_out:
+            return 0
+        return max(0, self.worked_minutes - self.scheduled_minutes)
 
 class LeaveRequest(models.Model):
     LEAVE_TYPE_CHOICES = [
@@ -202,6 +288,14 @@ class LeaveRequest(models.Model):
     restaurant = models.ForeignKey(
         "restaurant.Restaurant",
         on_delete=models.PROTECT,
+        related_name="staff_leave_requests",
+    )
+
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="staff_leave_requests",
     )
 
@@ -240,6 +334,16 @@ class LeaveRequest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.employee_id and self.employee.user and self.employee.user.branch_id:
+                self.branch_id = self.employee.user.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-created_at"]
@@ -282,6 +386,14 @@ class SalaryAdvance(models.Model):
         related_name="staff_salary_advances",
     )
 
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="staff_salary_advances",
+    )
+
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -311,8 +423,26 @@ class SalaryAdvance(models.Model):
         blank=True,
     )
 
+    payroll_record = models.ForeignKey(
+        "PayrollRecord",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="salary_advances",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.employee_id and self.employee.user and self.employee.user.branch_id:
+                self.branch_id = self.employee.user.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-created_at"]
@@ -345,6 +475,14 @@ class PayrollRecord(models.Model):
     restaurant = models.ForeignKey(
         "restaurant.Restaurant",
         on_delete=models.PROTECT,
+        related_name="staff_payroll_records",
+    )
+
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="staff_payroll_records",
     )
 
@@ -409,6 +547,16 @@ class PayrollRecord(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.employee_id and self.employee.user and self.employee.user.branch_id:
+                self.branch_id = self.employee.user.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = ["-month", "employee__employee_id"]
         constraints = [
@@ -472,6 +620,14 @@ class DailyTableAssignment(models.Model):
         related_name="daily_table_assignments",
     )
 
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="daily_table_assignments",
+    )
+
     table = models.ForeignKey(
         "restaurant.Table",
         on_delete=models.PROTECT,
@@ -505,6 +661,18 @@ class DailyTableAssignment(models.Model):
         blank=True,
     )
 
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.table_id and self.table and self.table.branch_id:
+                self.branch_id = self.table.branch_id
+            elif self.waiter_id and self.waiter.user and self.waiter.user.branch_id:
+                self.branch_id = self.waiter.user.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = [
             "-work_date",
@@ -530,6 +698,14 @@ class StaffTask(models.Model):
     restaurant = models.ForeignKey(
         "restaurant.Restaurant",
         on_delete=models.PROTECT,
+        related_name="staff_tasks",
+    )
+
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="staff_tasks",
     )
 
@@ -582,6 +758,16 @@ class StaffTask(models.Model):
         blank=True,
     )
 
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.employee_id and self.employee.user and self.employee.user.branch_id:
+                self.branch_id = self.employee.user.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = [
             "is_completed",
@@ -628,6 +814,8 @@ class OrderStaffService(models.Model):
 
     assigned_at = models.DateTimeField(auto_now_add=True)
 
+    ready_at = models.DateTimeField(null=True, blank=True)
+
     served_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -636,6 +824,51 @@ class OrderStaffService(models.Model):
     completed_at = models.DateTimeField(
         null=True,
         blank=True,
+    )
+
+    order_taken_by = models.ForeignKey(
+        EmployeeProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders_taken_services",
+        help_text="Staff member who took/entered the order.",
+    )
+
+    served_by = models.ForeignKey(
+        EmployeeProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders_served_services",
+        help_text="Staff member who marked the order as served.",
+    )
+
+    payment_handled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments_handled_services",
+        help_text="User who processed or recorded payment.",
+    )
+
+    handover_by = models.ForeignKey(
+        EmployeeProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="handover_from_services",
+        help_text="Previous waiter if service was handed over.",
+    )
+
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="closed_order_services",
+        help_text="User who closed or cleaned the table service.",
     )
 
     class Meta:
@@ -661,6 +894,14 @@ class StaffNotification(models.Model):
     restaurant = models.ForeignKey(
         "restaurant.Restaurant",
         on_delete=models.CASCADE,
+        related_name="staff_notifications",
+    )
+
+    branch = models.ForeignKey(
+        "restaurant.Branch",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="staff_notifications",
     )
 
@@ -703,6 +944,18 @@ class StaffNotification(models.Model):
         null=True,
         blank=True,
     )
+
+    def save(self, *args, **kwargs):
+        if not self.branch_id:
+            if self.recipient_id and hasattr(self.recipient, "branch_id") and self.recipient.branch_id:
+                self.branch_id = self.recipient.branch_id
+            elif self.order_id and self.order and self.order.branch_id:
+                self.branch_id = self.order.branch_id
+            elif self.restaurant_id:
+                main_b = self.restaurant.branches.filter(is_main=True).first() or self.restaurant.branches.first()
+                if main_b:
+                    self.branch = main_b
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-created_at"]

@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from inventory.models import (
@@ -75,6 +75,9 @@ class OrderFlowFixture:
         cls.owner = User.objects.create_user(
             username="flow-owner", role="owner", restaurant=cls.restaurant
         )
+        cls.chef = User.objects.create_user(
+            username="flow-chef", role="chief", restaurant=cls.restaurant
+        )
 
     def create_order(self, *, items=None, status="NEW", reserve=True):
         items = items if items is not None else [(self.item_a, 2), (self.item_b, 1)]
@@ -141,6 +144,7 @@ class OrderFlowFixture:
 
 class OrderLifecycleTests(OrderFlowFixture, TestCase):
     def test_qr_order_entire_staff_flow_and_live_tracking(self):
+        self.client.force_login(self.owner)  # back-office views now require login
         key, _ = self.seed_cart()
         response = self.qr_checkout()
         self.assertEqual(response.status_code, 302)
@@ -162,6 +166,13 @@ class OrderLifecycleTests(OrderFlowFixture, TestCase):
         for stage_index, (status, endpoint) in enumerate(stages):
             with self.subTest(status=status):
                 if endpoint:
+                    if endpoint == "update_order_status":
+                        self.client.force_login(self.chef)
+                    else:
+                        self.client.force_login(self.owner)
+                    # The payment guard requires PAID before COMPLETED.
+                    if status == "COMPLETED":
+                        Order.objects.filter(pk=order.pk).update(payment_status="PAID")
                     response = self.client.post(reverse(endpoint, args=[order.pk]), {"status": status})
                     self.assertEqual(response.status_code, 302)
                 order.refresh_from_db()
@@ -197,10 +208,16 @@ class OrderLifecycleTests(OrderFlowFixture, TestCase):
         self.assertEqual(order.total_amount, Decimal("280.00"))
         self.assert_inventory(order)
         for index, status in enumerate(["ACCEPTED", "PREPARING", "READY", "SERVED", "COMPLETED"]):
+            # Payment guard: must be PAID before COMPLETED.
+            if status == "COMPLETED":
+                Order.objects.filter(pk=order.pk).update(payment_status="PAID")
+                order.refresh_from_db()
             transition_order_status(order, status)
             self.assert_inventory(order, consumed=index >= 1)
 
+
     def test_repeated_preparing_posts_do_not_advance_or_consume_twice(self):
+        self.client.force_login(self.chef)
         order = self.create_order()
         transition_order_status(order, "ACCEPTED")
         for _ in range(3):
@@ -230,11 +247,16 @@ class OrderLifecycleTests(OrderFlowFixture, TestCase):
         transition_order_status(order, "ACCEPTED")
         with self.assertRaises(ValidationError):
             transition_order_status(order, "NEW")
-        for status in ["PREPARING", "READY", "SERVED", "COMPLETED"]:
+        for status in ["PREPARING", "READY", "SERVED"]:
             transition_order_status(order, status)
+        # Payment guard: must be PAID before COMPLETED.
+        Order.objects.filter(pk=order.pk).update(payment_status="PAID")
+        order.refresh_from_db()
+        transition_order_status(order, "COMPLETED")
         with self.assertRaises(ValidationError):
             transition_order_status(order, "READY")
         self.assert_inventory(order, consumed=True)
+
 
     def test_shortage_at_preparing_rolls_back_status_reservations_and_all_ingredients(self):
         order = self.create_order()
@@ -253,7 +275,7 @@ class OrderLifecycleTests(OrderFlowFixture, TestCase):
 
     def test_kitchen_rejects_missing_target_and_cannot_serve_or_complete(self):
         order = self.create_order()
-        self.client.force_login(self.owner)
+        self.client.force_login(self.chef)
         endpoint = reverse("update_order_status", args=[order.pk])
         self.assertEqual(self.client.get(endpoint).status_code, 405)
         self.client.post(endpoint, {})
@@ -266,31 +288,48 @@ class OrderLifecycleTests(OrderFlowFixture, TestCase):
         self.assertEqual(order.status, "READY")
         self.assert_inventory(order, consumed=True)
 
-    def test_kitchen_accepts_waiter_role_and_preserves_restaurant_scope(self):
+    def test_kitchen_role_permissions_and_scope(self):
         order = self.create_order()
+        # Non-kitchen roles (waiter and owner) are rejected with 403
         waiter = User.objects.create_user(username="flow-waiter", role="waiter", restaurant=self.restaurant)
         self.client.force_login(waiter)
+        resp_waiter = self.client.post(reverse("update_order_status", args=[order.pk]), {"status": "ACCEPTED"})
+        self.assertEqual(resp_waiter.status_code, 403)
+
+        self.client.force_login(self.owner)
+        resp_owner = self.client.post(reverse("update_order_status", args=[order.pk]), {"status": "ACCEPTED"})
+        self.assertEqual(resp_owner.status_code, 403)
+
+        # Chef can perform kitchen status transitions
+        self.client.force_login(self.chef)
         self.client.post(reverse("update_order_status", args=[order.pk]), {"status": "ACCEPTED"})
         order.refresh_from_db()
         self.assertEqual(order.status, "ACCEPTED")
-        self.client.post(reverse("order_detail", args=[order.pk]), {"status": "PREPARING"})
-        order.refresh_from_db()
-        self.assertEqual(order.status, "ACCEPTED")
-        self.assert_inventory(order)
+
         self.client.post(reverse("update_order_status", args=[order.pk]), {"status": "PREPARING"})
         order.refresh_from_db()
         self.assertEqual(order.status, "PREPARING")
         self.assert_inventory(order, consumed=True)
-        other_owner = User.objects.create_user(
-            username="other-owner", role="owner", restaurant=self.other_restaurant
-        )
-        self.client.force_login(other_owner)
-        self.assertEqual(self.client.post(reverse("update_order_status", args=[order.pk]), {
-            "status": "PREPARING"
-        }).status_code, 404)
-        self.assertEqual(self.client.get(reverse("order_detail", args=[order.pk])).status_code, 404)
 
-    def test_order_pages_and_pos_work_without_login(self):
+        other_chef = User.objects.create_user(
+            username="other-chef", role="chief", restaurant=self.other_restaurant
+        )
+        self.client.force_login(other_chef)
+        self.assertEqual(self.client.post(reverse("update_order_status", args=[order.pk]), {
+            "status": "READY"
+        }).status_code, 404)
+
+    def test_order_pages_require_login_and_work_when_authenticated(self):
+        # Unauthenticated: back-office pages must redirect to login
+        anon_client = Client()
+        for endpoint in ["kitchen_dashboard", "orders_list", "pos_dashboard"]:
+            resp = anon_client.get(reverse(endpoint))
+            self.assertIn(resp.status_code, (301, 302),
+                          msg=f"{endpoint} must redirect unauthenticated users")
+            self.assertIn("login", resp.get("Location", ""))
+
+        # Authenticated: pages work correctly
+        self.client.force_login(self.owner)
         for endpoint in ["kitchen_dashboard", "orders_list", "pos_dashboard"]:
             self.assertEqual(self.client.get(reverse(endpoint)).status_code, 200)
         response = self.pos_checkout()

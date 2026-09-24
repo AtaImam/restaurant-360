@@ -1,0 +1,68 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}My Shift{% endblock %}
+
+{% block content %}
+<div class="card" style="border-left: 4px solid var(--accent); padding: 20px;">
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
+    <div>
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent); letter-spacing: 0.5px;">Today's Assigned Kitchen Shift</div>
+      {% if current_shift %}
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark); margin: 4px 0 6px;">{{ current_shift.name }}</h2>
+      <div style="font-size: 14px; color: var(--text);">
+        ⏰ <strong>{{ current_shift.start_time|time:"g:i A" }}</strong> – <strong>{{ current_shift.end_time|time:"g:i A" }}</strong>
+        <span style="color: var(--text-light); margin: 0 6px;">•</span>
+        <span class="badge badge-info">Active</span>
+      </div>
+      {% else %}
+      <h2 style="font-size: 18px; font-weight: 700; color: var(--text-muted); margin-top: 4px;">Standard Kitchen Hours</h2>
+      <p style="font-size: 13px; color: var(--text-light);">Following standard restaurant kitchen schedule for {{ active_branch.name|default:"active branch" }}.</p>
+      {% endif %}
+    </div>
+
+    <div>
+      <a href="{% url 'kitchen_attendance' %}" class="btn btn-primary" style="padding: 10px 18px;">
+        <span>⏱</span>
+        <span>View Attendance</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <span>📅</span>
+      <span>Recent Shift History</span>
+    </h3>
+  </div>
+
+  {% if shift_history %}
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    {% for att in shift_history %}
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #ffffff;">
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: var(--text-dark);">
+          {{ att.work_date|date:"D, M d, Y" }}
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+          Shift: {{ att.shift.name|default:"Standard" }}
+          {% if att.check_in %}• In: {{ att.check_in|date:"g:i A" }}{% endif %}
+          {% if att.check_out %}• Out: {{ att.check_out|date:"g:i A" }}{% endif %}
+        </div>
+      </div>
+      <div>
+        <span class="badge {% if att.status == 'present' %}badge-success{% elif att.status == 'late' %}badge-warning{% else %}badge-gray{% endif %}">
+          {{ att.get_status_display }}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+    No attendance or shift records found yet.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

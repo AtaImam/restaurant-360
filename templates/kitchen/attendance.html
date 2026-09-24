@@ -1,0 +1,115 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}My Attendance{% endblock %}
+
+{% block content %}
+<!-- TODAY'S ATTENDANCE STATUS CARD -->
+<div class="card" style="padding: 20px;">
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+    <div>
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.5px;">Today's Attendance Status</div>
+      <h2 style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin: 4px 0;">
+        {% if is_checked_in %}
+        <span style="color: #10b981;">● Checked In</span>
+        {% elif is_checked_out %}
+        <span style="color: #64748b;">✓ Checked Out</span>
+        {% else %}
+        <span style="color: #f59e0b;">○ Not Checked In</span>
+        {% endif %}
+      </h2>
+      <div style="font-size: 13.5px; color: var(--text-muted);">
+        Worked Time: <strong>{{ worked_hours_str }}</strong>
+        {% if overtime_hours_str != "0h 0m" %}
+        • Overtime: <strong style="color: var(--accent);">{{ overtime_hours_str }}</strong>
+        {% endif %}
+      </div>
+      {% if today_record and today_record.check_in %}
+      <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">
+        In: {{ today_record.check_in|date:"g:i A" }}
+        {% if today_record.check_out %}• Out: {{ today_record.check_out|date:"g:i A" }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 10px;">
+      {% if not is_checked_in and not is_checked_out %}
+      <form method="post" action="{% url 'kitchen_check_in' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success" style="padding: 10px 20px; font-size: 14px;">
+          <span>⏱ Check In Now</span>
+        </button>
+      </form>
+      {% elif is_checked_in %}
+      <form method="post" action="{% url 'kitchen_check_out' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" style="padding: 10px 20px; font-size: 14px;">
+          <span>⏻ Check Out Now</span>
+        </button>
+      </form>
+      {% else %}
+      <div style="font-size: 13px; font-weight: 600; color: #10b981; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 8px 14px; border-radius: var(--radius-sm);">
+        Shift Completed For Today
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ATTENDANCE LOG TABLE -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <span>📜</span>
+      <span>Attendance History (Last 30 Days)</span>
+    </h3>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px;">Date</th>
+          <th style="padding: 12px;">Shift</th>
+          <th style="padding: 12px;">Check In</th>
+          <th style="padding: 12px;">Check Out</th>
+          <th style="padding: 12px;">Worked</th>
+          <th style="padding: 12px;">Overtime</th>
+          <th style="padding: 12px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in history %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px; font-weight: 600;">{{ att.work_date|date:"M d, Y (D)" }}</td>
+          <td style="padding: 12px; color: var(--text-muted);">{{ att.shift.name|default:"Standard" }}</td>
+          <td style="padding: 12px;">{{ att.check_in|date:"g:i A"|default:"—" }}</td>
+          <td style="padding: 12px;">{{ att.check_out|date:"g:i A"|default:"—" }}</td>
+          <td style="padding: 12px; font-weight: 600; color: var(--text-dark);">
+            {{ att.worked_time }}
+          </td>
+          <td style="padding: 12px; color: var(--accent);">
+            {% if att.overtime_minutes > 0 %}
+            {{ att.overtime_minutes }}m
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td style="padding: 12px;">
+            <span class="badge {% if att.status == 'present' %}badge-success{% elif att.status == 'late' %}badge-warning{% elif att.status == 'absent' %}badge-danger{% else %}badge-gray{% endif %}">
+              {{ att.get_status_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+            No attendance records found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

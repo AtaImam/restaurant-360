@@ -495,6 +495,63 @@
                             </div>
 
 
+                            <!-- ITEM TYPE -->
+
+                            <div class="form-group">
+
+                                <label>
+                                    Item Type
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    name="item_type"
+                                    class="control"
+                                    required
+                                >
+                                    {% for code, label in item_type_choices %}
+                                        <option
+                                            value="{{ code }}"
+                                            {% if form_item_type == code %}selected{% endif %}
+                                        >
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+
+                                <div class="help">
+                                    Normal foods use ingredients. Set Menus are combos made of normal foods.
+                                </div>
+
+                            </div>
+
+
+                            <!-- SERVES -->
+
+                            <div class="form-group">
+
+                                <label>
+                                    Serves (Persons)
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="serves"
+                                    class="control"
+                                    value="{{ form_serves }}"
+                                    min="1"
+                                    step="1"
+                                    required
+                                >
+
+                                <div class="help">
+                                    Number of persons this item or combo serves.
+                                </div>
+
+                            </div>
+
+
                             <!-- IMAGE -->
 
                             <div class="form-group full">
@@ -502,6 +559,13 @@
                                 <label>
                                     Menu Image
                                 </label>
+
+                                {% if item and item.image %}
+                                    <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);">
+                                        <span style="font-size: 11px; color: var(--text-light);">Current image uploaded. Select new file below to replace.</span>
+                                    </div>
+                                {% endif %}
 
                                 <input
                                     type="file"
@@ -515,6 +579,40 @@
                                 </div>
 
                             </div>
+
+
+                            <!-- ADDON GROUPS ASSIGNMENT -->
+
+                            <div class="form-group full">
+
+                                <label>
+                                    Addon &amp; Modifier Groups
+                                </label>
+
+                                {% if available_addon_groups %}
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; margin-top: 4px;">
+                                        {% for ag in available_addon_groups %}
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; background: white; padding: 8px 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                                <input type="checkbox" name="addon_groups" value="{{ ag.id }}" {% if ag.id in selected_addon_group_ids %}checked{% endif %} style="accent-color: var(--accent);">
+                                                <div>
+                                                    <div style="font-weight: 600;">{{ ag.name }}</div>
+                                                    <div style="font-size: 10px; color: var(--text-light);">{{ ag.get_selection_type_display }}{% if ag.is_required %} · Required{% endif %}</div>
+                                                </div>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div style="font-size: 11px; color: var(--text-light); margin-top: 4px;">
+                                        No addon groups created yet. You can create them from the <a href="{% url 'addon_group_list' %}" style="color: var(--accent); font-weight: 600; text-decoration: underline;">Addons section</a>.
+                                    </div>
+                                {% endif %}
+
+                                <div class="help">
+                                    Check the addon groups that customers and staff can customize for this food item.
+                                </div>
+
+                            </div>
+
 
 
                             <!-- DESCRIPTION -->
@@ -550,7 +648,7 @@
                                 type="submit"
                                 class="btn btn-primary"
                             >
-                                Save Menu Item
+                                {{ button_text|default:"Save Menu Item" }}
                             </button>
 
                         </div>

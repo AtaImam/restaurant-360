@@ -1,0 +1,206 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Purchase Report | Restaurant 360{% endblock %}
+{% block page_title %}Inventory &amp; Procurement{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+  .report-header {
+    margin-bottom: 24px;
+  }
+  .report-header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .metric-card .title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .metric-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .section-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .section-row { grid-template-columns: 1fr; }
+  }
+  .card-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  .card-box h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .table-custom th {
+    background: #f9fafb;
+    padding: 12px 14px;
+    font-weight: 600;
+    color: #4b5563;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .table-custom td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-page">
+  <div class="report-header">
+    <h1>Purchase &amp; Procurement Report</h1>
+    <p>Audited inventory procurement for RECEIVED purchase orders for {{ restaurant.name }}.</p>
+  </div>
+
+  {% include "reports/date_filter_snippet.html" %}
+
+  <div class="metrics-grid">
+    <div class="metric-card" style="background: #eff6ff; border-color: #bfdbfe;">
+      <div class="title" style="color: #1d4ed8;">Total Procurement Spend</div>
+      <div class="value" style="color: #1d4ed8;">৳{{ total_spend|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Realized inventory purchases</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Purchase Orders Received</div>
+      <div class="value">{{ total_orders_count }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Completed deliveries</div>
+    </div>
+  </div>
+
+  <div class="section-row">
+    <!-- Supplier Breakdown -->
+    <div class="card-box">
+      <h3>Spend by Supplier</h3>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Supplier</th>
+            <th>Deliveries</th>
+            <th style="text-align: right;">Total Spend</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s_name, s_val in supplier_breakdown.items %}
+          <tr>
+            <td style="font-weight: 600;">{{ s_name }}</td>
+            <td>{{ s_val.po_count }} POs</td>
+            <td style="text-align: right; font-weight: 700;">৳{{ s_val.total_spend|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" style="text-align: center; color: #9ca3af; padding: 20px;">No supplier spend in period.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Ingredient Spend -->
+    <div class="card-box">
+      <h3>Spend by Ingredient</h3>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Ingredient</th>
+            <th>Quantity</th>
+            <th>Latest Pack Price</th>
+            <th style="text-align: right;">Total Spend</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i_name, i_val in ingredient_breakdown.items %}
+          <tr>
+            <td style="font-weight: 600;">{{ i_name }}</td>
+            <td>{{ i_val.quantity }} packs</td>
+            <td>৳{{ i_val.latest_pack_price|floatformat:2 }}</td>
+            <td style="text-align: right; font-weight: 700;">৳{{ i_val.total_spend|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" style="text-align: center; color: #9ca3af; padding: 20px;">No ingredient purchases in period.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detailed POs -->
+  <div class="card-box">
+    <h3>Received Purchase Order History</h3>
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>PO #</th>
+          <th>Invoice #</th>
+          <th>Supplier</th>
+          <th>Purchase Date</th>
+          <th>Received At</th>
+          <th>Receiver</th>
+          <th style="text-align: right;">Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for po in purchase_orders %}
+        <tr>
+          <td style="font-weight: 600;">#{{ po.id }}</td>
+          <td>{{ po.invoice_number|default:"—" }}</td>
+          <td style="font-weight: 500;">{{ po.supplier.name|default:"Direct" }}</td>
+          <td>{{ po.purchase_date|date:"M d, Y" }}</td>
+          <td style="color: #6b7280;">{{ po.received_at|date:"M d, Y H:i"|default:"—" }}</td>
+          <td style="color: #6b7280;">{{ po.received_by.username|default:"Staff" }}</td>
+          <td style="text-align: right; font-weight: 700;">৳{{ po.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; color: #9ca3af; padding: 30px;">No purchase orders received in this period.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

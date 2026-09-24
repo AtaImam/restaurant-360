@@ -5,1255 +5,1628 @@
 
 {% block extra_css %}
 <style>
-* {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      :root {
-        --primary: #111827;
-        --secondary: #1f2937;
-        --accent: #f97316;
-        --accent-light: #fff7ed;
-
-        --green: #16a34a;
-        --green-light: #f0fdf4;
-
-        --blue: #2563eb;
-        --blue-light: #eff6ff;
-
-        --purple: #9333ea;
-        --purple-light: #faf5ff;
-
-        --red: #dc2626;
-        --red-light: #fef2f2;
-
-        --yellow: #ca8a04;
-        --yellow-light: #fefce8;
-
-        --background: #f6f7fb;
-        --white: #ffffff;
-
-        --text-dark: #111827;
-        --text: #374151;
-        --text-light: #6b7280;
-
-        --border: #e5e7eb;
-
-      }
-
-      body {
-        font-family:
-          Inter,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-
-        background: var(--background);
-        color: var(--text-dark);
-      }
-
-      a {
-        text-decoration: none;
-        color: inherit;
-      }
-
-      button {
-        font-family: inherit;
-      }
-
-      .menu-text {
-        flex: 1;
-      }
-
-      .menu-badge {
-        background: #374151;
-        color: #d1d5db;
-
-        font-size: 9px;
-        padding: 3px 6px;
-        border-radius: 20px;
-      }
-
-      .restaurant-info h3 {
-        font-size: 15px;
-        margin-bottom: 3px;
-      }
-
-      .restaurant-info p {
-        font-size: 11px;
-        color: var(--text-light);
-      }
-
-      /* =========================
-           CONTENT
-        ========================== */
-
-      .content {
-        padding: 30px;
-        max-width: 1700px;
-        margin: auto;
-      }
-
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-
-        margin-bottom: 26px;
-      }
-
-      .page-title h1 {
-        font-size: 25px;
-        margin-bottom: 7px;
-      }
-
-      .page-title p {
-        font-size: 13px;
-        color: var(--text-light);
-      }
-
-      .header-actions {
-        display: flex;
-        gap: 10px;
-      }
-
-      .btn {
-        border: none;
-        border-radius: 8px;
-
-        padding: 10px 15px;
-
-        font-size: 12px;
-        font-weight: 600;
-
-        cursor: pointer;
-
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-      }
-
-      .btn-outline {
-        background: white;
-        border: 1px solid var(--border);
-        color: var(--text-dark);
-      }
-
-      .btn-primary {
-        background: var(--accent);
-        color: white;
-      }
-
-      /* =========================
-           STAT CARDS
-        ========================== */
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 18px;
-
-        margin-bottom: 22px;
-      }
-
-      .stat-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px;
-
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-
-        min-height: 128px;
-      }
-
-      .stat-label {
-        color: var(--text-light);
-        font-size: 12px;
-        font-weight: 500;
-
-        margin-bottom: 10px;
-      }
-
-      .stat-value {
-        font-size: 25px;
-        font-weight: 750;
-        margin-bottom: 8px;
-      }
-
-      .stat-change {
-        font-size: 10px;
-        color: var(--green);
-      }
-
-      .stat-icon {
-        width: 44px;
-        height: 44px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 12px;
-        font-size: 20px;
-      }
-
-      .orange {
-        background: var(--accent-light);
-        color: var(--accent);
-      }
-
-      .blue {
-        background: var(--blue-light);
-        color: var(--blue);
-      }
-
-      .green {
-        background: var(--green-light);
-        color: var(--green);
-      }
-
-      .purple {
-        background: var(--purple-light);
-        color: var(--purple);
-      }
-
-      /* =========================
-           GENERAL CARD
-        ========================== */
-
-      .card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-      }
-
-      .card-header {
-        min-height: 62px;
-
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        padding: 0 20px;
-
-        border-bottom: 1px solid var(--border);
-      }
-
-      .card-title h3 {
-        font-size: 14px;
-        margin-bottom: 4px;
-      }
-
-      .card-title p {
-        font-size: 10px;
-        color: var(--text-light);
-      }
-
-      .view-link {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--accent);
-      }
-
-      /* =========================
-           CHART SECTION
-        ========================== */
-
-      .analytics-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 18px;
-
-        margin-bottom: 22px;
-      }
-
-      .chart-body {
-        height: 285px;
-        padding: 20px;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-      }
-
-      .chart-placeholder {
-        flex: 1;
-
-        border-left: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-
-        position: relative;
-
-        display: flex;
-        align-items: flex-end;
-        gap: 8px;
-
-        padding: 20px 10px 0;
-      }
-
-      .chart-line {
-        position: absolute;
-        left: 0;
-        right: 0;
-
-        border-top: 1px dashed #e5e7eb;
-      }
-
-      .chart-line:nth-child(1) {
-        top: 20%;
-      }
-
-      .chart-line:nth-child(2) {
-        top: 40%;
-      }
-
-      .chart-line:nth-child(3) {
-        top: 60%;
-      }
-
-      .chart-line:nth-child(4) {
-        top: 80%;
-      }
-
-      .fake-bar {
-        flex: 1;
-        max-width: 38px;
-
-        background: #fed7aa;
-        border-radius: 5px 5px 0 0;
-
-        position: relative;
-        z-index: 2;
-      }
-
-      .fake-bar:nth-of-type(5) {
-        height: 30%;
-      }
-
-      .fake-bar:nth-of-type(6) {
-        height: 48%;
-      }
-
-      .fake-bar:nth-of-type(7) {
-        height: 40%;
-      }
-
-      .fake-bar:nth-of-type(8) {
-        height: 68%;
-      }
-
-      .fake-bar:nth-of-type(9) {
-        height: 57%;
-      }
-
-      .fake-bar:nth-of-type(10) {
-        height: 78%;
-      }
-
-      .fake-bar:nth-of-type(11) {
-        height: 64%;
-      }
-
-      .fake-bar:nth-of-type(12) {
-        height: 86%;
-        background: var(--accent);
-      }
-
-      .chart-note {
-        margin-top: 13px;
-        font-size: 10px;
-        text-align: center;
-        color: var(--text-light);
-      }
-
-      /* =========================
-           ORDER STATUS
-        ========================== */
-
-      .status-body {
-        padding: 22px;
-      }
-
-      .donut-placeholder {
-        width: 150px;
-        height: 150px;
-
-        border-radius: 50%;
-
-        margin: 8px auto 22px;
-
-        background: conic-gradient(
-          #f97316 0deg 120deg,
-          #2563eb 120deg 205deg,
-          #16a34a 205deg 280deg,
-          #9333ea 280deg 330deg,
-          #e5e7eb 330deg 360deg
-        );
-
-        position: relative;
-      }
-
-      .donut-placeholder::after {
-        content: "Orders";
-
-        width: 88px;
-        height: 88px;
-
-        background: white;
-        border-radius: 50%;
-
-        position: absolute;
-        top: 31px;
-        left: 31px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        font-size: 11px;
-        color: var(--text-light);
-      }
-
-      .status-list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .status-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        font-size: 11px;
-      }
-
-      .status-name {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-      }
-
-      /* =========================
-           MID SECTION
-        ========================== */
-
-      .middle-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-
-        margin-bottom: 22px;
-      }
-
-      /* =========================
-           TOP ITEMS
-        ========================== */
-
-      .item-list {
-        padding: 4px 20px 15px;
-      }
-
-      .top-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        padding: 14px 0;
-
-        border-bottom: 1px solid #f1f1f1;
-      }
-
-      .top-item:last-child {
-        border-bottom: none;
-      }
-
-      .item-rank {
-        width: 28px;
-        height: 28px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 8px;
-
-        background: var(--accent-light);
-        color: var(--accent);
-
-        font-size: 11px;
-        font-weight: 700;
-      }
-
-      .item-info {
-        flex: 1;
-      }
-
-      .item-info h4 {
-        font-size: 12px;
-        margin-bottom: 4px;
-      }
-
-      .item-info p {
-        color: var(--text-light);
-        font-size: 10px;
-      }
-
-      .item-amount {
-        font-size: 11px;
-        font-weight: 700;
-      }
-
-      /* =========================
-           ORDER TYPE
-        ========================== */
-
-      .order-type-body {
-        padding: 20px;
-      }
-
-      .order-type-box {
-        margin-bottom: 18px;
-      }
-
-      .type-top {
-        display: flex;
-        justify-content: space-between;
-
-        margin-bottom: 8px;
-
-        font-size: 11px;
-      }
-
-      .progress {
-        height: 8px;
-        background: #f3f4f6;
-        border-radius: 20px;
-        overflow: hidden;
-      }
-
-      .progress-bar {
-        height: 100%;
-        border-radius: 20px;
-      }
-
-      .progress-orange {
-        width: 72%;
-        background: var(--accent);
-      }
-
-      .progress-blue {
-        width: 28%;
-        background: var(--blue);
-      }
-
-      /* =========================
-           TABLE
-        ========================== */
-
-      .table-card {
-        margin-bottom: 22px;
-      }
-
-      .table-wrapper {
-        width: 100%;
-        overflow-x: auto;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th {
-        text-align: left;
-
-        padding: 13px 18px;
-
-        background: #fafafa;
-        color: var(--text-light);
-
-        font-size: 10px;
-        font-weight: 700;
-
-        border-bottom: 1px solid var(--border);
-      }
-
-      td {
-        padding: 15px 18px;
-
-        border-bottom: 1px solid #f1f1f1;
-
-        font-size: 11px;
-      }
-
-      tbody tr:hover {
-        background: #fafafa;
-      }
-
-      .order-id {
-        font-weight: 700;
-        color: var(--accent);
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-
-        padding: 5px 9px;
-
-        border-radius: 20px;
-
-        font-size: 9px;
-        font-weight: 700;
-      }
-
-      .badge-new {
-        background: var(--blue-light);
-        color: var(--blue);
-      }
-
-      .badge-accepted {
-        background: var(--purple-light);
-        color: var(--purple);
-      }
-
-      .badge-preparing {
-        background: var(--yellow-light);
-        color: var(--yellow);
-      }
-
-      .badge-ready {
-        background: var(--green-light);
-        color: var(--green);
-      }
-
-      .badge-served {
-        background: #ecfdf5;
-        color: #047857;
-      }
-
-      .badge-completed {
-        background: #f3f4f6;
-        color: #4b5563;
-      }
-
-      /* =========================
-           QUICK ACTIONS
-        ========================== */
-
-      .quick-actions {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-      }
-
-      .quick-action {
-        background: white;
-        border: 1px solid var(--border);
-
-        padding: 18px;
-
-        border-radius: 12px;
-
-        display: flex;
-        align-items: center;
-        gap: 13px;
-
-        transition: 0.2s;
-        cursor: pointer;
-      }
-
-      .quick-action:hover {
-        transform: translateY(-2px);
-        border-color: #fdba74;
-      }
-
-      .quick-icon {
-        width: 40px;
-        height: 40px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 10px;
-
-        background: var(--accent-light);
-        color: var(--accent);
-
-        font-size: 18px;
-      }
-
-      .quick-action h4 {
-        font-size: 11px;
-        margin-bottom: 4px;
-      }
-
-      .quick-action p {
-        font-size: 9px;
-        color: var(--text-light);
-      }
-
-      /* =========================
-           RESPONSIVE
-        ========================== */
-
-      @media (max-width: 1200px) {
-        .stats-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        .quick-actions {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      @media (max-width: 950px) {
-
-        .analytics-grid,
-        .middle-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 650px) {
-        .content {
-          padding: 18px;
-        }
-
-        .profile-info {
-          display: none;
-        }
-
-        .stats-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .quick-actions {
-          grid-template-columns: 1fr;
-        }
-
-        .page-header {
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .header-actions {
-          width: 100%;
-        }
-
-        .header-actions .btn {
-          flex: 1;
-          justify-content: center;
-        }
-      }
-
-      .menu-group-toggle {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 11px 13px;
-        margin-bottom: 4px;
-        border: none;
-        border-radius: 8px;
-        background: transparent;
-        color: #d1d5db;
-        text-align: left;
-        font-size: 13px;
-        cursor: pointer;
-        transition: 0.2s;
-      }
-
-      .menu-chevron {
-        margin-left: auto;
-        font-size: 15px;
-        color: #9ca3af;
-        transition: transform 0.2s ease;
-      }
+  :root {
+    --primary: #111827;
+    --secondary: #1f2937;
+    --accent: #f97316;
+    --accent-light: #fff7ed;
+    --accent-hover: #ea580c;
+
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+
+    --purple: #9333ea;
+    --purple-light: #faf5ff;
+
+    --red: #dc2626;
+    --red-light: #fef2f2;
+
+    --yellow: #ca8a04;
+    --yellow-light: #fefce8;
+
+    --background: #f6f7fb;
+    --white: #ffffff;
+
+    --text-dark: #111827;
+    --text: #374151;
+    --text-light: #6b7280;
+
+    --border: #e5e7eb;
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  }
+
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--background);
+    color: var(--text-dark);
+  }
+
+  /* =========================
+     CONTENT CONTAINER
+  ========================== */
+  .content {
+    padding: 28px 32px 40px;
+    max-width: 1680px;
+    margin: 0 auto;
+  }
+
+  /* =========================
+     PAGE HEADER & CONTEXT
+  ========================== */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .page-title h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+
+  .context-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-light);
+  }
+
+  .badge-branch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+
+  .badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #16a34a;
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 15px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .btn-outline {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text-dark);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+
+  .btn-outline:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 1px 2px rgba(249, 115, 22, 0.25);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+  }
+
+  /* =========================
+     STAT / KPI CARDS
+  ========================== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    min-height: 124px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  .stat-label {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .stat-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+
+  .stat-change {
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .change-positive {
+    color: #16a34a;
+  }
+
+  .change-negative {
+    color: #dc2626;
+  }
+
+  .change-neutral {
+    color: #6b7280;
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.orange {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .stat-icon.blue {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+
+  .stat-icon.green {
+    background: var(--green-light);
+    color: var(--green);
+  }
+
+  .stat-icon.purple {
+    background: var(--purple-light);
+    color: var(--purple);
+  }
+
+  /* =========================
+     CARD BASE
+  ========================== */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+  }
+
+  .card-header {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    gap: 12px;
+  }
+
+  .card-title h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 3px;
+  }
+
+  .card-title p {
+    font-size: 11px;
+    color: var(--text-light);
+  }
+
+  .view-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .view-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  /* =========================
+     PERIOD PILLS FILTER
+  ========================== */
+  .period-switch {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .period-pill-btn {
+    border: none;
+    background: transparent;
+    padding: 5px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .period-pill-btn:hover {
+    color: var(--text-dark);
+  }
+
+  .period-pill-btn.active {
+    background: white;
+    color: var(--text-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* =========================
+     CHART SECTION
+  ========================== */
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .chart-card-body {
+    padding: 20px;
+    position: relative;
+    height: 310px;
+  }
+
+  .chart-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* =========================
+     ORDER STATUS DOUGHNUT
+  ========================== */
+  .donut-card-body {
+    padding: 16px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .donut-wrapper {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 4px auto 16px;
+  }
+
+  .donut-center-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .donut-center-count {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1;
+  }
+
+  .donut-center-text {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-light);
+    margin-top: 3px;
+  }
+
+  .status-list {
+    display: grid;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.12s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .status-row:hover {
+    background: #f9fafb;
+  }
+
+  .status-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-count {
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 12px;
+  }
+
+  /* =========================
+     MID SECTION: TOP ITEMS & ORDER TYPE
+  ========================== */
+  .middle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  /* Top Selling Items */
+  .item-list {
+    padding: 8px 20px 16px;
+    min-height: 240px;
+  }
+
+  .top-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f1f1f1;
+  }
+
+  .top-item:last-child {
+    border-bottom: none;
+  }
+
+  .item-rank {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-info h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-info p {
+    color: var(--text-light);
+    font-size: 11px;
+  }
+
+  .item-sales-meta {
+    text-align: right;
+  }
+
+  .item-revenue {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .item-qty {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 1px;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 12px;
+  }
+
+  /* Order Type */
+  .order-type-body {
+    padding: 20px;
+  }
+
+  .order-type-box {
+    margin-bottom: 20px;
+  }
+
+  .type-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .type-top-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .type-top-stats {
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .progress {
+    height: 10px;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-orange {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+  }
+
+  .progress-blue {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+  }
+
+  .order-type-summary-box {
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .summary-left p {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .summary-left h4 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+
+  .summary-right {
+    text-align: right;
+  }
+
+  .summary-right p {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .summary-right h4 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  /* =========================
+     RECENT ORDERS TABLE
+  ========================== */
+  .table-card {
+    margin-bottom: 24px;
+  }
+
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 18px;
+    background: #fafafa;
+    color: var(--text-light);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 13px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 12px;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover {
+    background: #fbfbfb;
+  }
+
+  .order-id {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .badge-new {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+
+  .badge-accepted {
+    background: var(--purple-light);
+    color: var(--purple);
+  }
+
+  .badge-preparing {
+    background: var(--yellow-light);
+    color: var(--yellow);
+  }
+
+  .badge-ready {
+    background: var(--green-light);
+    color: var(--green);
+  }
+
+  .badge-served {
+    background: #ecfdf5;
+    color: #047857;
+  }
+
+  .badge-completed {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  /* =========================
+     QUICK ACTIONS
+  ========================== */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .quick-action {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    transition: all 0.18s ease;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--card-shadow);
+  }
+
+  .quick-action:hover {
+    transform: translateY(-2px);
+    border-color: #fdba74;
+    box-shadow: 0 4px 8px -2px rgba(249, 115, 22, 0.12);
+  }
+
+  .quick-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .quick-action h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+  }
+
+  .quick-action p {
+    font-size: 10px;
+    color: var(--text-light);
+  }
+
+  /* =========================
+     RESPONSIVE
+  ========================== */
+  @media (max-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .quick-actions {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 992px) {
+    .analytics-grid,
+    .middle-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .content {
+      padding: 16px;
+    }
+    .stats-grid,
+    .quick-actions {
+      grid-template-columns: 1fr;
+    }
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .header-actions {
+      width: 100%;
+    }
+    .header-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- TOPBAR -->
+<div class="content">
+  <!-- PAGE HEADER & BRANCH/DATE CONTEXT -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Owner Dashboard</h1>
+      <div class="context-bar">
+        <span>Welcome back. Real-time operations & financial performance.</span>
+        <span>•</span>
+        <span class="badge-branch">
+          📍 <span id="branchContextLabel">{{ analytics.branch_context.branch_name }}</span>
+        </span>
+        {% if analytics.branch_context.can_consolidate %}
+          {% if analytics.branch_context.is_consolidated %}
+            <a href="{% url 'owner_dashboard' %}" class="view-link" style="font-size:11px;">[Show Active Branch]</a>
+          {% else %}
+            <a href="{% url 'owner_dashboard' %}?scope=all" class="view-link" style="font-size:11px;">[Show Consolidated Mode]</a>
+          {% endif %}
+        {% endif %}
+        <span>•</span>
+        <span class="badge-live">
+          <span class="pulse-dot"></span>
+          <span id="lastRefreshedLabel">Live • {{ analytics.meta.last_refreshed }}</span>
+        </span>
+      </div>
+    </div>
 
-      
+    <div class="header-actions">
+      <a href="{% url 'finance:sales_report' %}" class="btn btn-outline">
+        📊 View Reports
+      </a>
+      <a href="{% url 'pos_dashboard' %}" class="btn btn-primary">
+        ＋ New Order
+      </a>
+    </div>
+  </div>
 
-      <!-- CONTENT -->
+  <!-- KPI METRICS (TODAY VS YESTERDAY) -->
+  <section class="stats-grid">
+    <!-- Today's Revenue -->
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Today's Revenue</div>
+        <div class="stat-value" id="kpiTodayRevenue">{{ analytics.kpis.today_revenue_formatted }}</div>
+        <div class="stat-change {% if analytics.kpis.revenue_change_pct > 0 %}change-positive{% elif analytics.kpis.revenue_change_pct < 0 %}change-negative{% else %}change-neutral{% endif %}" id="kpiRevenueChange">
+          {% if analytics.kpis.revenue_change_pct > 0 %}
+            ↑ +{{ analytics.kpis.revenue_change_pct }}% vs yesterday
+          {% elif analytics.kpis.revenue_change_pct < 0 %}
+            ↓ {{ analytics.kpis.revenue_change_pct }}% vs yesterday
+          {% else %}
+            0.0% vs yesterday
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat-icon orange">৳</div>
+    </div>
 
-      <div class="content">
-        <!-- PAGE HEADER -->
+    <!-- Today's Orders -->
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Today's Orders</div>
+        <div class="stat-value" id="kpiTodayOrders">{{ analytics.kpis.today_orders }}</div>
+        <div class="stat-change {% if analytics.kpis.orders_change_pct > 0 %}change-positive{% elif analytics.kpis.orders_change_pct < 0 %}change-negative{% else %}change-neutral{% endif %}" id="kpiOrdersChange">
+          {% if analytics.kpis.orders_change_pct > 0 %}
+            ↑ +{{ analytics.kpis.orders_change_pct }}% vs yesterday
+          {% elif analytics.kpis.orders_change_pct < 0 %}
+            ↓ {{ analytics.kpis.orders_change_pct }}% vs yesterday
+          {% else %}
+            0.0% vs yesterday
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat-icon blue">🧾</div>
+    </div>
 
-        <div class="page-header">
-          <div class="page-title">
-            <h1>Dashboard</h1>
+    <!-- Active Orders -->
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Active Orders</div>
+        <div class="stat-value" id="kpiActiveOrders">{{ analytics.kpis.active_orders }}</div>
+        <div class="stat-change change-neutral" id="kpiActiveMeta">
+          Orders currently in live service
+        </div>
+      </div>
+      <div class="stat-icon green">⏱</div>
+    </div>
 
-            <p>
-              Welcome back. Here's what's happening with your restaurant today.
-            </p>
-          </div>
+    <!-- Avg. Order Value -->
+    <div class="stat-card">
+      <div>
+        <div class="stat-label">Avg. Order Value</div>
+        <div class="stat-value" id="kpiAOV">{{ analytics.kpis.average_order_value_formatted }}</div>
+        <div class="stat-change {% if analytics.kpis.aov_change_pct > 0 %}change-positive{% elif analytics.kpis.aov_change_pct < 0 %}change-negative{% else %}change-neutral{% endif %}" id="kpiAOVChange">
+          {% if analytics.kpis.aov_change_pct > 0 %}
+            ↑ +{{ analytics.kpis.aov_change_pct }}% vs yesterday
+          {% elif analytics.kpis.aov_change_pct < 0 %}
+            ↓ {{ analytics.kpis.aov_change_pct }}% vs yesterday
+          {% else %}
+            0.0% vs yesterday
+          {% endif %}
+        </div>
+      </div>
+      <div class="stat-icon purple">📈</div>
+    </div>
+  </section>
 
-          <div class="header-actions">
-            <button class="btn btn-outline">📊 View Reports</button>
+  <!-- SALES TREND & ORDER STATUS CHARTS -->
+  <section class="analytics-grid">
+    <!-- SALES TREND LINE/AREA CHART -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Sales Trend</h3>
+          <p>Real-time settled revenue and order volume</p>
+        </div>
 
-            <button class="btn btn-primary">＋ New Order</button>
+        <div class="period-switch" id="trendPeriodSwitch">
+          <button type="button" class="period-pill-btn active" data-period="7d">Last 7 Days</button>
+          <button type="button" class="period-pill-btn" data-period="30d">30 Days</button>
+          <button type="button" class="period-pill-btn" data-period="this_month">This Month</button>
+        </div>
+      </div>
+
+      <div class="chart-card-body">
+        <div class="chart-canvas-wrapper">
+          <canvas id="salesTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDER STATUS DOUGHNUT CHART -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Order Status</h3>
+          <p>Current order progress breakdown</p>
+        </div>
+        <a href="{% url 'orders_list' %}" class="view-link">Live Queue →</a>
+      </div>
+
+      <div class="donut-card-body">
+        <div class="donut-wrapper">
+          <canvas id="orderStatusChart"></canvas>
+          <div class="donut-center-label">
+            <div class="donut-center-count" id="donutCenterCount">{{ analytics.order_status.total_active }}</div>
+            <div class="donut-center-text">Active Orders</div>
           </div>
         </div>
 
-        <!-- STATISTICS -->
-
-        <section class="stats-grid">
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Today's Revenue</div>
-
-              <div class="stat-value">৳{{ today_revenue|floatformat:2 }}</div>
-
-              <div class="stat-change">↑ Revenue generated today</div>
+        <div class="status-list" id="statusListRows">
+          <a href="{% url 'orders_list' %}?status=NEW" class="status-row">
+            <div class="status-name">
+              <span class="status-dot" style="background: #3b82f6;"></span>
+              <span>New</span>
             </div>
+            <span class="status-count" id="statusCountNew">{{ analytics.order_status.NEW }}</span>
+          </a>
 
-            <div class="stat-icon orange">৳</div>
-          </div>
-
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Today's Orders</div>
-
-              <div class="stat-value">{{ total_orders }}</div>
-
-              <div class="stat-change">Today's total orders</div>
+          <a href="{% url 'orders_list' %}?status=ACCEPTED" class="status-row">
+            <div class="status-name">
+              <span class="status-dot" style="background: #8b5cf6;"></span>
+              <span>Accepted</span>
             </div>
+            <span class="status-count" id="statusCountAccepted">{{ analytics.order_status.ACCEPTED }}</span>
+          </a>
 
-            <div class="stat-icon blue">🧾</div>
-          </div>
-
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Active Orders</div>
-
-              <div class="stat-value">{{ active_orders }}</div>
-
-              <div class="stat-change">Orders currently in progress</div>
+          <a href="{% url 'orders_list' %}?status=PREPARING" class="status-row">
+            <div class="status-name">
+              <span class="status-dot" style="background: #f59e0b;"></span>
+              <span>Preparing</span>
             </div>
+            <span class="status-count" id="statusCountPreparing">{{ analytics.order_status.PREPARING }}</span>
+          </a>
 
-            <div class="stat-icon green">⏱</div>
-          </div>
-
-          <div class="stat-card">
-            <div>
-              <div class="stat-label">Avg. Order Value</div>
-
-              <div class="stat-value">
-                ৳{{ average_order_value|floatformat:2 }}
-              </div>
-
-              <div class="stat-change">Average value today</div>
+          <a href="{% url 'orders_list' %}?status=READY" class="status-row">
+            <div class="status-name">
+              <span class="status-dot" style="background: #10b981;"></span>
+              <span>Ready</span>
             </div>
+            <span class="status-count" id="statusCountReady">{{ analytics.order_status.READY }}</span>
+          </a>
 
-            <div class="stat-icon purple">📈</div>
-          </div>
-        </section>
-
-        <!-- ANALYTICS -->
-
-        <section class="analytics-grid">
-          <!-- SALES TREND -->
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <h3>Sales Trend</h3>
-
-                <p>Revenue performance</p>
-              </div>
-
-              <a href="#" class="view-link"> Last 7 Days </a>
+          <a href="{% url 'orders_list' %}?status=SERVED" class="status-row">
+            <div class="status-name">
+              <span class="status-dot" style="background: #06b6d4;"></span>
+              <span>Served</span>
             </div>
+            <span class="status-count" id="statusCountServed">{{ analytics.order_status.SERVED }}</span>
+          </a>
 
-            <div class="chart-body">
-              <div class="chart-placeholder">
-                <div class="chart-line"></div>
-                <div class="chart-line"></div>
-                <div class="chart-line"></div>
-                <div class="chart-line"></div>
-
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-                <div class="fake-bar"></div>
-              </div>
-
-              <div class="chart-note">
-                Live sales chart will be connected later
-              </div>
+          <a href="{% url 'orders_list' %}?status=COMPLETED" class="status-row">
+            <div class="status-name">
+              <span class="status-dot" style="background: #64748b;"></span>
+              <span>Completed</span>
             </div>
-          </div>
-
-          <!-- ORDER STATUS -->
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <h3>Order Status</h3>
-
-                <p>Current order distribution</p>
-              </div>
-            </div>
-
-            <div class="status-body">
-              <div class="donut-placeholder"></div>
-
-              <div class="status-list">
-                <div class="status-row">
-                  <div class="status-name">
-                    <span class="status-dot" style="background: #f97316"></span>
-
-                    New Orders
-                  </div>
-
-                  <strong>--</strong>
-                </div>
-
-                <div class="status-row">
-                  <div class="status-name">
-                    <span class="status-dot" style="background: #2563eb"></span>
-
-                    Preparing
-                  </div>
-
-                  <strong>--</strong>
-                </div>
-
-                <div class="status-row">
-                  <div class="status-name">
-                    <span class="status-dot" style="background: #16a34a"></span>
-
-                    Ready
-                  </div>
-
-                  <strong>--</strong>
-                </div>
-
-                <div class="status-row">
-                  <div class="status-name">
-                    <span class="status-dot" style="background: #9333ea"></span>
-
-                    Completed
-                  </div>
-
-                  <strong>--</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- TOP ITEMS & ORDER TYPE -->
-
-        <section class="middle-grid">
-          <!-- TOP SELLING -->
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <h3>Top Selling Items</h3>
-
-                <p>Best performing menu items</p>
-              </div>
-
-              <a href="#" class="view-link"> View Report </a>
-            </div>
-
-            <div class="item-list">
-              <div class="top-item">
-                <div class="item-rank">1</div>
-
-                <div class="item-info">
-                  <h4>Chicken Burger</h4>
-
-                  <p>Burger</p>
-                </div>
-
-                <div class="item-amount">--</div>
-              </div>
-
-              <div class="top-item">
-                <div class="item-rank">2</div>
-
-                <div class="item-info">
-                  <h4>Beef Burger</h4>
-
-                  <p>Burger</p>
-                </div>
-
-                <div class="item-amount">--</div>
-              </div>
-
-              <div class="top-item">
-                <div class="item-rank">3</div>
-
-                <div class="item-info">
-                  <h4>BBQ Pizza</h4>
-
-                  <p>Pizza</p>
-                </div>
-
-                <div class="item-amount">--</div>
-              </div>
-
-              <div class="top-item">
-                <div class="item-rank">4</div>
-
-                <div class="item-info">
-                  <h4>Mojo</h4>
-
-                  <p>Drinks</p>
-                </div>
-
-                <div class="item-amount">--</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ORDER TYPE -->
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <h3>Sales by Order Type</h3>
-
-                <p>Dine-in vs takeaway performance</p>
-              </div>
-            </div>
-
-            <div class="order-type-body">
-              <div class="order-type-box">
-                <div class="type-top">
-                  <span> 🍽 Dine In </span>
-
-                  <strong> -- </strong>
-                </div>
-
-                <div class="progress">
-                  <div class="progress-bar progress-orange"></div>
-                </div>
-              </div>
-
-              <div class="order-type-box">
-                <div class="type-top">
-                  <span> 🛍 Takeaway </span>
-
-                  <strong> -- </strong>
-                </div>
-
-                <div class="progress">
-                  <div class="progress-bar progress-blue"></div>
-                </div>
-              </div>
-
-              <div
-                style="
-                  background: #fafafa;
-                  border-radius: 10px;
-                  padding: 17px;
-                  margin-top: 25px;
-                "
-              >
-                <p style="font-size: 10px; color: #6b7280; margin-bottom: 7px">
-                  Total Order Types
-                </p>
-
-                <h3 style="font-size: 20px">Dine In + Takeaway</h3>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- RECENT ORDERS -->
-
-        <section class="card table-card">
-          <div class="card-header">
-            <div class="card-title">
-              <h3>Recent Orders</h3>
-
-              <p>Latest customer orders</p>
-            </div>
-
-            <a href="{% url 'orders_list' %}" class="view-link">
-              View All Orders
-            </a>
-          </div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>ORDER</th>
-
-                  <th>TYPE</th>
-
-                  <th>TABLE</th>
-
-                  <th>AMOUNT</th>
-
-                  <th>STATUS</th>
-
-                  <th>TIME</th>
-
-                  <th>ACTION</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {% for order in recent_orders %}
-
-                <tr>
-                  <td class="order-id">#{{ order.id }}</td>
-
-                  <td>{{ order.get_order_type_display }}</td>
-
-                  <td>
-                    {% if order.table %} Table {{ order.table.table_number }} {%
-                    else %} - {% endif %}
-                  </td>
-
-                  <td>৳{{ order.total_amount|floatformat:2 }}</td>
-
-                  <td>
-                    {% if order.status == "NEW" %}
-
-                    <span class="badge badge-new"> New </span>
-
-                    {% elif order.status == "ACCEPTED" %}
-
-                    <span class="badge badge-accepted"> Accepted </span>
-
-                    {% elif order.status == "PREPARING" %}
-
-                    <span class="badge badge-preparing"> Preparing </span>
-
-                    {% elif order.status == "READY" %}
-
-                    <span class="badge badge-ready"> Ready </span>
-
-                    {% elif order.status == "SERVED" %}
-
-                    <span class="badge badge-served"> Served </span>
-
-                    {% else %}
-
-                    <span class="badge badge-completed">
-                      {{ order.get_status_display }}
-                    </span>
-
-                    {% endif %}
-                  </td>
-
-                  <td>{{ order.created_at|date:"h:i A" }}</td>
-
-                  <td>
-                    <a
-                      href="{% url 'order_detail' order.id %}"
-                      style="
-                        display: inline-block;
-                        padding: 7px 11px;
-                        background: #fff7ed;
-                        color: #f97316;
-                        border-radius: 7px;
-                        font-size: 10px;
-                        font-weight: 700;
-                      "
-                    >
-                      View
-                    </a>
-                  </td>
-                </tr>
-
-                {% empty %}
-
-                <tr>
-                  <td
-                    colspan="7"
-                    style="text-align: center; padding: 35px; color: #6b7280"
-                  >
-                    No orders found.
-                  </td>
-                </tr>
-
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- QUICK ACTIONS -->
-
-        <section>
-          <div style="margin-bottom: 14px">
-            <h3 style="font-size: 14px; margin-bottom: 4px">Quick Actions</h3>
-
-            <p style="font-size: 10px; color: #6b7280">
-              Frequently used restaurant operations
-            </p>
-          </div>
-
-          <div class="quick-actions">
-            <div class="quick-action">
-              <div class="quick-icon">＋</div>
-
-              <div>
-                <h4>Create Order</h4>
-
-                <p>Start a new POS order</p>
-              </div>
-            </div>
-
-            <div class="quick-action">
-              <div class="quick-icon">🍔</div>
-
-              <div>
-                <h4>Add Menu Item</h4>
-
-                <p>Create new food item</p>
-              </div>
-            </div>
-
-            <div class="quick-action">
-              <div class="quick-icon">📦</div>
-
-              <div>
-                <h4>Update Stock</h4>
-
-                <p>Manage inventory stock</p>
-              </div>
-            </div>
-
-            <a href="{% url 'kitchen_dashboard' %}" class="quick-action">
-              <div class="quick-icon">🍳</div>
-
-              <div>
-                <h4>Open Kitchen</h4>
-
-                <p>View active kitchen orders</p>
-              </div>
-            </a>
-          </div>
-        </section>
+            <span class="status-count" id="statusCountCompleted">{{ analytics.order_status.COMPLETED }}</span>
+          </a>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <!-- TOP ITEMS & ORDER TYPE -->
+  <section class="middle-grid">
+    <!-- TOP SELLING ITEMS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Top Selling Items</h3>
+          <p id="topItemsPeriodSubtitle">Best performing items for selected period</p>
+        </div>
+        <a href="{% url 'menu_item_list' %}" class="view-link">Manage Menu →</a>
+      </div>
+
+      <div class="item-list" id="topItemsContainer">
+        {% for item in analytics.top_items %}
+          <div class="top-item">
+            <div class="item-rank">{{ item.rank }}</div>
+            <div class="item-info">
+              <h4>{{ item.name }}</h4>
+              <p>{{ item.category }}</p>
+            </div>
+            <div class="item-sales-meta">
+              <div class="item-revenue">{{ item.revenue_formatted }}</div>
+              <div class="item-qty">{{ item.quantity }} sold</div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-state">
+            No item sales recorded in this period.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SALES BY ORDER TYPE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Sales by Order Type</h3>
+          <p>Dine-in vs takeaway distribution</p>
+        </div>
+        <span class="badge-live" style="font-size: 10px;" id="orderTypeTotalBadge">
+          {{ analytics.order_types.total_count }} Orders
+        </span>
+      </div>
+
+      <div class="order-type-body">
+        <!-- Dine In -->
+        <div class="order-type-box">
+          <div class="type-top">
+            <span class="type-top-label">
+              🍽 Dine In
+            </span>
+            <span class="type-top-stats" id="dineInStats">
+              {{ analytics.order_types.dine_in.count }} orders ({{ analytics.order_types.dine_in.percentage }}%) • {{ analytics.order_types.dine_in.revenue_formatted }}
+            </span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar progress-orange" id="dineInProgressBar" style="width: {{ analytics.order_types.dine_in.percentage }}%;"></div>
+          </div>
+        </div>
+
+        <!-- Takeaway -->
+        <div class="order-type-box">
+          <div class="type-top">
+            <span class="type-top-label">
+              🛍 Takeaway
+            </span>
+            <span class="type-top-stats" id="takeawayStats">
+              {{ analytics.order_types.takeaway.count }} orders ({{ analytics.order_types.takeaway.percentage }}%) • {{ analytics.order_types.takeaway.revenue_formatted }}
+            </span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar progress-blue" id="takeawayProgressBar" style="width: {{ analytics.order_types.takeaway.percentage }}%;"></div>
+          </div>
+        </div>
+
+        <!-- Summary Box -->
+        <div class="order-type-summary-box">
+          <div class="summary-left">
+            <p>Total Orders in Period</p>
+            <h4 id="orderTypeTotalCount">{{ analytics.order_types.total_count }}</h4>
+          </div>
+          <div class="summary-right">
+            <p>Total Net Sales</p>
+            <h4 id="orderTypeTotalRevenue">{{ analytics.order_types.total_revenue_formatted }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECENT ORDERS TABLE -->
+  <section class="card table-card">
+    <div class="card-header">
+      <div class="card-title">
+        <h3>Recent Orders</h3>
+        <p>Latest customer orders in current branch context</p>
+      </div>
+      <a href="{% url 'orders_list' %}" class="view-link">View All Orders →</a>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ORDER</th>
+            <th>TYPE</th>
+            <th>TABLE</th>
+            <th>AMOUNT</th>
+            <th>STATUS</th>
+            <th>TIME</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+            <tr>
+              <td class="order-id">#{{ order.id }}</td>
+              <td>{{ order.get_order_type_display }}</td>
+              <td>
+                {% if order.table %} Table {{ order.table.table_number }} {% else %} - {% endif %}
+              </td>
+              <td>৳{{ order.total_amount|floatformat:2 }}</td>
+              <td>
+                {% if order.status == "NEW" %}
+                  <span class="badge badge-new">New</span>
+                {% elif order.status == "ACCEPTED" %}
+                  <span class="badge badge-accepted">Accepted</span>
+                {% elif order.status == "PREPARING" %}
+                  <span class="badge badge-preparing">Preparing</span>
+                {% elif order.status == "READY" %}
+                  <span class="badge badge-ready">Ready</span>
+                {% elif order.status == "SERVED" %}
+                  <span class="badge badge-served">Served</span>
+                {% else %}
+                  <span class="badge badge-completed">{{ order.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>{{ order.created_at|date:"h:i A" }}</td>
+              <td>
+                <a
+                  href="{% url 'order_detail' order.id %}"
+                  style="
+                    display: inline-block;
+                    padding: 6px 12px;
+                    background: #fff7ed;
+                    color: #f97316;
+                    border-radius: 6px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-decoration: none;
+                  "
+                >
+                  View
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 36px; color: #6b7280;">
+                No recent orders found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- QUICK ACTIONS -->
+  <section>
+    <div style="margin-bottom: 14px;">
+      <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--text-dark);">Quick Actions</h3>
+      <p style="font-size: 11px; color: #6b7280;">Frequently used restaurant operations</p>
+    </div>
+
+    <div class="quick-actions">
+      <a href="{% url 'pos_dashboard' %}" class="quick-action">
+        <div class="quick-icon">＋</div>
+        <div>
+          <h4>Create Order</h4>
+          <p>Start a new POS order</p>
+        </div>
+      </a>
+
+      <a href="{% url 'menu_item_create' %}" class="quick-action">
+        <div class="quick-icon">🍔</div>
+        <div>
+          <h4>Add Menu Item</h4>
+          <p>Create new food item</p>
+        </div>
+      </a>
+
+      <a href="{% url 'ingredient_list' %}" class="quick-action">
+        <div class="quick-icon">📦</div>
+        <div>
+          <h4>Update Stock</h4>
+          <p>Manage inventory stock</p>
+        </div>
+      </a>
+
+      <a href="{% url 'kitchen_dashboard' %}" class="quick-action">
+        <div class="quick-icon">🍳</div>
+        <div>
+          <h4>Open Kitchen</h4>
+          <p>View active kitchen orders</p>
+        </div>
+      </a>
+    </div>
+  </section>
+</div>
+
+<!-- Initial Analytics Payload -->
+{{ analytics|json_script:"initialAnalyticsData" }}
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  (function() {
+    let currentPeriod = '7d';
+    const scopeParam = new URLSearchParams(window.location.search).get('scope') || '';
+    let salesTrendChart = null;
+    let orderStatusChart = null;
+
+    // Load initial analytics injected from server
+    const initialDataEl = document.getElementById('initialAnalyticsData');
+    let analyticsData = null;
+    if (initialDataEl) {
+      try {
+        analyticsData = JSON.parse(initialDataEl.textContent);
+      } catch (e) {
+        console.error('Failed to parse initial analytics data', e);
+      }
+    }
+
+    let restaurantTimezone = (analyticsData && analyticsData.meta && analyticsData.meta.timezone) || 'Asia/Dhaka';
+
+    function formatTimeInTimezone(date, tz) {
+      try {
+        return new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          hour: 'numeric',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+        }).format(date);
+      } catch (e) {
+        return date.toLocaleTimeString('en-US');
+      }
+    }
+
+    function updateLiveClock() {
+      const el = document.getElementById('lastRefreshedLabel');
+      if (!el) return;
+      const formatted = formatTimeInTimezone(new Date(), restaurantTimezone);
+      el.textContent = `Live • ${formatted}`;
+    }
+
+    // Tick every second
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
+    // Initialize Charts on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+      if (analyticsData) {
+        initSalesTrendChart(analyticsData.sales_trend);
+        initOrderStatusChart(analyticsData.order_status);
+      }
+
+      // Period switch buttons
+      const periodButtons = document.querySelectorAll('#trendPeriodSwitch .period-pill-btn');
+      periodButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const selectedPeriod = this.getAttribute('data-period');
+          if (selectedPeriod === currentPeriod) return;
+
+          periodButtons.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentPeriod = selectedPeriod;
+          fetchAnalytics(selectedPeriod, false);
+        });
+      });
+
+      // Background auto-refresh every 60 seconds
+      setInterval(function() {
+        fetchAnalytics(currentPeriod, true);
+      }, 60000);
+    });
+
+    // 1. Sales Trend Line/Area Chart
+    function initSalesTrendChart(trendData) {
+      const canvas = document.getElementById('salesTrendChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+      gradient.addColorStop(0, 'rgba(249, 115, 22, 0.28)');
+      gradient.addColorStop(0.8, 'rgba(249, 115, 22, 0.02)');
+      gradient.addColorStop(1, 'rgba(249, 115, 22, 0.00)');
+
+      salesTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: trendData.labels,
+          datasets: [{
+            label: 'Revenue',
+            data: trendData.revenues,
+            orderCounts: trendData.order_counts,
+            fullDates: trendData.full_dates,
+            borderColor: '#f97316',
+            borderWidth: 2.5,
+            backgroundColor: gradient,
+            fill: true,
+            tension: 0.35,
+            pointRadius: trendData.labels.length > 14 ? 1.5 : 3.5,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#f97316',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              backgroundColor: '#111827',
+              titleColor: '#ffffff',
+              bodyColor: '#f3f4f6',
+              padding: 12,
+              cornerRadius: 8,
+              boxPadding: 4,
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0].dataIndex;
+                  return trendData.full_dates ? trendData.full_dates[idx] : items[0].label;
+                },
+                label: function(context) {
+                  const val = context.parsed.y || 0;
+                  const orders = trendData.order_counts[context.dataIndex] || 0;
+                  return [
+                    ` Revenue: ৳${val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                    ` Orders: ${orders} orders`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+              },
+              ticks: {
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                },
+                color: '#6b7280',
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 10,
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#f3f4f6',
+                borderDash: [4, 4],
+              },
+              ticks: {
+                font: {
+                  family: 'Inter',
+                  size: 11,
+                },
+                color: '#6b7280',
+                callback: function(value) {
+                  return '৳' + (value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Order Status Doughnut Chart
+    function initOrderStatusChart(statusData) {
+      const canvas = document.getElementById('orderStatusChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const statuses = ['New', 'Accepted', 'Preparing', 'Ready', 'Served', 'Completed'];
+      const rawCounts = [
+        statusData.NEW || 0,
+        statusData.ACCEPTED || 0,
+        statusData.PREPARING || 0,
+        statusData.READY || 0,
+        statusData.SERVED || 0,
+        statusData.COMPLETED || 0,
+      ];
+      const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#06b6d4', '#64748b'];
+
+      const sum = rawCounts.reduce((a, b) => a + b, 0);
+      const dataValues = sum === 0 ? [1] : rawCounts;
+      const bgColors = sum === 0 ? ['#f3f4f6'] : colors;
+
+      orderStatusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: sum === 0 ? ['No Orders'] : statuses,
+          datasets: [{
+            data: dataValues,
+            backgroundColor: bgColors,
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: sum === 0 ? 0 : 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              enabled: sum > 0,
+              backgroundColor: '#111827',
+              titleColor: '#ffffff',
+              bodyColor: '#f3f4f6',
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  const val = rawCounts[context.dataIndex];
+                  const pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : 0;
+                  return ` ${context.label}: ${val} (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 3. Fetch analytics via API for filter and auto-refresh
+    function fetchAnalytics(period, isBackground) {
+      let url = `{% url 'dashboard_analytics_api' %}?period=${encodeURIComponent(period)}`;
+      if (scopeParam) {
+        url += `&scope=${encodeURIComponent(scopeParam)}`;
+      }
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+          return response.json();
+        })
+        .then(data => {
+          updateDashboardUI(data);
+        })
+        .catch(err => {
+          console.warn('Dashboard analytics refresh failed:', err);
+        });
+    }
+
+    // 4. Update UI Components with incoming analytics data
+    function updateDashboardUI(data) {
+      if (!data) return;
+
+      // Meta & context
+      if (data.meta && data.meta.timezone) {
+        restaurantTimezone = data.meta.timezone;
+        updateLiveClock();
+      } else if (data.meta && data.meta.last_refreshed) {
+        const refreshEl = document.getElementById('lastRefreshedLabel');
+        if (refreshEl) refreshEl.textContent = `Live • ${data.meta.last_refreshed}`;
+      }
+
+      // KPIs
+      const kpis = data.kpis;
+      if (kpis) {
+        setElemText('kpiTodayRevenue', kpis.today_revenue_formatted);
+        setElemText('kpiTodayOrders', kpis.today_orders);
+        setElemText('kpiActiveOrders', kpis.active_orders);
+        setElemText('kpiAOV', kpis.average_order_value_formatted);
+
+        updateDeltaBadge('kpiRevenueChange', kpis.revenue_change_pct);
+        updateDeltaBadge('kpiOrdersChange', kpis.orders_change_pct);
+        updateDeltaBadge('kpiAOVChange', kpis.aov_change_pct);
+      }
+
+      // Update Sales Trend Chart
+      if (salesTrendChart && data.sales_trend) {
+        salesTrendChart.data.labels = data.sales_trend.labels;
+        salesTrendChart.data.datasets[0].data = data.sales_trend.revenues;
+        salesTrendChart.data.datasets[0].orderCounts = data.sales_trend.order_counts;
+        salesTrendChart.data.datasets[0].fullDates = data.sales_trend.full_dates;
+        salesTrendChart.options.plugins.tooltip.callbacks.title = function(items) {
+          const idx = items[0].dataIndex;
+          return data.sales_trend.full_dates[idx] || items[0].label;
+        };
+        salesTrendChart.options.plugins.tooltip.callbacks.label = function(context) {
+          const val = context.parsed.y || 0;
+          const orders = data.sales_trend.order_counts[context.dataIndex] || 0;
+          return [
+            ` Revenue: ৳${val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+            ` Orders: ${orders} orders`
+          ];
+        };
+        salesTrendChart.update('none');
+      }
+
+      // Update Order Status Chart & Counts
+      if (orderStatusChart && data.order_status) {
+        const st = data.order_status;
+        setElemText('donutCenterCount', st.total_active || 0);
+        setElemText('statusCountNew', st.NEW || 0);
+        setElemText('statusCountAccepted', st.ACCEPTED || 0);
+        setElemText('statusCountPreparing', st.PREPARING || 0);
+        setElemText('statusCountReady', st.READY || 0);
+        setElemText('statusCountServed', st.SERVED || 0);
+        setElemText('statusCountCompleted', st.COMPLETED || 0);
+
+        const raw = [st.NEW || 0, st.ACCEPTED || 0, st.PREPARING || 0, st.READY || 0, st.SERVED || 0, st.COMPLETED || 0];
+        const sum = raw.reduce((a, b) => a + b, 0);
+        const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#06b6d4', '#64748b'];
+
+        orderStatusChart.data.labels = sum === 0 ? ['No Orders'] : ['New', 'Accepted', 'Preparing', 'Ready', 'Served', 'Completed'];
+        orderStatusChart.data.datasets[0].data = sum === 0 ? [1] : raw;
+        orderStatusChart.data.datasets[0].backgroundColor = sum === 0 ? ['#f3f4f6'] : colors;
+        orderStatusChart.options.plugins.tooltip.enabled = sum > 0;
+        orderStatusChart.update('none');
+      }
+
+      // Update Top Items
+      if (data.top_items) {
+        const container = document.getElementById('topItemsContainer');
+        if (container) {
+          if (data.top_items.length === 0) {
+            container.innerHTML = '<div class="empty-state">No item sales recorded in this period.</div>';
+          } else {
+            let html = '';
+            data.top_items.forEach(item => {
+              html += `
+                <div class="top-item">
+                  <div class="item-rank">${item.rank}</div>
+                  <div class="item-info">
+                    <h4>${escapeHtml(item.name)}</h4>
+                    <p>${escapeHtml(item.category)}</p>
+                  </div>
+                  <div class="item-sales-meta">
+                    <div class="item-revenue">${item.revenue_formatted}</div>
+                    <div class="item-qty">${item.quantity} sold</div>
+                  </div>
+                </div>
+              `;
+            });
+            container.innerHTML = html;
+          }
+        }
+      }
+
+      // Update Order Type Breakdown
+      if (data.order_types) {
+        const ot = data.order_types;
+        setElemText('dineInStats', `${ot.dine_in.count} orders (${ot.dine_in.percentage}%) • ${ot.dine_in.revenue_formatted}`);
+        setElemText('takeawayStats', `${ot.takeaway.count} orders (${ot.takeaway.percentage}%) • ${ot.takeaway.revenue_formatted}`);
+
+        const dineBar = document.getElementById('dineInProgressBar');
+        if (dineBar) dineBar.style.width = `${ot.dine_in.percentage}%`;
+
+        const takeBar = document.getElementById('takeawayProgressBar');
+        if (takeBar) takeBar.style.width = `${ot.takeaway.percentage}%`;
+
+        setElemText('orderTypeTotalBadge', `${ot.total_count} Orders`);
+        setElemText('orderTypeTotalCount', ot.total_count);
+        setElemText('orderTypeTotalRevenue', ot.total_revenue_formatted);
+      }
+    }
+
+    function setElemText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function updateDeltaBadge(id, pct) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.className = 'stat-change ' + (pct > 0 ? 'change-positive' : (pct < 0 ? 'change-negative' : 'change-neutral'));
+      if (pct > 0) {
+        el.textContent = `↑ +${pct}% vs yesterday`;
+      } else if (pct < 0) {
+        el.textContent = `↓ ${pct}% vs yesterday`;
+      } else {
+        el.textContent = `0.0% vs yesterday`;
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  })();
+</script>
 {% endblock %}

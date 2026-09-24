@@ -1,0 +1,103 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}My Leave{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>🌴</span>
+        <span>My Leave Requests</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+        Submit time-off requests and track approval status
+      </p>
+    </div>
+
+    <button type="button" class="btn btn-accent" onclick="document.getElementById('leaveModal').classList.add('open')">
+      <span>+</span>
+      <span>Request Leave</span>
+    </button>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px;">Type</th>
+          <th style="padding: 12px;">Dates</th>
+          <th style="padding: 12px;">Reason</th>
+          <th style="padding: 12px;">Submitted</th>
+          <th style="padding: 12px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in leaves %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px; font-weight: 700;">{{ l.get_leave_type_display }}</td>
+          <td style="padding: 12px;">{{ l.start_date|date:"M d, Y" }} – {{ l.end_date|date:"M d, Y" }}</td>
+          <td style="padding: 12px; color: var(--text-muted);">{{ l.reason }}</td>
+          <td style="padding: 12px; font-size: 12px; color: var(--text-light);">{{ l.created_at|date:"M d, Y" }}</td>
+          <td style="padding: 12px;">
+            <span class="badge {% if l.status == 'approved' %}badge-success{% elif l.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %}">
+              {{ l.get_status_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+            No leave requests submitted.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Leave Request Modal -->
+<div class="modal-overlay" id="leaveModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>🌴 Request Time Off</span>
+      <button type="button" onclick="document.getElementById('leaveModal').classList.remove('open')" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+    </div>
+    <form method="post" action="{% url 'kitchen_leave' %}">
+      {% csrf_token %}
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Leave Type</label>
+          <select name="leave_type" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+            {% for code, label in leave_types %}
+            <option value="{{ code }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Start Date</label>
+            <input type="date" name="start_date" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+          </div>
+          <div>
+            <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">End Date</label>
+            <input type="date" name="end_date" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Reason</label>
+          <textarea name="reason" rows="3" class="btn btn-outline" style="width: 100%; text-align: left; height: auto;" placeholder="Provide brief reason for time off" required></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('leaveModal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-accent">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

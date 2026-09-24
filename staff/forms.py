@@ -2,8 +2,9 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import PermissionDenied
+from django.db import connection
 
-from restaurant.models import Restaurant
+from restaurant.models import Branch, Restaurant
 from .models import (
     EmployeeProfile,
     LeaveRequest,
@@ -25,13 +26,16 @@ class EmployeeAccountForm(UserCreationForm):
             "email",
             "phone",
             "role",
+            "branch",
             "restaurant",
             "password1",
             "password2",
         ]
 
-    def __init__(self, *args, actor, **kwargs):
+    def __init__(self, *args, actor, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.actor = actor
+        self.branch = branch
 
         if (
             not actor.is_authenticated
@@ -56,16 +60,25 @@ class EmployeeAccountForm(UserCreationForm):
         if actor.is_superuser or actor.role in ["admin", "owner"]:
             allowed_roles.insert(0, "manager")
 
-        self.fields["role"].choices = [
+        role_choices = [("", "Select Role...")] + [
             (value, label)
             for value, label in User.ROLE_CHOICES
             if value in allowed_roles
         ]
+        self.fields["role"].choices = role_choices
+        self.fields["role"].required = True
+        if not self.is_bound and (not self.instance or not self.instance.pk):
+            self.fields["role"].initial = ""
+            self.initial["role"] = ""
 
+        if branch is not None:
+            self.instance.branch = branch
         self.fields["first_name"].required = True
         self.fields["restaurant"].required = True
+
+        target_rest_id = branch.restaurant_id if branch is not None else actor.restaurant_id
         self.fields["restaurant"].queryset = (
-            Restaurant.objects.order_by("name", "pk")
+            Restaurant.objects.filter(pk=target_rest_id).order_by("name", "pk")
         )
 
         if not (actor.is_superuser or actor.role == "admin"):
@@ -79,6 +92,46 @@ class EmployeeAccountForm(UserCreationForm):
             )
             self.fields["restaurant"].initial = actor.restaurant_id
             self.fields["restaurant"].disabled = True
+
+        # Branch selection
+        if target_rest_id:
+            branch_qs = Branch.objects.filter(restaurant_id=target_rest_id)
+            if actor.role == "manager":
+                manager_branch = branch or getattr(actor, "branch", None)
+                if manager_branch:
+                    self.fields["branch"].queryset = branch_qs.filter(pk=manager_branch.pk)
+                    self.fields["branch"].initial = manager_branch
+                else:
+                    self.fields["branch"].queryset = branch_qs
+            else:
+                self.fields["branch"].queryset = branch_qs.order_by("name", "pk")
+                if branch is not None:
+                    self.fields["branch"].initial = branch
+        else:
+            self.fields["branch"].queryset = Branch.objects.none()
+
+        self.fields["branch"].required = False
+        self.fields["branch"].empty_label = "Select Branch (Optional)"
+
+    def clean_role(self):
+        role = self.cleaned_data.get("role")
+        if not role:
+            raise forms.ValidationError("Please select a role.")
+        if role in ["admin", "owner"]:
+            raise forms.ValidationError("Cannot assign admin or owner roles.")
+        if self.actor.role == "manager" and role == "manager":
+            raise forms.ValidationError("Managers cannot assign the manager role.")
+        return role
+
+    def clean_branch(self):
+        branch = self.cleaned_data.get("branch")
+        if branch and self.actor.restaurant_id and branch.restaurant_id != self.actor.restaurant_id:
+            raise forms.ValidationError("Selected branch does not belong to this restaurant.")
+        if self.actor.role == "manager":
+            allowed_branch = self.branch or getattr(self.actor, "branch", None)
+            if allowed_branch and branch and branch != allowed_branch:
+                raise forms.ValidationError("Managers can only assign staff to their own branch.")
+        return branch
 
 
 class EmployeeProfileForm(forms.ModelForm):
@@ -131,10 +184,14 @@ class EmployeeAccountEditForm(forms.ModelForm):
             "last_name",
             "email",
             "phone",
+            "role",
+            "branch",
         ]
 
-    def __init__(self, *args, actor, **kwargs):
+    def __init__(self, *args, actor, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.actor = actor
+        self.branch = branch
 
         if (
             not actor.is_authenticated
@@ -179,6 +236,66 @@ class EmployeeAccountEditForm(forms.ModelForm):
                 )
 
         self.fields["first_name"].required = True
+
+        allowed_roles = [
+            "waiter",
+            "chief",
+            "kitchen_manager",
+            "bar_manager",
+        ]
+        if actor.is_superuser or actor.role in ["admin", "owner"]:
+            allowed_roles.insert(0, "manager")
+
+        self.fields["role"].choices = [
+            (value, label)
+            for value, label in User.ROLE_CHOICES
+            if value in allowed_roles
+        ]
+        self.fields["role"].required = True
+        if employee and employee.pk:
+            self.initial["role"] = employee.role
+
+        target_rest_id = employee.restaurant_id or (branch.restaurant_id if branch else actor.restaurant_id)
+        if target_rest_id:
+            branch_qs = Branch.objects.filter(restaurant_id=target_rest_id)
+            if actor.role == "manager":
+                manager_branch = branch or getattr(actor, "branch", None) or employee.branch
+                if manager_branch:
+                    self.fields["branch"].queryset = branch_qs.filter(pk=manager_branch.pk)
+                    self.fields["branch"].initial = manager_branch
+                else:
+                    self.fields["branch"].queryset = branch_qs
+            else:
+                self.fields["branch"].queryset = branch_qs.order_by("name", "pk")
+        else:
+            self.fields["branch"].queryset = Branch.objects.none()
+
+        self.fields["branch"].required = False
+        self.fields["branch"].empty_label = "Select Branch (Optional)"
+        if employee and employee.branch:
+            self.initial["branch"] = employee.branch
+
+    def clean_role(self):
+        role = self.cleaned_data.get("role")
+        if not role:
+            raise forms.ValidationError("Please select a role.")
+        if role in ["admin", "owner"]:
+            raise forms.ValidationError("Cannot assign admin or owner roles.")
+        if self.actor.role == "manager" and role == "manager":
+            raise forms.ValidationError("Managers cannot assign the manager role.")
+        if self.actor.role == "manager" and role not in ["waiter", "chief", "kitchen_manager", "bar_manager"]:
+            raise forms.ValidationError("You do not have permission to assign this role.")
+        return role
+
+    def clean_branch(self):
+        branch = self.cleaned_data.get("branch")
+        if branch and self.actor.restaurant_id and branch.restaurant_id != self.actor.restaurant_id:
+            raise forms.ValidationError("Selected branch does not belong to this restaurant.")
+        if self.actor.role == "manager":
+            allowed_branch = self.branch or getattr(self.actor, "branch", None) or self.instance.branch
+            if allowed_branch and branch and branch != allowed_branch:
+                raise forms.ValidationError("Managers can only assign staff to their own branch.")
+        return branch
 class ShiftForm(forms.ModelForm):
     class Meta:
         model = Shift
@@ -209,8 +326,10 @@ class ShiftForm(forms.ModelForm):
             "grace_minutes": "Late grace period (minutes)",
         }
 
-    def __init__(self, *args, actor, **kwargs):
+    def __init__(self, *args, actor, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.branch = branch or self.instance.branch
+        self.instance.branch = self.branch
 
         if (
             not actor.is_authenticated
@@ -226,7 +345,7 @@ class ShiftForm(forms.ModelForm):
             raise PermissionDenied("You cannot manage shifts.")
 
         self.fields["restaurant"].queryset = (
-            Restaurant.objects.order_by("name", "pk")
+            Restaurant.objects.filter(pk=branch.restaurant_id if branch is not None else actor.restaurant_id).order_by("name", "pk")
         )
 
         if not (actor.is_superuser or actor.role == "admin"):
@@ -258,6 +377,7 @@ class ShiftForm(forms.ModelForm):
         if restaurant and name:
             existing = Shift.objects.filter(
                 restaurant=restaurant,
+                branch=self.branch,
                 name__iexact=name,
             )
 
@@ -267,7 +387,7 @@ class ShiftForm(forms.ModelForm):
             if existing.exists():
                 self.add_error(
                     "name",
-                    "This restaurant already has a shift with this name.",
+                    "This branch already has a shift with this name.",
                 )
 
         return cleaned_data
@@ -282,6 +402,7 @@ class EmployeeShiftForm(forms.ModelForm):
 
         self.fields["shift"].queryset = Shift.objects.filter(
             restaurant_id=self.instance.user.restaurant_id,
+            branch_id=self.instance.user.branch_id,
             is_active=True,
         ).order_by("start_time", "name")
 
@@ -334,6 +455,8 @@ class LeaveRequestForm(forms.ModelForm):
 
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
+        if self.employee and start_date and start_date < self.employee.joining_date:
+            self.add_error("start_date", "Leave cannot start before the employee joining date.")
 
         if (
             start_date is not None
@@ -344,6 +467,9 @@ class LeaveRequestForm(forms.ModelForm):
                 "end_date",
                 "End date cannot be before start date.",
             )
+
+        if self.employee is not None and connection.in_atomic_block:
+            EmployeeProfile.objects.select_for_update().get(pk=self.employee.pk)
 
         if (
             self.employee is not None
@@ -399,7 +525,7 @@ class SalaryAdvanceForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, actor, **kwargs):
+    def __init__(self, *args, actor, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         if (
@@ -443,6 +569,8 @@ class SalaryAdvanceForm(forms.ModelForm):
                 user__restaurant_id=actor.restaurant_id
             )
 
+        if branch is not None:
+            employees = employees.filter(user__branch=branch)
         self.fields["employee"].queryset = employees
         self.fields["employee"].empty_label = "Select employee"
 
@@ -453,6 +581,8 @@ class SalaryAdvanceForm(forms.ModelForm):
         amount = cleaned_data.get("amount")
 
         if employee is not None and amount is not None:
+            if connection.in_atomic_block:
+                EmployeeProfile.objects.select_for_update().get(pk=employee.pk)
             basic_salary = employee.basic_salary or 0
 
             if amount > basic_salary:
@@ -496,7 +626,7 @@ class StaffLeaveRequestForm(LeaveRequestForm):
             "reason",
         ]
 
-    def __init__(self, *args, actor=None, **kwargs):
+    def __init__(self, *args, actor=None, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.actor = actor
 
@@ -525,6 +655,8 @@ class StaffLeaveRequestForm(LeaveRequestForm):
             else:
                 employees = employees.none()
 
+        if branch is not None:
+            employees = employees.filter(user__branch=branch)
         self.fields["employee"].queryset = employees
 
     def clean(self):

@@ -1,0 +1,494 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Stale Orders | Restaurant 360{% endblock %}
+{% block page_title %}Stale Orders{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --accent: #f97316;
+        --accent-soft: #fff7ed;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --white: #ffffff;
+        --red: #dc2626;
+        --red-soft: #fef2f2;
+        --purple: #7c3aed;
+        --purple-soft: #f5f3ff;
+        --amber: #b45309;
+        --amber-soft: #fffbeb;
+        --green: #15803d;
+        --green-soft: #f0fdf4;
+    }
+
+    .stale-page {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 28px 30px 40px;
+    }
+
+    .page-header-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .page-header-row h1 {
+        margin: 0 0 6px;
+        color: var(--text);
+        font-size: 27px;
+    }
+
+    .page-header-row p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .warning-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding: 15px 16px;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        background: #fff7ed;
+    }
+
+    .warning-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 34px;
+        border-radius: 50%;
+        background: #ffedd5;
+        color: #c2410c;
+        font-weight: 900;
+    }
+
+    .warning-card strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #9a3412;
+        font-size: 12px;
+    }
+
+    .warning-card p {
+        margin: 0;
+        color: #9a3412;
+        font-size: 10px;
+        line-height: 1.55;
+    }
+
+    .filter-card {
+        margin-bottom: 14px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: var(--white);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: minmax(230px, 2fr) minmax(155px, 1fr) minmax(155px, 1fr) auto auto;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .form-control {
+        width: 100%;
+        height: 40px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: #374151;
+        font-size: 11px;
+        outline: none;
+    }
+
+    .filter-button,
+    .reset-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        padding: 0 15px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .filter-button {
+        border: 0;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .reset-button {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .orders-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--white);
+        overflow: hidden;
+    }
+
+    .orders-card-header {
+        min-height: 66px;
+        padding: 0 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .orders-card-header h2 {
+        margin: 0 0 3px;
+        color: var(--text);
+        font-size: 14px;
+    }
+
+    .orders-card-header p,
+    .order-count {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10px;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+    .orders-table { width: 100%; border-collapse: collapse; }
+
+    .orders-table th {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border);
+        background: #fafafa;
+        color: var(--muted);
+        text-align: left;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .03em;
+    }
+
+    .orders-table td {
+        padding: 14px 15px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #374151;
+        font-size: 10.5px;
+        vertical-align: middle;
+    }
+
+    .order-id { color: var(--accent) !important; font-weight: 800; }
+
+    .age-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #c2410c;
+        font-size: 9px;
+        font-weight: 800;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 800;
+    }
+
+    .status-new { background: var(--red-soft); color: var(--red); }
+    .status-accepted { background: var(--purple-soft); color: var(--purple); }
+    .status-preparing { background: var(--amber-soft); color: var(--amber); }
+    .status-ready { background: var(--green-soft); color: var(--green); }
+
+    .view-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 0 10px;
+        border-radius: 7px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 9px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+    }
+
+    .pagination-info { color: var(--muted); font-size: 10px; }
+    .pagination { display: flex; gap: 5px; }
+
+    .page-link {
+        min-width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: #fff;
+        color: #374151;
+        font-size: 10px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .page-link.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .empty-state {
+        padding: 48px 20px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 11px;
+    }
+
+    .reservation-state + .reservation-state { margin-top: 6px; }
+
+    @media (max-width: 1050px) {
+        .filter-form { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 650px) {
+        .stale-page { padding: 20px 18px 32px; }
+        .filter-form { grid-template-columns: 1fr; }
+        .page-header-row { flex-direction: column; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stale-page">
+    {% if messages %}
+    <div style="margin-bottom: 16px;">
+        {% for message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 600; {% if message.tags == 'error' %}background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;{% else %}background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="page-header-row">
+        <div>
+            <a href="{% url 'orders_list' %}" class="back-link">← Back to Live Orders</a>
+            <h1>Old Unfinished Orders</h1>
+            <p>Active orders from previous days or older than {{ stale_after_hours }} hours are kept here for manual review, away from today's live service workflow.</p>
+        </div>
+    </div>
+
+    <div class="warning-card">
+        <div class="warning-icon">!</div>
+        <div>
+            <strong>Read-only order review</strong>
+            <p>Review the recorded status, reservations and consumption before deciding how to handle an old order. This page cannot change order status or inventory.</p>
+        </div>
+    </div>
+
+    <div class="filter-card">
+        <form method="GET" action="{% url 'stale_orders_list' %}" class="filter-form">
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                class="form-control"
+                placeholder="Search order ID, table number or restaurant..."
+            >
+
+            <select name="status" class="form-control" onchange="this.form.submit()">
+                <option value="">All active statuses</option>
+                {% for choice in status_choices %}
+                    {% if choice.value != "SERVED" and choice.value != "COMPLETED" %}
+                    <option value="{{ choice.value }}" {% if choice.selected %}selected{% endif %}>
+                        {{ choice.label }}
+                    </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+
+            <select name="order_type" class="form-control" onchange="this.form.submit()">
+                <option value="">All order types</option>
+                {% for choice in order_type_choices %}
+                <option value="{{ choice.value }}" {% if choice.selected %}selected{% endif %}>
+                    {{ choice.label }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="filter-button">Filter</button>
+            <a href="{% url 'stale_orders_list' %}" class="reset-button">Reset</a>
+        </form>
+    </div>
+
+    <section class="orders-card">
+        <div class="orders-card-header">
+            <div>
+                <h2>Stale Active Orders</h2>
+                <p>Old NEW, ACCEPTED, PREPARING or READY orders requiring manual review.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                {% if can_archive and page_obj.paginator.count > 0 %}
+                <form method="POST" action="{% url 'archive_all_stale_orders' %}" onsubmit="return confirm('Safely close and archive ALL {{ page_obj.paginator.count }} stale unfinished order(s)? Table and inventory holds will be released.');">
+                    {% csrf_token %}
+                    <button type="submit" style="padding: 6px 14px; font-size: 11.5px; font-weight: 700; border-radius: 8px; border: 1px solid #fecaca; background: #fff1f2; color: #be123c; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <span>📦</span> Archive All Stale Orders
+                    </button>
+                </form>
+                {% endif %}
+                <div class="order-count">
+                    {{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }}
+                </div>
+            </div>
+        </div>
+
+        {% if page_obj.object_list %}
+        <div class="table-wrapper">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>ORDER</th>
+                        <th>AGE</th>
+                        <th>TYPE</th>
+                        <th>TABLE</th>
+                        <th>RESTAURANT</th>
+                        <th>AMOUNT</th>
+                        <th>STATUS</th>
+                        <th>RECEIVED</th>
+                        <th>WHY FLAGGED</th>
+                        <th>RESERVATION / INVENTORY STATE</th>
+                        <th>CONSUMPTION TRANSACTIONS</th>
+                        {% if can_archive %}<th>ACTION</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in page_obj %}
+                    <tr>
+                        <td class="order-id">#{{ order.id }}</td>
+                        <td><span class="age-badge">{{ order.review_age_label }}</span></td>
+                        <td>{{ order.get_order_type_display }}</td>
+                        <td>
+                            {% if order.table %}
+                                Table {{ order.table.table_number }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>{{ order.restaurant.name }}</td>
+                        <td>৳{{ order.total_amount|floatformat:2 }}</td>
+                        <td>
+                            {% if order.status == "NEW" %}
+                                <span class="status-badge status-new">New</span>
+                            {% elif order.status == "ACCEPTED" %}
+                                <span class="status-badge status-accepted">Accepted</span>
+                            {% elif order.status == "PREPARING" %}
+                                <span class="status-badge status-preparing">Preparing</span>
+                            {% elif order.status == "READY" %}
+                                <span class="status-badge status-ready">Ready</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+                        <td>{{ order.flag_reason }}</td>
+                        <td>
+                            {% for reservation in order.review_reservations %}
+                            <div class="reservation-state">
+                                <strong>{{ reservation.ingredient.name }}</strong>:
+                                {{ reservation.quantity|floatformat:"-3" }} {{ reservation.ingredient.get_base_unit_display }}
+                                — {{ reservation.get_status_display }}
+                                {% if reservation.status == "ACTIVE" %}(stock held)
+                                {% elif reservation.status == "CONSUMED" %}(marked consumed)
+                                {% elif reservation.status == "RELEASED" %}(hold released){% endif %}
+                            </div>
+                            {% empty %}
+                            No reservation records
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if order.consumption_count %}
+                            Yes — {{ order.consumption_count }} consumption transaction{{ order.consumption_count|pluralize }} recorded
+                            {% else %}
+                            No consumption transactions recorded
+                            {% endif %}
+                        </td>
+                        {% if can_archive %}
+                        <td>
+                            <form method="POST" action="{% url 'archive_stale_order' order.id %}" onsubmit="return confirm('Safely close and archive Order #{{ order.id }}? This will release table holds and unconsumed inventory.');" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" style="padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border: 1px solid #fecaca; background: #fff1f2; color: #be123c; cursor: pointer; white-space: nowrap;">
+                                    Close & Archive
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </div>
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ search|urlencode }}&status={{ selected_status|urlencode }}&order_type={{ selected_order_type|urlencode }}" class="page-link">‹</a>
+                {% endif %}
+
+                {% for number in page_obj.paginator.page_range %}
+                    {% if number == page_obj.number %}
+                        <span class="page-link active">{{ number }}</span>
+                    {% elif number >= page_obj.number|add:"-2" and number <= page_obj.number|add:"2" %}
+                        <a href="?page={{ number }}&search={{ search|urlencode }}&status={{ selected_status|urlencode }}&order_type={{ selected_order_type|urlencode }}" class="page-link">{{ number }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search={{ search|urlencode }}&status={{ selected_status|urlencode }}&order_type={{ selected_order_type|urlencode }}" class="page-link">›</a>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">No stale active orders match the current filters.</div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

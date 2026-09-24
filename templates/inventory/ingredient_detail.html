@@ -229,6 +229,22 @@
                     Edit Item
                 </a>
 
+                <a href="{% url 'purchase_create' %}" class="btn btn-light" style="color: #16a34a; border-color: #bbf7d0;">
+                    + Purchase
+                </a>
+
+                <a href="{% url 'waste_create' %}?ingredient={{ ingredient.id }}" class="btn btn-light" style="color: #dc2626; border-color: #fecaca;">
+                    Record Waste
+                </a>
+
+                <a href="{% url 'stock_count_create' %}?ingredient={{ ingredient.id }}" class="btn btn-light" style="color: #2563eb; border-color: #bfdbfe;">
+                    Audit Stock
+                </a>
+
+                <a href="{% url 'stock_transaction_list' %}?ingredient={{ ingredient.id }}" class="btn btn-light">
+                    Ledger
+                </a>
+
                 <form
                     method="POST"
                     action="{% url 'ingredient_toggle_active' ingredient.id %}"

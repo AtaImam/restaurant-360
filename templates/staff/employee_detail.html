@@ -32,6 +32,7 @@
   .detail-card h2 {
     margin-bottom: 20px;
     font-size: 18px;
+    font-weight: 700;
   }
 
   .detail-grid {
@@ -48,8 +49,79 @@
 
   .detail-grid dd {
     margin: 0;
+    font-weight: 600;
     overflow-wrap: anywhere;
   }
+
+  /* Performance KPI Grid */
+  .perf-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .perf-stat {
+    padding: 16px;
+    border-radius: 12px;
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+  }
+
+  .perf-stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .perf-stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .perf-stat-sub {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 4px;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  .data-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f9fafb;
+    color: #4b5563;
+    font-weight: 600;
+  }
+
+  .data-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #1f2937;
+  }
+
+  .status-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .tag-on-time { background: #dcfce7; color: #166534; }
+  .tag-late { background: #fee2e2; color: #991b1b; }
+  .tag-paid { background: #dcfce7; color: #166534; }
+  .tag-draft { background: #fef3c7; color: #92400e; }
 
   .detail-back {
     display: inline-block;
@@ -58,6 +130,14 @@
     background: #f97316;
     color: white;
     text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    .perf-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 650px) {
@@ -65,7 +145,7 @@
       padding: 18px;
     }
 
-    .detail-grid {
+    .detail-grid, .perf-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -76,40 +156,67 @@
 <section class="staff-detail">
   <h1>{{ employee.get_full_name|default:employee.username }}</h1>
   <p class="detail-subtitle">
-    {{ employee.get_role_display }} · {{ employee.username }}
+    {{ employee.get_role_display|default:employee.role|title }} &bull; {{ employee.username }}
+    {% if profile %} &bull; ID: {{ profile.employee_id }}{% endif %}
   </p>
 
+  {% if performance %}
+  <!-- Operational Performance Metrics (Real Data Only) -->
   <section class="detail-card">
-    <h2>Account Details</h2>
-    <dl class="detail-grid">
-      <div>
-        <dt>Restaurant</dt>
-        <dd>{{ employee.restaurant.name|default:"Not assigned" }}</dd>
+    <h2>Performance &amp; Operational Metrics (Last 30 Days)</h2>
+    <div class="perf-grid">
+      <div class="perf-stat">
+        <div class="perf-stat-label">Attendance Rate</div>
+        <div class="perf-stat-value">{{ performance.attendance_rate }}%</div>
+        <div class="perf-stat-sub">{{ performance.attended_count }} of {{ performance.expected_days }} days attended</div>
       </div>
-      <div>
-        <dt>Status</dt>
-        <dd>
-          {% if employee.is_active and employee.is_active_staff %}
-          Active
-          {% else %}
-          Inactive
-          {% endif %}
-        </dd>
+      <div class="perf-stat">
+        <div class="perf-stat-label">Punctuality</div>
+        <div class="perf-stat-value">{% if performance.late_count == 0 %}100%{% else %}{{ performance.late_count }} Late{% endif %}</div>
+        <div class="perf-stat-sub">{{ performance.total_late_minutes }} total late mins</div>
       </div>
-      <div>
-        <dt>Email</dt>
-        <dd>{{ employee.email|default:"Not provided" }}</dd>
+      <div class="perf-stat">
+        <div class="perf-stat-label">Hours &amp; Overtime</div>
+        <div class="perf-stat-value">{{ performance.worked_hours }}h</div>
+        <div class="perf-stat-sub">{{ performance.overtime_hours }}h overtime logged</div>
       </div>
-      <div>
-        <dt>Phone</dt>
-        <dd>{{ employee.phone|default:"Not provided" }}</dd>
+      <div class="perf-stat">
+        <div class="perf-stat-label">Task Completion</div>
+        <div class="perf-stat-value">{{ performance.task_completion_rate }}%</div>
+        <div class="perf-stat-sub">{{ performance.tasks_completed }} of {{ performance.total_tasks }} tasks</div>
       </div>
-    </dl>
+    </div>
+
+    {% if employee.role == "waiter" %}
+    <div class="perf-grid">
+      <div class="perf-stat">
+        <div class="perf-stat-label">Orders Served</div>
+        <div class="perf-stat-value">{{ performance.orders_served }}</div>
+        <div class="perf-stat-sub">{{ performance.total_orders_handled }} total assigned</div>
+      </div>
+      <div class="perf-stat">
+        <div class="perf-stat-label">Avg Serving Speed</div>
+        <div class="perf-stat-value">{% if performance.avg_ready_to_served_mins != None %}{{ performance.avg_ready_to_served_mins }} min{% else %}—{% endif %}</div>
+        <div class="perf-stat-sub">Ready to served time</div>
+      </div>
+      <div class="perf-stat">
+        <div class="perf-stat-label">Tables Handled</div>
+        <div class="perf-stat-value">{{ performance.tables_handled }}</div>
+        <div class="perf-stat-sub">Distinct dining tables</div>
+      </div>
+      <div class="perf-stat">
+        <div class="perf-stat-label">Sessions Handled</div>
+        <div class="perf-stat-value">{{ performance.sessions_handled }}</div>
+        <div class="perf-stat-sub">Guest dining sessions</div>
+      </div>
+    </div>
+    {% endif %}
   </section>
+  {% endif %}
 
+  <!-- Account & Employment Details -->
   <section class="detail-card">
-    <h2>Employment Details</h2>
-
+    <h2>Employment &amp; Shift Details</h2>
     {% if profile %}
     <dl class="detail-grid">
       <div>
@@ -121,101 +228,139 @@
         <dd>{{ profile.joining_date|date:"d M Y" }}</dd>
       </div>
       <div>
-        <dt>Basic Salary (BDT)</dt>
-        <dd>{{ profile.basic_salary|floatformat:2 }}</dd>
+        <dt>Basic Salary</dt>
+        <dd>{{ profile.basic_salary }}</dd>
       </div>
       <div>
         <dt>Assigned Shift</dt>
         <dd>
           {% if profile.shift %}
-          {{ profile.shift.name }}
-          ({{ profile.shift.start_time|time:"H:i" }} –
-          {{ profile.shift.end_time|time:"H:i" }})
-          {% if profile.shift.end_time < profile.shift.start_time %}
-          — ends next day
-          {% endif %}
+          {{ profile.shift.name }} ({{ profile.shift.start_time|time:"H:i" }} &ndash; {{ profile.shift.end_time|time:"H:i" }})
+          {% if profile.shift.end_time < profile.shift.start_time %}(Overnight){% endif %}
           {% else %}
           Not assigned
           {% endif %}
         </dd>
       </div>
       <div>
-        <dt>Address</dt>
-        <dd>{{ profile.address|default:"Not provided"|linebreaksbr }}</dd>
+        <dt>Restaurant</dt>
+        <dd>{{ employee.restaurant.name|default:"Not assigned" }}</dd>
       </div>
       <div>
-        <dt>Emergency Contact Name</dt>
-        <dd>{{ profile.emergency_contact_name|default:"Not provided" }}</dd>
+        <dt>Account Status</dt>
+        <dd>{% if employee.is_active and employee.is_active_staff %}Active Staff{% else %}Inactive{% endif %}</dd>
       </div>
       <div>
-        <dt>Emergency Contact Phone</dt>
-        <dd>{{ profile.emergency_contact_phone|default:"Not provided" }}</dd>
+        <dt>Email / Phone</dt>
+        <dd>{{ employee.email|default:"No email" }} &bull; {{ employee.phone|default:"No phone" }}</dd>
+      </div>
+      <div>
+        <dt>Emergency Contact</dt>
+        <dd>{{ profile.emergency_contact_name|default:"None" }} ({{ profile.emergency_contact_phone|default:"None" }})</dd>
       </div>
     </dl>
     {% else %}
-    <p>This employee's employment profile has not been completed yet.</p>
+    <p>This employee profile has not been completed.</p>
     {% endif %}
   </section>
 
-  {% if user.is_superuser or user.role == "admin" or user.role == "owner" or user.role == "manager" and employee.role != "manager" %}
-  <a
-    href="{% url 'staff:employee_edit' employee_id=employee.pk %}"
-    class="detail-back"
-    style="margin-right: 10px; margin-bottom: 12px;"
-  >
-    Edit Employee
-  </a>
-  <a
-    href="{% url 'staff:employee_assign_shift' employee_id=employee.pk %}"
-    class="detail-back"
-    style="margin-right: 10px; margin-bottom: 12px;"
-  >
-    Assign Shift
-  </a>
+  {% if attendance_history %}
+  <!-- Recent Attendance History -->
+  <section class="detail-card">
+    <h2>Recent Duty &amp; Attendance (Last 10 Records)</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Shift</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Worked Time</th>
+          <th>Arrival</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in attendance_history %}
+        <tr>
+          <td>{{ att.work_date|date:"d M Y" }}</td>
+          <td>{{ att.shift.name }}</td>
+          <td>{{ att.check_in|time:"H:i" }}</td>
+          <td>{{ att.check_out|time:"H:i"|default:"In progress" }}</td>
+          <td>{{ att.worked_time }}</td>
+          <td>
+            <span class="status-tag tag-{{ att.arrival_status|slugify }}">
+              {{ att.arrival_status }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
   {% endif %}
 
-  <a href="{% url 'staff:employee_list' %}" class="detail-back">
-    Back to Employees
-  </a>
-
-  {% if user.pk != employee.pk %}
-  {% if user.is_superuser or user.role == "admin" or user.role == "owner" or user.role == "manager" and employee.role != "manager" %}
-  <form
-    method="post"
-    action="{% url 'staff:employee_set_status' employee_id=employee.pk %}"
-    style="margin-top: 24px;"
-  >
-    {% csrf_token %}
-
-    {% if employee.is_active and employee.is_active_staff %}
-    <p style="margin-bottom: 12px; color: #6b7280;">
-      Deactivating this employee blocks login and keeps their records.
-    </p>
-    <button
-      type="submit"
-      name="action"
-      value="deactivate"
-      class="detail-back"
-      style="background: #b91c1c; border: 0; cursor: pointer; font: inherit;"
-    >
-      Deactivate Employee
-    </button>
-    {% else %}
-    <p style="margin-bottom: 12px; color: #6b7280;">
-      Activate this employee to allow login again.
-    </p>
-    <button
-      type="submit"
-      name="action"
-      value="activate"
-      class="detail-back"
-      style="background: #15803d; border: 0; cursor: pointer; font: inherit;"
-    >
-      Activate Employee
-    </button>
-    {% endif %}
-  </form>
+  {% if payrolls %}
+  <!-- Recent Payroll Summary -->
+  <section class="detail-card">
+    <h2>Recent Payroll Records</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Basic Salary</th>
+          <th>Bonus</th>
+          <th>Attendance Deduct</th>
+          <th>Advance Deduct</th>
+          <th>Net Salary</th>
+          <th>Status</th>
+          <th>Payslip</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in payrolls %}
+        <tr>
+          <td><strong>{{ pr.month|date:"F Y" }}</strong></td>
+          <td>{{ pr.basic_salary }}</td>
+          <td>+{{ pr.bonus }}</td>
+          <td>-{{ pr.attendance_deduction }}</td>
+          <td>-{{ pr.advance_deduction }}</td>
+          <td><strong>{{ pr.net_salary }}</strong></td>
+          <td><span class="status-tag tag-{{ pr.status }}">{{ pr.status|upper }}</span></td>
+          <td>
+            <a href="{% url 'staff:payroll_detail' payroll_id=pr.pk %}" style="color: #ea580c; font-weight: 700; text-decoration: none;">
+              View
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
   {% endif %}
-  {% endif %}
+
+  <div style="margin-top: 24px;">
+    <a href="{% url 'staff:employee_edit' employee_id=employee.pk %}" class="detail-back" style="margin-right: 10px;">
+      Edit Employee
+    </a>
+    <a href="{% url 'staff:employee_assign_shift' employee_id=employee.pk %}" class="detail-back" style="margin-right: 10px; background: #0284c7;">
+      Assign Shift
+    </a>
+    <a href="{% url 'staff:employee_list' %}" class="detail-back" style="background: #4b5563;">
+      Back to Employees
+    </a>
+  </div>
+</section>
+<section style="padding:24px;overflow-x:auto">
+  <h2>Waiter Service History</h2>
+  <p>Branch: {{ active_branch.name|default:"Unassigned" }}</p>
+  <table><thead><tr><th>Order</th><th>Table / Session</th><th>Assigned</th><th>Ready</th><th>Served</th><th>Completed</th><th>Status</th></tr></thead><tbody>
+  {% for service in service_history %}<tr>
+    <td><a href="{% url 'order_detail' service.order_id %}">#{{ service.order_id }}</a></td>
+    <td>{{ service.order.table.table_number|default:'Takeaway' }} / {{ service.order.table_session_id|default:'—' }}</td>
+    <td>{{ service.assigned_at }}</td><td>{{ service.ready_at|default:'—' }}</td><td>{{ service.served_at|default:'—' }}</td><td>{{ service.completed_at|default:'—' }}</td><td>{{ service.order.get_status_display }}</td>
+  </tr>{% empty %}<tr><td colspan="7">No service history for this branch.</td></tr>{% endfor %}
+  </tbody></table>
+  {% if service_history.has_previous %}<a href="?service_page={{ service_history.previous_page_number }}">Previous</a>{% endif %}
+  {% if service_history.has_next %}<a href="?service_page={{ service_history.next_page_number }}">Next</a>{% endif %}
 </section>
 {% endblock %}

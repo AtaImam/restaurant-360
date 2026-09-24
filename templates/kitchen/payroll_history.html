@@ -1,0 +1,58 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}Payroll History{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>📁</span>
+        <span>My Payroll History</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+        Past pay slips and monthly salary settlements
+      </p>
+    </div>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px;">Month</th>
+          <th style="padding: 12px;">Basic</th>
+          <th style="padding: 12px;">Overtime</th>
+          <th style="padding: 12px;">Allowances</th>
+          <th style="padding: 12px;">Deductions</th>
+          <th style="padding: 12px;">Net Salary</th>
+          <th style="padding: 12px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px; font-weight: 700;">{{ r.month|date:"F Y" }}</td>
+          <td style="padding: 12px;">৳{{ r.basic_salary }}</td>
+          <td style="padding: 12px;">৳{{ r.overtime_pay }}</td>
+          <td style="padding: 12px; color: #16a34a;">+৳{{ r.allowances }}</td>
+          <td style="padding: 12px; color: #dc2626;">-৳{{ r.deductions }}</td>
+          <td style="padding: 12px; font-weight: 800; color: var(--text-dark);">৳{{ r.net_salary }}</td>
+          <td style="padding: 12px;">
+            <span class="badge {% if r.is_paid %}badge-success{% else %}badge-warning{% endif %}">
+              {% if r.is_paid %}Paid on {{ r.paid_at|date:"M d" }}{% else %}Pending{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+            No payroll records found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -91,7 +91,7 @@ class CustomerJourneyTests(OrderFlowFixture, TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
         waiter = User.objects.create_user(username="page-waiter", role="waiter", restaurant=self.restaurant)
         self.client.force_login(waiter)
-        for url in [reverse("owner_dashboard"), reverse("orders_list"), reverse("order_detail", args=[order.pk])]:
+        for url in [reverse("waiter:dashboard"), reverse("orders_list"), reverse("order_detail", args=[order.pk])]:
             self.assertEqual(self.client.get(url).status_code, 200)
 
 

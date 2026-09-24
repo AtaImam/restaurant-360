@@ -276,6 +276,11 @@
             color: #4b5563;
         }
 
+        .badge-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         /* RIGHT */
 
         .sidebar-card-body {
@@ -330,6 +335,79 @@
 
             font-size: 11px;
             font-weight: 700;
+        }
+
+        .kitchen-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .btn-link-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .btn-outline-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-action:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .receipt-btn {
+            width: 100%;
+            height: 42px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .timeline-heading {
+            margin: 20px 0 10px;
+            font-size: 11px;
+        }
+
+        .status-timeline {
+            margin: 0 0 20px;
+            padding-left: 20px;
+            font-size: 11px;
+            line-height: 2;
+            color: var(--text-light);
+        }
+
+        .timeline-current {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .timeline-done {
+            color: var(--green);
+        }
+
+        .completed-note {
+            padding: 14px;
+            background: var(--green-light);
+            color: var(--green);
+            border-radius: 8px;
+            font-size: 11px;
+            text-align: center;
         }
 
         .summary-row {
@@ -570,7 +648,16 @@
                                     <tr>
 
                                         <td class="item-name">
-                                            {{ item.menu_item.name }}
+                                            <div>{{ item.menu_item.name }}</div>
+                                            {% if item.addons.all %}
+                                                <div style="font-size: 11px; color: #ea580c; font-weight: 600; margin-top: 3px;">
+                                                    {% for a in item.addons.all %}
+                                                        <span style="display: inline-block; background: #fff7ed; border: 1px solid #fed7aa; padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 2px;">
+                                                            + {{ a.addon_name }} (৳{{ a.price|floatformat:2 }})
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
                                         </td>
 
                                         <td>
@@ -579,6 +666,9 @@
 
                                         <td>
                                             ৳{{ item.price|floatformat:2 }}
+                                            {% if item.addons.all %}
+                                                <div style="font-size: 10px; color: #6b7280;">(+৳{{ item.addons_total|floatformat:2 }} addons)</div>
+                                            {% endif %}
                                         </td>
 
                                         <td>
@@ -603,6 +693,35 @@
 
                                     {% endfor %}
 
+                                    {% if order.discount_amount and order.discount_amount != "0.00" %}
+                                    <tr style="color: #6b7280;">
+                                        <td colspan="3">Subtotal</td>
+                                        <td>৳{{ order.subtotal|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr style="color: #ea580c; font-weight: 600;">
+                                        <td colspan="3">
+                                            Discount
+                                            {% if order.coupon_code_snapshot %}
+                                                ({{ order.coupon_code_snapshot }})
+                                            {% elif order.coupon_name_snapshot %}
+                                                ({{ order.coupon_name_snapshot }})
+                                            {% endif %}
+                                        </td>
+                                        <td>−৳{{ order.discount_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if order.service_charge and order.service_charge != "0.00" %}
+                                    <tr style="color: #6b7280;">
+                                        <td colspan="3">Service Charge</td>
+                                        <td>৳{{ order.service_charge|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if order.vat_amount and order.vat_amount != "0.00" %}
+                                    <tr style="color: #6b7280;">
+                                        <td colspan="3">VAT</td>
+                                        <td>৳{{ order.vat_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
                                     <tr class="total-row">
 
                                         <td colspan="3">
@@ -685,6 +804,12 @@
                                     Served
                                 </span>
 
+                                {% elif order.status == "CANCELLED" %}
+
+                                <span class="badge badge-cancelled">
+                                    Cancelled
+                                </span>
+
                                 {% else %}
 
                                 <span class="badge badge-completed">
@@ -695,54 +820,58 @@
 
                             </div>
 
-                            {% if status_choices %}
-
-
-                            <form method="POST">
-                                {% csrf_token %}
-
-                                {% for value, label in status_choices %}
-
-                                <input type="hidden" name="status" value="{{ value }}">
-
-                                <button type="submit" class="update-btn">
-                                    {% if value == "ACCEPTED" %}
-                                    Accept Order
-
-                                    {% elif value == "PREPARING" %}
-                                    Start Preparing
-
-                                    {% elif value == "READY" %}
-                                    Mark as Ready
-
-                                    {% elif value == "SERVED" %}
-                                    Mark as Served
-
-                                    {% elif value == "COMPLETED" %}
-                                    Complete Order
-
-                                    {% else %}
-                                    Update Status
-                                    {% endif %}
-                                </button>
-
-                                {% endfor %}
-                            </form>
-
-                            {% else %}
-
-                            <div style="
-        padding: 14px;
-        background: #f0fdf4;
-        color: #15803d;
-        border-radius: 8px;
-        font-size: 11px;
-        font-weight: 600;
-        text-align: center;
-    ">
-                                ✓ Order Completed
+                            <div class="summary-row">
+                                <span>Order Age</span>
+                                <strong>{{ order.age_label }}</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Payment Status</span>
+                                <strong>{{ order.get_payment_status_display }}</strong>
                             </div>
 
+                            <h4 class="timeline-heading">Status Timeline</h4>
+                            <ol class="status-timeline" aria-label="Order status timeline">
+                                {% for step in status_timeline %}
+                                <li class="timeline-{{ step.state }}"{% if step.state == "current" %} aria-current="step"{% endif %}>
+                                    {{ step.label }}
+                                    {% if step.state == "current" %}<span> — Current</span>{% endif %}
+                                    {% if step.state == "done" %}<span> ✓</span>{% endif %}
+                                </li>
+                                {% endfor %}
+                            </ol>
+
+                            {% if show_collect_payment %}
+                            <a href="{% url 'bill_preview' order.id %}?next={% url 'order_detail' order.id %}" class="update-btn btn-link-action">
+                                Collect Payment
+                            </a>
+                            {% elif status_choices %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                {% for value, label in status_choices %}
+                                <button type="submit" name="status" value="{{ value }}" class="update-btn">
+                                    {{ label }}
+                                </button>
+                                {% endfor %}
+                            </form>
+                            {% elif order.status == "ACCEPTED" or order.status == "PREPARING" %}
+                            <a href="{% url 'kitchen_dashboard' %}" class="update-btn kitchen-link">Open Kitchen</a>
+                            {% elif order.status == "COMPLETED" %}
+                            <p class="completed-note">✓ Order Completed</p>
+                            {% elif order.status == "CANCELLED" %}
+                            <p class="completed-note" style="color: #dc2626;">✕ Order Closed / Cancelled</p>
+                            {% endif %}
+                            {% if is_stale_unfinished and user.is_authenticated and user.role in "admin manager owner" or is_stale_unfinished and user.is_superuser %}
+                            <form method="POST" action="{% url 'archive_stale_order' order.id %}?next={% url 'order_detail' order.id %}" onsubmit="return confirm('Safely close and archive Order #{{ order.id }}? Table and inventory holds will be released.');" style="margin-top: 8px;">
+                                {% csrf_token %}
+                                <button type="submit" class="update-btn" style="background: #fff1f2; border: 1px solid #fecaca; color: #be123c;">
+                                    Close & Archive Stale Order
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if order.payment_status == "PAID" %}
+                            <a href="{% url 'order_receipt' order.id %}" target="_blank" class="receipt-btn btn-outline-action">
+                                🧾 Printable Receipt
+                            </a>
                             {% endif %}
 
                         </div>

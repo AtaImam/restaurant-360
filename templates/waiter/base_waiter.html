@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}Waiter Service{% endblock %} - Restaurant 360</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #111827;
+      --primary-light: #1f2937;
+      --accent: #f97316;
+      --accent-hover: #ea580c;
+      --accent-light: #fff7ed;
+      --accent-border: #fed7aa;
+      --text: #374151;
+      --text-dark: #111827;
+      --text-muted: #6b7280;
+      --text-light: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f9fafb;
+      --card-bg: #ffffff;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --success-border: #a7f3d0;
+      --warning: #f59e0b;
+      --warning-bg: #fffbeb;
+      --warning-border: #fde68a;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --touch-min: 44px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .waiter-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hamburger-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-min);
+      height: var(--touch-min);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-dark);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text-dark);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .role-tag {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .branch-pill {
+      background: #f3f4f6;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* Notification Bell & Dropdown */
+    .notif-wrap {
+      position: relative;
+    }
+
+    .notif-bell-btn {
+      width: var(--touch-min);
+      height: var(--touch-min);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 16px;
+      position: relative;
+      color: var(--text);
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      height: 18px;
+      min-width: 18px;
+      padding: 0 4px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notif-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 50px;
+      width: 300px;
+      max-width: 90vw;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 1050;
+      overflow: hidden;
+    }
+
+    .notif-dropdown.open {
+      display: block;
+    }
+
+    .notif-header {
+      padding: 12px 14px;
+      background: #f9fafb;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .notif-list {
+      max-height: 280px;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    .notif-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .notif-item.unread {
+      background: var(--accent-light);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text-dark);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      background: var(--accent);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .user-name-text {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .user-subtext {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .logout-form {
+      margin: 0;
+    }
+
+    .logout-btn {
+      height: var(--touch-min);
+      padding: 0 12px;
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .logout-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
+    /* LAYOUT: SIDEBAR + MAIN CONTENT */
+    .app-layout {
+      display: flex;
+      flex: 1;
+      position: relative;
+    }
+
+    /* BACKDROP OVERLAY FOR MOBILE DRAWER */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1010;
+    }
+
+    .sidebar-backdrop.active {
+      display: block;
+    }
+
+    /* SIDEBAR */
+    .waiter-sidebar {
+      position: fixed;
+      top: 56px;
+      bottom: 0;
+      left: 0;
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+      z-index: 1020;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .waiter-sidebar.open {
+      transform: translateX(0);
+    }
+
+    @media (min-width: 992px) {
+      .waiter-sidebar {
+        position: static;
+        transform: none;
+        flex-shrink: 0;
+        width: 250px;
+        transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .sidebar-backdrop {
+        display: none !important;
+      }
+      body.sidebar-collapsed .waiter-sidebar {
+        width: 68px;
+      }
+      body.sidebar-collapsed .sidebar-heading {
+        display: none;
+      }
+      body.sidebar-collapsed .sidebar-link {
+        justify-content: center;
+        padding: 10px 0;
+      }
+      body.sidebar-collapsed .sidebar-link span:not(.sidebar-icon) {
+        display: none;
+      }
+    }
+
+    /* TABLET COMPACT (641px to 991px) */
+    @media (min-width: 641px) and (max-width: 991px) {
+      .waiter-sidebar {
+        position: static;
+        transform: none;
+        flex-shrink: 0;
+        width: 68px;
+        transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .sidebar-backdrop {
+        display: none !important;
+      }
+      .sidebar-heading {
+        display: none;
+      }
+      .sidebar-link {
+        justify-content: center;
+        padding: 10px 0;
+      }
+      .sidebar-link span:not(.sidebar-icon) {
+        display: none;
+      }
+      body.tablet-sidebar-expanded .waiter-sidebar {
+        width: 240px;
+      }
+      body.tablet-sidebar-expanded .sidebar-heading {
+        display: block;
+      }
+      body.tablet-sidebar-expanded .sidebar-link {
+        justify-content: flex-start;
+        padding: 10px 12px;
+      }
+      body.tablet-sidebar-expanded .sidebar-link span:not(.sidebar-icon) {
+        display: inline;
+      }
+    }
+
+    .sidebar-section {
+      padding: 16px 14px 4px;
+    }
+
+    .sidebar-heading {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+      color: var(--text-light);
+      margin-bottom: 6px;
+      padding: 0 10px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      min-height: var(--touch-min);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .sidebar-link:hover {
+      background: #f3f4f6;
+      color: var(--text-dark);
+    }
+
+    .sidebar-link.active {
+      background: var(--accent-light);
+      color: var(--accent-hover);
+      font-weight: 700;
+      border: 1px solid var(--accent-border);
+    }
+
+    .sidebar-icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      .main-content {
+        padding: 12px 12px 76px 12px; /* bottom padding so bottom nav doesn't overlap */
+      }
+      .branch-pill {
+        display: none; /* conserve space on small phone headers */
+      }
+      .user-details {
+        display: none;
+      }
+    }
+
+    /* MOBILE BOTTOM NAVIGATION (<640px) */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 58px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      z-index: 990;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 640px) {
+      .mobile-bottom-nav {
+        display: flex;
+      }
+    }
+
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--touch-min);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 10.5px;
+      font-weight: 600;
+      gap: 2px;
+    }
+
+    .bottom-nav-item.active {
+      color: var(--accent);
+    }
+
+    .bottom-nav-item .icon {
+      font-size: 18px;
+    }
+
+    /* COMMON UI COMPONENTS */
+    .messages-container {
+      margin-bottom: 16px;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .alert-success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: #065f46;
+    }
+
+    .alert-error {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: #991b1b;
+    }
+
+    .alert-warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: #92400e;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: var(--touch-min);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      border-color: var(--border);
+      color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #ffffff;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-success { background: var(--success-bg); color: #065f46; border: 1px solid var(--success-border); }
+    .badge-warning { background: var(--warning-bg); color: #92400e; border: 1px solid var(--warning-border); }
+    .badge-danger { background: var(--danger-bg); color: #991b1b; border: 1px solid var(--danger-border); }
+    .badge-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-gray { background: #f3f4f6; color: #4b5563; border: 1px solid var(--border); }
+
+    /* CARD STYLES */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="waiter-topbar">
+    <div class="topbar-left">
+      <button type="button" class="hamburger-btn" id="sidebarToggle" aria-label="Toggle Navigation">☰</button>
+      <a href="{% url 'waiter:dashboard' %}" class="brand-wrap">
+        <span style="font-size: 18px;">🍽</span>
+        <span class="brand-title">{{ restaurant.name|default:"Restaurant 360" }}</span>
+        <span class="role-tag">Waiter</span>
+      </a>
+    </div>
+
+    <div class="topbar-right">
+      <div class="branch-pill">
+        <span>📍</span>
+        <span>{{ current_branch.name|default:"Main Branch" }}</span>
+      </div>
+
+      <!-- Notifications Bell -->
+      <div class="notif-wrap" id="notifWrap">
+        <button type="button" class="notif-bell-btn" id="notifBellBtn" aria-label="Notifications">
+          🔔
+          {% if unread_notifications_count > 0 %}
+          <span class="notif-badge">{{ unread_notifications_count }}</span>
+          {% endif %}
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span>Notifications</span>
+            {% if unread_notifications_count > 0 %}
+            <form method="post" action="{% url 'waiter:mark_all_notifications_read' %}" style="margin:0;">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button type="submit" style="background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;">Mark all read</button>
+            </form>
+            {% endif %}
+          </div>
+          <ul class="notif-list">
+            {% for n in notifications %}
+            <li class="notif-item {% if not n.is_read %}unread{% endif %}">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;">{{ n.title }}</span>
+                <span style="font-size:10px;color:var(--text-light);">{{ n.created_at|timesince }} ago</span>
+              </div>
+              <span style="color:var(--text-muted);">{{ n.message }}</span>
+              {% if not n.is_read %}
+              <form method="post" action="{% url 'waiter:notification_read' n.id %}" style="margin:2px 0 0;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" style="background:none;border:none;color:var(--accent);font-size:10.5px;padding:0;cursor:pointer;">Mark as read</button>
+              </form>
+              {% endif %}
+            </li>
+            {% empty %}
+            <li class="notif-item" style="text-align:center;color:var(--text-muted);padding:18px;">
+              No notifications yet.
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- User Identity -->
+      <div class="user-pill">
+        <div class="user-avatar">
+          {% if request.user.first_name %}{{ request.user.first_name|slice:":1"|upper }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}
+        </div>
+        <div class="user-details">
+          <div class="user-name-text">{{ request.user.get_full_name|default:request.user.username }}</div>
+          <div class="user-subtext">Waiter • {{ current_branch.name|default:"Floor" }}</div>
+        </div>
+      </div>
+
+      <!-- Sign Out -->
+      <form method="post" action="{% url 'users:logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn" title="Sign Out">
+          <span>⏻</span>
+          <span style="display:none; @media(min-width:768px){display:inline;}">Exit</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <!-- BACKDROP OVERLAY FOR DRAWER -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- APP LAYOUT -->
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="waiter-sidebar" id="waiterSidebar">
+      <!-- OPERATIONS -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">OPERATIONS</div>
+        <a href="{% url 'waiter:dashboard' %}" class="sidebar-link {% if active_tab == 'dashboard' %}active{% endif %}">
+          <span class="sidebar-icon">🏠</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="{% url 'waiter:tables' %}" class="sidebar-link {% if active_tab == 'tables' %}active{% endif %}">
+          <span class="sidebar-icon">🍽</span>
+          <span>My Tables</span>
+        </a>
+        <a href="{% url 'pos_dashboard' %}" class="sidebar-link {% if active_tab == 'pos' %}active{% endif %}">
+          <span class="sidebar-icon">＋</span>
+          <span>Take Order / POS</span>
+        </a>
+        <a href="{% url 'waiter:ready_orders' %}" class="sidebar-link {% if active_tab == 'ready' %}active{% endif %}">
+          <span class="sidebar-icon">⚡</span>
+          <span>Ready Orders</span>
+        </a>
+        <a href="{% url 'waiter:tasks' %}" class="sidebar-link {% if active_tab == 'tasks' %}active{% endif %}">
+          <span class="sidebar-icon">📋</span>
+          <span>Daily Tasks</span>
+        </a>
+      </div>
+
+      <!-- MY WORK -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">MY WORK</div>
+        <a href="{% url 'waiter:shift' %}" class="sidebar-link {% if active_tab == 'shift' %}active{% endif %}">
+          <span class="sidebar-icon">⏰</span>
+          <span>My Shift</span>
+        </a>
+        <a href="{% url 'waiter:attendance' %}" class="sidebar-link {% if active_tab == 'attendance' %}active{% endif %}">
+          <span class="sidebar-icon">⏱</span>
+          <span>My Attendance</span>
+        </a>
+        <a href="{% url 'waiter:leave' %}" class="sidebar-link {% if active_tab == 'leave' %}active{% endif %}">
+          <span class="sidebar-icon">🌴</span>
+          <span>My Leave</span>
+        </a>
+        <a href="{% url 'waiter:service_history' %}" class="sidebar-link {% if active_tab == 'service_history' %}active{% endif %}">
+          <span class="sidebar-icon">📜</span>
+          <span>My Service History</span>
+        </a>
+        <a href="{% url 'waiter:performance' %}" class="sidebar-link {% if active_tab == 'performance' %}active{% endif %}">
+          <span class="sidebar-icon">🎯</span>
+          <span>My Performance</span>
+        </a>
+      </div>
+
+      <!-- PAYROLL -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">PAYROLL</div>
+        <a href="{% url 'waiter:salary' %}" class="sidebar-link {% if active_tab == 'salary' %}active{% endif %}">
+          <span class="sidebar-icon">💵</span>
+          <span>My Salary</span>
+        </a>
+        <a href="{% url 'waiter:salary_advance' %}" class="sidebar-link {% if active_tab == 'salary_advance' %}active{% endif %}">
+          <span class="sidebar-icon">💳</span>
+          <span>Salary Advance</span>
+        </a>
+        <a href="{% url 'waiter:payroll_history' %}" class="sidebar-link {% if active_tab == 'payroll_history' %}active{% endif %}">
+          <span class="sidebar-icon">📁</span>
+          <span>Payroll History</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN BODY -->
+    <main class="main-content">
+      {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">
+          <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- FIXED BOTTOM NAV FOR MOBILE PHONES (<640px) -->
+  <nav class="mobile-bottom-nav">
+    <a href="{% url 'waiter:dashboard' %}" class="bottom-nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+      <span class="icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="{% url 'waiter:tables' %}" class="bottom-nav-item {% if active_tab == 'tables' %}active{% endif %}">
+      <span class="icon">🍽</span>
+      <span>Tables</span>
+    </a>
+    <a href="{% url 'waiter:ready_orders' %}" class="bottom-nav-item {% if active_tab == 'ready' %}active{% endif %}">
+      <span class="icon">⚡</span>
+      <span>Ready</span>
+    </a>
+    <a href="{% url 'pos_dashboard' %}" class="bottom-nav-item {% if active_tab == 'pos' %}active{% endif %}">
+      <span class="icon">＋</span>
+      <span>POS</span>
+    </a>
+    <a href="{% url 'waiter:tasks' %}" class="bottom-nav-item {% if active_tab == 'tasks' %}active{% endif %}">
+      <span class="icon">📋</span>
+      <span>Tasks</span>
+    </a>
+  </nav>
+
+  <!-- JAVASCRIPT FOR SIDEBAR & NOTIFICATIONS TOGGLE -->
+  <script>
+    (function() {
+      const sidebar = document.getElementById('waiterSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      const notifBtn = document.getElementById('notifBellBtn');
+      const notifDropdown = document.getElementById('notifDropdown');
+
+      if (toggleBtn && sidebar) {
+        function openSidebar() {
+          sidebar.classList.add('open');
+          if (backdrop) backdrop.classList.add('active');
+        }
+        function closeSidebar() {
+          sidebar.classList.remove('open');
+          if (backdrop) backdrop.classList.remove('active');
+        }
+        toggleBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const w = window.innerWidth;
+          if (w >= 992) {
+            document.body.classList.toggle('sidebar-collapsed');
+            const isCol = document.body.classList.contains('sidebar-collapsed');
+            localStorage.setItem('waiter_sidebar_collapsed', isCol ? '1' : '0');
+          } else if (w > 640) {
+            document.body.classList.toggle('tablet-sidebar-expanded');
+          } else {
+            if (sidebar.classList.contains('open')) {
+              closeSidebar();
+            } else {
+              openSidebar();
+            }
+          }
+        });
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+      }
+
+      if (window.innerWidth >= 992 && localStorage.getItem('waiter_sidebar_collapsed') === '1') {
+        document.body.classList.add('sidebar-collapsed');
+      }
+
+      if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          notifDropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+          if (!notifDropdown.contains(e.target) && e.target !== notifBtn) {
+            notifDropdown.classList.remove('open');
+          }
+        });
+      }
+    })();
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

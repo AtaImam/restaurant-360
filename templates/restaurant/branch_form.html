@@ -1,0 +1,180 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{{ form_title }} | Restaurant 360{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .branch-form-page {
+    padding: 28px;
+    min-height: calc(100vh - 80px);
+    background: #f7f8fc;
+  }
+  .branch-form-page * { box-sizing: border-box; }
+
+  .form-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 30px 32px;
+    max-width: 600px;
+  }
+
+  .form-card h2 {
+    font-size: 20px; font-weight: 720; color: #111827;
+    margin: 0 0 6px;
+  }
+  .form-card .subtitle { font-size: 13px; color: #6b7280; margin: 0 0 26px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block; font-size: 13px; font-weight: 650;
+    color: #374151; margin-bottom: 6px;
+  }
+  .form-group label .required { color: #dc2626; margin-left: 2px; }
+  .form-control {
+    width: 100%; padding: 9px 12px;
+    border: 1px solid #d1d5db; border-radius: 8px;
+    font: inherit; font-size: 14px; color: #111827;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .form-control:focus {
+    outline: none; border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+  }
+  textarea.form-control { resize: vertical; }
+  .field-help { font-size: 11.5px; color: #9ca3af; margin-top: 4px; }
+  .field-error { font-size: 12px; color: #dc2626; margin-top: 4px; }
+
+  .form-actions {
+    display: flex; gap: 10px; align-items: center; margin-top: 26px;
+    padding-top: 18px; border-top: 1px solid #f3f4f6;
+  }
+  .btn-primary {
+    background: #f97316; color: #fff; border: 0;
+    border-radius: 9px; padding: 0 22px; height: 42px;
+    font: inherit; font-size: 14px; font-weight: 650;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-primary:hover { background: #ea6c08; }
+  .btn-cancel {
+    background: #fff; color: #6b7280; border: 1px solid #d1d5db;
+    border-radius: 9px; padding: 0 18px; height: 42px;
+    font: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-decoration: none; display: inline-flex;
+    align-items: center; transition: background .15s;
+  }
+  .btn-cancel:hover { background: #f9fafb; }
+
+  .messages-list { list-style: none; padding: 0; margin: 0 0 20px; }
+  .msg { padding: 11px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 8px; }
+  .msg.success { background: #f0fdf4; color: #166534; border-left: 4px solid #16a34a; }
+  .msg.error   { background: #fef2f2; color: #991b1b; border-left: 4px solid #dc2626; }
+
+  .main-branch-notice {
+    background: #fff7ed; border: 1px solid #fed7aa;
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; color: #92400e; margin-bottom: 20px;
+  }
+
+  @media (max-width: 700px) {
+    .branch-form-page { padding: 16px; }
+    .form-card { padding: 20px 16px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="branch-form-page">
+  {% if messages %}
+    <ul class="messages-list">
+      {% for msg in messages %}
+        <li class="msg {{ msg.tags }}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="form-card">
+    <h2>{{ form_title }}</h2>
+    <p class="subtitle">
+      {% if branch and branch.is_main %}
+        You are editing the <strong>Main Branch</strong>. Its activation state is protected.
+      {% else %}
+        All fields except address, phone, and email are required.
+      {% endif %}
+    </p>
+
+    {% if branch and branch.is_main %}
+      <div class="main-branch-notice">
+        ★ This is the <strong>Main Branch</strong>. It cannot be deleted or deactivated.
+      </div>
+    {% endif %}
+
+    <form method="post" id="branch-form">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="{{ form.name.id_for_label }}">
+          Branch Name <span class="required">*</span>
+        </label>
+        {{ form.name }}
+        {% if form.name.errors %}
+          {% for err in form.name.errors %}
+            <p class="field-error">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.code.id_for_label }}">
+          Branch Code <span class="required">*</span>
+        </label>
+        {{ form.code }}
+        <p class="field-help">Short identifier (e.g. GLN). Max 20 characters, uppercase.</p>
+        {% if form.code.errors %}
+          {% for err in form.code.errors %}
+            <p class="field-error">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.address.id_for_label }}">Address</label>
+        {{ form.address }}
+        {% if form.address.errors %}
+          {% for err in form.address.errors %}
+            <p class="field-error">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.phone.id_for_label }}">Phone</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}
+          {% for err in form.phone.errors %}
+            <p class="field-error">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          {% for err in form.email.errors %}
+            <p class="field-error">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="btn-branch-submit">
+          {{ submit_label }}
+        </button>
+        <a href="{% url 'restaurant:branch_list' %}" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}QR Code - Table {{ table.table_number }} | Restaurant 360{% endblock %}
+{% block page_title %}Table {{ table.table_number }} QR Code{% endblock %}
+
+{% block extra_css %}
+<style>
+  .qr-page-container {
+    padding: 28px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .back-navigation {
+    margin-bottom: 20px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .back-link:hover {
+    color: #ef5b28;
+  }
+
+  .qr-detail-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  }
+
+  .brand-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #f97316;
+    margin-bottom: 6px;
+  }
+
+  .table-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 6px;
+  }
+
+  .table-badges {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .info-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .info-pill.branch-pill {
+    background: #fff7ed;
+    color: #c2410c;
+  }
+
+  .qr-image-box {
+    display: inline-block;
+    padding: 16px;
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .qr-image-box img {
+    width: 220px;
+    height: 220px;
+    display: block;
+    object-fit: contain;
+  }
+
+  .url-container {
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .url-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+
+  .url-input-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .url-input {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: monospace;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #1e293b;
+    outline: none;
+  }
+
+  .copy-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .copy-btn:hover {
+    border-color: #f97316;
+    color: #f97316;
+  }
+
+  .copy-feedback {
+    font-size: 12px;
+    font-weight: 600;
+    color: #16a34a;
+    margin-top: 6px;
+  }
+
+  .card-action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-primary-action {
+    background: #f97316;
+    color: #ffffff;
+    border: 1px solid #ea580c;
+  }
+
+  .btn-primary-action:hover {
+    background: #ea580c;
+  }
+
+  .btn-secondary-action {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  .btn-secondary-action:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qr-page-container">
+  <div class="back-navigation">
+    <a href="{% url 'restaurant:table_management' %}" class="back-link">
+      <span>←</span> Back to Table Management
+    </a>
+  </div>
+
+  <div class="qr-detail-card">
+    <span class="brand-tag">{{ restaurant.name }}</span>
+    <h1 class="table-title">Table {{ table.table_number }}</h1>
+
+    <div class="table-badges">
+      {% if branch_name %}
+        <span class="info-pill branch-pill">Branch: {{ branch_name }}</span>
+      {% endif %}
+      {% if table.floor %}
+        <span class="info-pill">{{ table.floor.name }}</span>
+      {% endif %}
+      <span class="info-pill">Seats: {{ table.capacity }}</span>
+    </div>
+
+    <div class="qr-image-box">
+      {% if table.qr_code %}
+        <img src="{{ table.qr_code.url }}" alt="Table {{ table.table_number }} QR Code">
+      {% else %}
+        <p style="color: #94a3b8; padding: 40px 0;">QR code not available</p>
+      {% endif %}
+    </div>
+
+    <div class="url-container">
+      <label class="url-label" for="menuUrlInput">Public Menu URL</label>
+      <div class="url-input-group">
+        <input type="text" id="menuUrlInput" readonly class="url-input" value="{{ menu_url }}">
+        <button type="button" class="copy-btn" id="copyUrlBtn">Copy</button>
+      </div>
+      <div id="copyNotice" class="copy-feedback" style="display: none;">✓ Copied to clipboard!</div>
+    </div>
+
+    <div class="card-action-bar">
+      <a href="{% url 'restaurant:qr_download' table.id %}" class="btn-action btn-primary-action">
+        <span>⬇</span> Download QR
+      </a>
+      <a href="{% url 'restaurant:qr_print' table.id %}" target="_blank" class="btn-action btn-secondary-action">
+        <span>🖨</span> Print QR
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const copyBtn = document.getElementById("copyUrlBtn");
+    const input = document.getElementById("menuUrlInput");
+    const notice = document.getElementById("copyNotice");
+
+    if (copyBtn && input) {
+      copyBtn.addEventListener("click", function () {
+        if (!input.value) return;
+        navigator.clipboard.writeText(input.value).then(function () {
+          notice.style.display = "block";
+          setTimeout(function () {
+            notice.style.display = "none";
+          }, 2000);
+        }).catch(function () {
+          input.select();
+          document.execCommand("copy");
+          notice.style.display = "block";
+          setTimeout(function () {
+            notice.style.display = "none";
+          }, 2000);
+        });
+      });
+    }
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}Kitchen Portal{% endblock %} - Restaurant 360</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --primary-light: #1e293b;
+      --accent: #f97316;
+      --accent-hover: #ea580c;
+      --accent-light: #fff7ed;
+      --accent-border: #fed7aa;
+      --text: #334155;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --success-border: #a7f3d0;
+      --warning: #f59e0b;
+      --warning-bg: #fffbeb;
+      --warning-border: #fde68a;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --touch-min: 44px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .kitchen-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hamburger-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-min);
+      height: var(--touch-min);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-dark);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text-dark);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .role-tag {
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .branch-pill {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* Notification Bell & Dropdown */
+    .notif-wrap {
+      position: relative;
+    }
+
+    .notif-bell-btn {
+      width: var(--touch-min);
+      height: var(--touch-min);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 16px;
+      position: relative;
+      color: var(--text);
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      height: 18px;
+      min-width: 18px;
+      padding: 0 4px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notif-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 50px;
+      width: 320px;
+      max-width: 90vw;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 1050;
+      overflow: hidden;
+    }
+
+    .notif-dropdown.open {
+      display: block;
+    }
+
+    .notif-header {
+      padding: 12px 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .notif-list {
+      max-height: 280px;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    .notif-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .notif-item.unread {
+      background: #fffbeb;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .user-name-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      max-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-dark);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-min);
+      height: var(--touch-min);
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-sm);
+      color: var(--danger);
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    /* LAYOUT */
+    .app-layout {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 56px);
+      position: relative;
+    }
+
+    /* SIDEBAR */
+    .kitchen-sidebar {
+      width: 240px;
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: transform 0.22s ease;
+      z-index: 999;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 991px) {
+      .kitchen-sidebar {
+        position: fixed;
+        top: 56px;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      }
+      body.sidebar-open .kitchen-sidebar {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 56px 0 0 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 998;
+      }
+      body.sidebar-open .sidebar-backdrop {
+        display: block;
+      }
+    }
+
+    .sidebar-section {
+      padding: 16px 14px 4px;
+    }
+
+    .sidebar-heading {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.75px;
+      color: var(--text-light);
+      margin-bottom: 6px;
+      padding: 0 10px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      min-height: var(--touch-min);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .sidebar-link:hover {
+      background: #f1f5f9;
+      color: var(--text-dark);
+    }
+
+    .sidebar-link.active {
+      background: var(--accent-light);
+      color: var(--accent-hover);
+      font-weight: 700;
+      border: 1px solid var(--accent-border);
+    }
+
+    .sidebar-icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* ALERTS / MESSAGES */
+    .messages-container {
+      margin-bottom: 18px;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .alert-success { background: var(--success-bg); color: #065f46; border: 1px solid var(--success-border); }
+    .alert-warning { background: var(--warning-bg); color: #92400e; border: 1px solid var(--warning-border); }
+    .alert-error, .alert-danger { background: var(--danger-bg); color: #991b1b; border: 1px solid var(--danger-border); }
+    .alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+    /* COMMON COMPONENTS */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-success { background: var(--success-bg); color: #065f46; border: 1px solid var(--success-border); }
+    .badge-warning { background: var(--warning-bg); color: #92400e; border: 1px solid var(--warning-border); }
+    .badge-danger { background: var(--danger-bg); color: #991b1b; border: 1px solid var(--danger-border); }
+    .badge-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-gray { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      min-height: var(--touch-min);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background: var(--primary-light); }
+    .btn-accent { background: var(--accent); color: #ffffff; }
+    .btn-accent:hover { background: var(--accent-hover); }
+    .btn-outline { background: #ffffff; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f8fafc; color: var(--text-dark); }
+    .btn-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+    .btn-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .modal-footer {
+      padding: 12px 20px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .layout-readonly .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 24px 20px;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="kitchen-topbar">
+    <div class="topbar-left">
+      {% if not is_read_only %}
+      <button type="button" class="hamburger-btn" id="sidebarToggle" aria-label="Toggle Navigation">☰</button>
+      {% endif %}
+      <a href="{% url 'kitchen_dashboard' %}" class="brand-wrap">
+        <span style="font-size: 20px;">👨‍🍳</span>
+        <span class="brand-title">{{ restaurant.name|default:"Restaurant 360" }}</span>
+        <span class="role-tag">{% if is_read_only %}Kitchen Monitor{% else %}Kitchen{% endif %}</span>
+      </a>
+    </div>
+
+    <div class="topbar-right">
+      <div class="branch-pill">
+        <span>📍</span>
+        <span>{{ active_branch.name|default:"All Branches" }}</span>
+      </div>
+
+      {% if request.user.role in 'admin owner manager' or request.user.is_superuser %}
+      <a href="{% url 'owner_dashboard' %}" class="back-btn">
+        <span>🏢</span>
+        <span>Back to Admin</span>
+      </a>
+      {% endif %}
+
+      {% if not is_read_only %}
+      <!-- Notifications Bell -->
+      <div class="notif-wrap" id="notifWrap">
+        <button type="button" class="notif-bell-btn" id="notifBellBtn" aria-label="Notifications">
+          🔔
+          {% if unread_notifications_count > 0 %}
+          <span class="notif-badge">{{ unread_notifications_count }}</span>
+          {% endif %}
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span>Kitchen Notifications</span>
+            {% if unread_notifications_count > 0 %}
+            <form method="post" action="{% url 'kitchen_mark_all_notifications_read' %}" style="margin:0;">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button type="submit" style="background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;">Mark all read</button>
+            </form>
+            {% endif %}
+          </div>
+          <ul class="notif-list">
+            {% for n in notifications %}
+            <li class="notif-item {% if not n.is_read %}unread{% endif %}">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;">{{ n.title }}</span>
+                <span style="font-size:10px;color:var(--text-light);">{{ n.created_at|timesince }} ago</span>
+              </div>
+              <span style="color:var(--text-muted);">{{ n.message }}</span>
+              {% if not n.is_read %}
+              <form method="post" action="{% url 'kitchen_mark_notification_read' n.id %}" style="margin:2px 0 0;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" style="background:none;border:none;color:var(--accent);font-size:10.5px;padding:0;cursor:pointer;">Mark as read</button>
+              </form>
+              {% endif %}
+            </li>
+            {% empty %}
+            <li class="notif-item" style="text-align:center;color:var(--text-muted);padding:18px;">
+              No notifications yet.
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- User Identity -->
+      <div class="user-pill">
+        <div class="user-avatar">
+          {% if request.user.first_name %}{{ request.user.first_name|slice:":1"|upper }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}
+        </div>
+        <span class="user-name-text">{{ request.user.get_full_name|default:request.user.username }}</span>
+      </div>
+
+      <!-- Logout -->
+      <form method="post" action="{% url 'users:logout' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn" title="Sign Out">⏻</button>
+      </form>
+    </div>
+  </header>
+
+  {% if not is_read_only %}
+  <!-- BACKDROP OVERLAY -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  {% endif %}
+
+  <!-- APP LAYOUT -->
+  <div class="app-layout {% if is_read_only %}layout-readonly{% endif %}">
+    {% if not is_read_only %}
+    <!-- SIDEBAR -->
+    <aside class="kitchen-sidebar" id="kitchenSidebar">
+      <!-- OPERATIONS -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">KITCHEN OPERATIONS</div>
+        <a href="{% url 'kitchen_dashboard' %}" class="sidebar-link {% if active_tab == 'kds' %}active{% endif %}">
+          <span class="sidebar-icon">📺</span>
+          <span>Kitchen Display (KDS)</span>
+        </a>
+        <a href="{% url 'kitchen_order_queue' %}" class="sidebar-link {% if active_tab == 'orders' %}active{% endif %}">
+          <span class="sidebar-icon">📋</span>
+          <span>Order Queue</span>
+        </a>
+        <a href="{% url 'orders_list' %}" style="display:none;" aria-hidden="true">Orders</a>
+        <a href="{% url 'kitchen_order_history' %}" class="sidebar-link {% if active_tab == 'order_history' %}active{% endif %}">
+          <span class="sidebar-icon">📜</span>
+          <span>Order History</span>
+        </a>
+        <a href="{% url 'kitchen_performance' %}" class="sidebar-link {% if active_tab == 'performance' %}active{% endif %}">
+          <span class="sidebar-icon">⚡</span>
+          <span>Kitchen Performance</span>
+        </a>
+      </div>
+
+      <!-- MENU & INVENTORY -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">MENU & INVENTORY</div>
+        <a href="{% url 'kitchen_menu_items' %}" class="sidebar-link {% if active_tab == 'menu_items' %}active{% endif %}">
+          <span class="sidebar-icon">🍽</span>
+          <span>Menu & Availability</span>
+        </a>
+        <a href="{% url 'kitchen_recipes' %}" class="sidebar-link {% if active_tab == 'recipes' %}active{% endif %}">
+          <span class="sidebar-icon">📖</span>
+          <span>Recipes</span>
+        </a>
+        <a href="{% url 'kitchen_ingredients' %}" class="sidebar-link {% if active_tab == 'ingredients' %}active{% endif %}">
+          <span class="sidebar-icon">🧅</span>
+          <span>Ingredients</span>
+        </a>
+        <a href="{% url 'kitchen_low_stock' %}" class="sidebar-link {% if active_tab == 'low_stock' %}active{% endif %}">
+          <span class="sidebar-icon">⚠️</span>
+          <span>Low Stock Alert</span>
+        </a>
+        <a href="{% url 'kitchen_ingredient_requests' %}" class="sidebar-link {% if active_tab == 'ingredient_requests' %}active{% endif %}">
+          <span class="sidebar-icon">📨</span>
+          <span>Stock Requests</span>
+        </a>
+      </div>
+
+      <!-- MY WORK -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">MY WORK</div>
+        <a href="{% url 'kitchen_shift' %}" class="sidebar-link {% if active_tab == 'shift' %}active{% endif %}">
+          <span class="sidebar-icon">⏰</span>
+          <span>My Shift</span>
+        </a>
+        <a href="{% url 'kitchen_attendance' %}" class="sidebar-link {% if active_tab == 'attendance' %}active{% endif %}">
+          <span class="sidebar-icon">⏱</span>
+          <span>My Attendance</span>
+        </a>
+        <a href="{% url 'staff:my_attendance' %}" style="display:none;" aria-hidden="true">Attendance Portal</a>
+        <a href="{% url 'kitchen_leave' %}" class="sidebar-link {% if active_tab == 'leave' %}active{% endif %}">
+          <span class="sidebar-icon">🌴</span>
+          <span>My Leave</span>
+        </a>
+        <a href="{% url 'staff:my_leave' %}" style="display:none;" aria-hidden="true">Leave Portal</a>
+      </div>
+
+      <!-- PAYROLL -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">PAYROLL</div>
+        <a href="{% url 'kitchen_salary' %}" class="sidebar-link {% if active_tab == 'salary' %}active{% endif %}">
+          <span class="sidebar-icon">💵</span>
+          <span>My Salary</span>
+        </a>
+        <a href="{% url 'kitchen_salary_advance' %}" class="sidebar-link {% if active_tab == 'salary_advance' %}active{% endif %}">
+          <span class="sidebar-icon">💳</span>
+          <span>Salary Advance</span>
+        </a>
+        <a href="{% url 'kitchen_payroll_history' %}" class="sidebar-link {% if active_tab == 'payroll_history' %}active{% endif %}">
+          <span class="sidebar-icon">📁</span>
+          <span>Payroll History</span>
+        </a>
+      </div>
+    </aside>
+    {% endif %}
+
+    <!-- MAIN BODY -->
+    <main class="main-content">
+      {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">
+          <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    if (sidebarToggle && sidebarBackdrop) {
+      sidebarToggle.addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-open');
+      });
+      sidebarBackdrop.addEventListener('click', () => {
+        document.body.classList.remove('sidebar-open');
+      });
+    }
+
+    // Notification dropdown
+    const notifBtn = document.getElementById('notifBellBtn');
+    const notifDropdown = document.getElementById('notifDropdown');
+    if (notifBtn && notifDropdown) {
+      notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!notifDropdown.contains(e.target) && e.target !== notifBtn) {
+          notifDropdown.classList.remove('open');
+        }
+      });
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,81 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}My Performance{% endblock %}
+
+{% block content %}
+<div class="waiter-performance-page">
+
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">My Performance</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Performance indicators, punctuality, speed, and delivery ratings.
+    </p>
+  </div>
+
+  <!-- METRICS CARDS GRID -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
+    
+    <div class="card" style="margin-bottom: 0; border-top: 3px solid #f97316;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Orders Served</div>
+      <div style="font-size: 28px; font-weight: 800; color: var(--text-dark); margin-top: 4px;">
+        {% if metrics and metrics.orders_served is not None %}{{ metrics.orders_served }}{% else %}0{% endif %}
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-light); margin-top: 2px;">Total delivered orders</div>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; border-top: 3px solid #10b981;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Average Delivery Speed</div>
+      <div style="font-size: 28px; font-weight: 800; color: #10b981; margin-top: 4px;">
+        {% if metrics and metrics.avg_ready_to_served_mins is not None %}
+          {{ metrics.avg_ready_to_served_mins }}<span style="font-size: 15px; font-weight: 600;"> min</span>
+        {% else %}
+          —
+        {% endif %}
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-light); margin-top: 2px;">Kitchen ready to table serve</div>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; border-top: 3px solid #3b82f6;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Attendance Rate</div>
+      <div style="font-size: 28px; font-weight: 800; color: #3b82f6; margin-top: 4px;">
+        {% if metrics and metrics.attendance_rate is not None %}{{ metrics.attendance_rate }}%{% else %}—{% endif %}
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-light); margin-top: 2px;">Punctuality & on-time shifts</div>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; border-top: 3px solid #8b5cf6;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Task Completion</div>
+      <div style="font-size: 28px; font-weight: 800; color: #8b5cf6; margin-top: 4px;">
+        {% if metrics and metrics.task_completion_rate is not None %}{{ metrics.task_completion_rate }}%{% else %}—{% endif %}
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-light); margin-top: 2px;">Assigned duties completed</div>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; border-top: 3px solid #06b6d4;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Worked Hours</div>
+      <div style="font-size: 28px; font-weight: 800; color: var(--text-dark); margin-top: 4px;">
+        {% if metrics and metrics.worked_hours is not None %}{{ metrics.worked_hours }}<span style="font-size: 15px; font-weight: 600;"> hrs</span>{% else %}0.0 hrs{% endif %}
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-light); margin-top: 2px;">Logged attendance hours</div>
+    </div>
+
+    <div class="card" style="margin-bottom: 0; border-top: 3px solid #ec4899;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tables Handled</div>
+      <div style="font-size: 28px; font-weight: 800; color: var(--text-dark); margin-top: 4px;">
+        {% if metrics and metrics.tables_handled is not None %}{{ metrics.tables_handled }}{% else %}0{% endif %}
+      </div>
+      <div style="font-size: 11.5px; color: var(--text-light); margin-top: 2px;">Distinct tables serviced</div>
+    </div>
+
+  </div>
+
+  <div class="card" style="text-align: center; padding: 28px 20px; color: var(--text-muted);">
+    <div style="font-size: 32px; margin-bottom: 8px;">🎯</div>
+    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-dark);">Daily Duty & Service Tracking Active</h3>
+    <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">
+      Your served orders, speed benchmarks, and duty completions automatically update your active performance metrics.
+    </p>
+  </div>
+
+</div>
+{% endblock %}

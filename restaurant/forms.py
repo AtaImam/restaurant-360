@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import Floor, Table
+from .models import Branch, Floor, Table
 
 
 class FloorForm(forms.ModelForm):
@@ -136,9 +136,9 @@ class TableForm(forms.ModelForm):
         self.fields["floor"].empty_label = "Select floor"
 
     def clean_floor(self):
-        floor = self.cleaned_data["floor"]
+        floor = self.cleaned_data.get("floor")
 
-        if floor.restaurant_id != self.restaurant.id:
+        if floor and floor.restaurant_id != self.restaurant.id:
             raise ValidationError(
                 "The selected floor does not belong to this restaurant."
             )
@@ -188,3 +188,59 @@ class TableForm(forms.ModelForm):
             table.save()
 
         return table
+
+
+class BranchForm(forms.ModelForm):
+    class Meta:
+        model = Branch
+        fields = ["name", "code", "address", "phone", "email"]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. Gulshan Branch"}
+            ),
+            "code": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. GLN (max 20 chars)", "maxlength": 20}
+            ),
+            "address": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Branch address"}
+            ),
+            "phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "+880 1XXX-XXXXXX"}
+            ),
+            "email": forms.EmailInput(
+                attrs={"class": "form-control", "placeholder": "branch@example.com"}
+            ),
+        }
+
+    def __init__(self, *args, restaurant=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.restaurant = restaurant
+
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        if not name:
+            raise ValidationError("Branch name is required.")
+        qs = Branch.objects.filter(restaurant=self.restaurant, name__iexact=name)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise ValidationError("A branch with this name already exists.")
+        return name
+
+    def clean_code(self):
+        code = self.cleaned_data["code"].strip().upper()
+        if not code:
+            raise ValidationError("Branch code is required.")
+        qs = Branch.objects.filter(restaurant=self.restaurant, code__iexact=code)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise ValidationError("A branch with this code already exists.")
+        return code
+
+    def save(self, commit=True):
+        branch = super().save(commit=False)
+        branch.restaurant = self.restaurant
+        if commit:
+            branch.save()
+        return branch

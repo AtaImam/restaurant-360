@@ -1,0 +1,384 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Addons Management | Restaurant 360{% endblock %}
+{% block page_title %}Addons Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 30px;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0 0 4px;
+  }
+  .page-header p {
+    color: #6b7280;
+    font-size: 13px;
+    margin: 0;
+  }
+  .btn-primary {
+    background: #f97316;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 9px;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.18s ease;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background: #ea580c;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .metric-card .value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+  }
+  .filter-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-form {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    min-width: 240px;
+  }
+  .select-input {
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    background: #fff;
+  }
+  .btn-filter {
+    height: 38px;
+    padding: 0 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-filter:hover {
+    background: #e5e7eb;
+  }
+  .table-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: #f9fafb;
+    padding: 12px 16px;
+    font-weight: 700;
+    color: #4b5563;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .data-table tr:hover {
+    background: #fafafa;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-single {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+  .badge-multiple {
+    background: #faf5ff;
+    color: #7e22ce;
+    border: 1px solid #e9d5ff;
+  }
+  .badge-required {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+  }
+  .badge-optional {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+  }
+  .badge-active {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .badge-inactive {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+  .option-pill {
+    display: inline-block;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 11px;
+    margin: 2px;
+    color: #374151;
+  }
+  .option-pill strong {
+    color: #f97316;
+  }
+  .action-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid transparent;
+  }
+  .action-edit {
+    background: #f3f4f6;
+    color: #1f2937;
+    border-color: #d1d5db;
+  }
+  .action-edit:hover {
+    background: #e5e7eb;
+  }
+  .action-delete {
+    background: #fff;
+    color: #dc2626;
+    border-color: #fca5a5;
+    cursor: pointer;
+  }
+  .action-delete:hover {
+    background: #fee2e2;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+  }
+  .empty-state h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  {% if messages %}
+    <div style="margin-bottom: 18px;">
+      {% for message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 8px; {% if message.tags == 'error' %}background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;{% else %}background: #dcfce7; color: #15803d; border: 1px solid #86efac;{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="page-header">
+    <div>
+      <h1>Addons &amp; Modifiers</h1>
+      <p>Configure addon groups, options, extra prices, and item assignments for {{ restaurant.name }}.</p>
+    </div>
+    <a href="{% url 'addon_group_create' %}" class="btn-primary">
+      <span>+ Add New Group</span>
+    </a>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="title">Total Addon Groups</div>
+      <div class="value">{{ total_groups }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Selection Types</div>
+      <div class="value" style="font-size: 15px; font-weight: 600; color: #4b5563; margin-top: 4px;">
+        Single (Radio) &amp; Multiple (Checkbox)
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Branch Scope</div>
+      <div class="value" style="font-size: 16px; color: #1f2937;">{{ restaurant.name }}</div>
+    </div>
+  </div>
+
+  <div class="filter-card">
+    <form method="get" class="filter-form">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search addon groups..." class="search-input">
+      <select name="status" class="select-input">
+        <option value="">All Statuses</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+      </select>
+      <button type="submit" class="btn-filter">Search</button>
+      {% if q or status_filter %}
+        <a href="{% url 'addon_group_list' %}" style="font-size: 12px; color: #6b7280; text-decoration: underline;">Clear Filters</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-card">
+    {% if groups %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Group Name</th>
+            <th>Type</th>
+            <th>Requirement</th>
+            <th>Options &amp; Prices</th>
+            <th>Assigned Items</th>
+            <th>Status</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for group in groups %}
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: #111827;">{{ group.name }}</div>
+                <div style="font-size: 11px; color: #6b7280;">Order: #{{ group.display_order }}</div>
+              </td>
+              <td>
+                {% if group.selection_type == 'SINGLE' %}
+                  <span class="badge badge-single">Single (1 Choice)</span>
+                {% else %}
+                  <span class="badge badge-multiple">Multiple</span>
+                  <div style="font-size: 11px; color: #6b7280; margin-top: 3px;">
+                    Min: {{ group.min_selection }} | Max: {{ group.max_selection|default:"Unlimited" }}
+                  </div>
+                {% endif %}
+              </td>
+              <td>
+                {% if group.is_required %}
+                  <span class="badge badge-required">Required</span>
+                {% else %}
+                  <span class="badge badge-optional">Optional</span>
+                {% endif %}
+              </td>
+              <td style="max-width: 320px;">
+                {% for opt in group.options.all %}
+                  <span class="option-pill" {% if not opt.is_active %}style="opacity: 0.5; text-decoration: line-through;"{% endif %}>
+                    {{ opt.name }}
+                    {% if opt.price > 0 %}
+                      <strong>+৳{{ opt.price }}</strong>
+                    {% else %}
+                      <span style="color:#16a34a;">Free</span>
+                    {% endif %}
+                  </span>
+                {% empty %}
+                  <span style="color: #9ca3af; font-style: italic;">No options defined</span>
+                {% endfor %}
+              </td>
+              <td>
+                <span class="badge" style="background: #f3f4f6; color: #374151;">
+                  {{ group.menu_items.count }} item{{ group.menu_items.count|pluralize }}
+                </span>
+              </td>
+              <td>
+                {% if group.is_active %}
+                  <span class="badge badge-active">Active</span>
+                {% else %}
+                  <span class="badge badge-inactive">Inactive</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right; white-space: nowrap;">
+                <a href="{% url 'addon_group_edit' group.id %}" class="action-btn action-edit">Edit</a>
+                <form method="post" action="{% url 'addon_group_delete' group.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete addon group \'{{ group.name|escapejs }}\'? Existing historical orders will not be affected.');">
+                  {% csrf_token %}
+                  <button type="submit" class="action-btn action-delete">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <h3>No Addon Groups Found</h3>
+        <p>Enhance customer orders with customizable addons like extra cheese, sauces, sides, or sizes.</p>
+        <div style="margin-top: 18px;">
+          <a href="{% url 'addon_group_create' %}" class="btn-primary">+ Create First Addon Group</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

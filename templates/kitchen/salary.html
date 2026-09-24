@@ -1,0 +1,49 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}My Salary{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>💵</span>
+        <span>My Salary & Earnings Overview</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+        View your compensation breakdown and current month estimates
+      </p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Basic Salary</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--text-dark); margin-top: 4px;">৳{{ basic_salary }}</div>
+      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Fixed monthly basis</div>
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Hourly / OT Rate</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--text-dark); margin-top: 4px;">৳{{ overtime_rate }}/h</div>
+      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Base rate: ৳{{ hourly_rate }}/h</div>
+    </div>
+
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 18px;">
+      <div style="font-size: 12px; font-weight: 700; color: #1e40af; text-transform: uppercase;">Month Worked Hours</div>
+      <div style="font-size: 26px; font-weight: 800; color: #1e40af; margin-top: 4px;">{{ worked_hours_month }}h</div>
+      <div style="font-size: 11.5px; color: #1d4ed8; margin-top: 2px;">Overtime: {{ ot_hours_month }}h</div>
+    </div>
+
+    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius); padding: 18px;">
+      <div style="font-size: 12px; font-weight: 700; color: #065f46; text-transform: uppercase;">Estimated Current Net</div>
+      <div style="font-size: 26px; font-weight: 800; color: #065f46; margin-top: 4px;">৳{{ estimated_net }}</div>
+      <div style="font-size: 11.5px; color: #047857; margin-top: 2px;">Basic + estimated OT pay</div>
+    </div>
+  </div>
+
+  <div style="background: #f8fafc; border-radius: var(--radius); padding: 16px; font-size: 13px; color: var(--text-muted);">
+    ℹ️ <em>Note: This is an estimated real-time calculation based on your approved attendance and overtime hours for the current month. Official payslips are processed at month-end.</em>
+  </div>
+</div>
+{% endblock %}

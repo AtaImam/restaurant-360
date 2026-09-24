@@ -1,0 +1,150 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{{ page_title }} | Restaurant 360{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content {
+        max-width: 800px;
+        margin: auto;
+        padding: 30px;
+    }
+    .page-header {
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 25px;
+        margin-bottom: 6px;
+    }
+    .page-header p {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 24px;
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+    .form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #111827;
+    }
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #f97316;
+    }
+    .btn-submit {
+        background: #f97316;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .btn-cancel {
+        background: #f3f4f6;
+        color: #1f2937;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+    .error-box {
+        padding: 12px 16px;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h1>{{ page_title }}</h1>
+            <p>Enter supplier details for ingredient purchases and inventory tracking.</p>
+        </div>
+        <a href="{% url 'supplier_list' %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 12px; font-weight: 700; color: #374151; text-decoration: none;">
+            ← Back to Suppliers
+        </a>
+    </div>
+
+    {% if error_message %}
+        <div class="error-box">
+            {{ error_message }}
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Restaurant *</label>
+                <select name="restaurant" class="form-control" required>
+                    {% for r in restaurants %}
+                    <option value="{{ r.id }}" {% if form_data.restaurant == r.id|stringformat:"s" %}selected{% endif %}>
+                        {{ r.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Supplier / Company Name *</label>
+                <input type="text" name="name" class="form-control" value="{{ form_data.name|default:'' }}" placeholder="e.g. Fresh Dairy Farm Ltd." required>
+            </div>
+
+            <div class="form-group">
+                <label>Contact Person Name</label>
+                <input type="text" name="contact_name" class="form-control" value="{{ form_data.contact_name|default:'' }}" placeholder="e.g. John Doe">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" name="phone" class="form-control" value="{{ form_data.phone|default:'' }}" placeholder="e.g. +8801700000000">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" class="form-control" value="{{ form_data.email|default:'' }}" placeholder="e.g. orders@supplier.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Address / Office Location</label>
+                <textarea name="address" class="form-control" rows="3" placeholder="Street address, city, warehouse location...">{{ form_data.address|default:'' }}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                <a href="{% url 'supplier_list' %}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-submit">{{ button_text }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

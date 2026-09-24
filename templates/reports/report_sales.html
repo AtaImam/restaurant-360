@@ -1,0 +1,289 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Sales Report | Restaurant 360{% endblock %}
+{% block page_title %}Financial Reporting{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+  .report-header {
+    margin-bottom: 24px;
+  }
+  .report-header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .report-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  .preset-link {
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .preset-link.active {
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  /* Metric Cards */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .metric-card .title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .metric-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .metric-card.highlight {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+  }
+  .metric-card.highlight .value {
+    color: #1d4ed8;
+  }
+
+  /* Two Column Section */
+  .section-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .section-row { grid-template-columns: 1fr; }
+  }
+  .card-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-box h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .table-custom th {
+    background: #f9fafb;
+    padding: 10px 14px;
+    font-weight: 600;
+    color: #4b5563;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .table-custom td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .badge-payment {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .badge-refund {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-page">
+  <div class="report-header">
+    <h1>Sales &amp; Collections Report</h1>
+    <p>Financial ledger audit based on settled payments and refunds. Multi-tenant restaurant: {{ restaurant.name }}.</p>
+  </div>
+
+  {% include "reports/date_filter_snippet.html" %}
+
+  <!-- KPI Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card highlight">
+      <div class="title">Net Collections</div>
+      <div class="value">৳{{ net_collections|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Gross less refunds</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Gross Collections</div>
+      <div class="value">৳{{ gross_collections|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Tender received</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Total Refunds</div>
+      <div class="value" style="color: #dc2626;">{% if refunds > 0 %}-৳{{ refunds|floatformat:2 }}{% else %}৳0.00{% endif %}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Returned to guests</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Net F&amp;B Sales</div>
+      <div class="value">৳{{ net_sales|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Subtotal less discount &amp; refund</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">VAT / Tax Collected</div>
+      <div class="value">৳{{ vat_amount|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Tax liability</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Service Charge</div>
+      <div class="value">৳{{ service_charge|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Service collections</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Paid Orders</div>
+      <div class="value">{{ order_count }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Settled tickets</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Average Order Value</div>
+      <div class="value">৳{{ average_order_value|floatformat:2 }}</div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Per settled order</div>
+    </div>
+  </div>
+
+  <!-- Breakdown Section -->
+  <div class="section-row">
+    <!-- Payment Methods -->
+    <div class="card-box">
+      <h3>Payment Method Breakdown</h3>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Payments</th>
+            <th>Refunds</th>
+            <th style="text-align: right;">Net Collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for method_name, vals in payment_method_breakdown.items %}
+          <tr>
+            <td style="font-weight: 600;">{{ method_name }}</td>
+            <td>৳{{ vals.payments|floatformat:2 }}</td>
+            <td style="color: #dc2626;">{% if vals.refunds > 0 %}-৳{{ vals.refunds|floatformat:2 }}{% else %}৳0.00{% endif %}</td>
+            <td style="text-align: right; font-weight: 700;">
+              {% if vals.net < 0 %}-৳{{ vals.net|stringformat:".2f"|slice:"1:" }}{% else %}৳{{ vals.net|floatformat:2 }}{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" style="text-align: center; color: #9ca3af; padding: 20px;">No transactions recorded.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Order Types -->
+    <div class="card-box">
+      <h3>Dine-In vs. Takeaway</h3>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Service Type</th>
+            <th>Order Count</th>
+            <th style="text-align: right;">Net Sales</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for type_name, vals in order_type_breakdown.items %}
+          <tr>
+            <td style="font-weight: 600;">{{ type_name }}</td>
+            <td>{{ vals.count }} orders</td>
+            <td style="text-align: right; font-weight: 700;">৳{{ vals.net_sales|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Transactions Ledger -->
+  <div class="card-box" style="margin-top: 24px;">
+    <h3>Settled Transaction Ledger (Audit Trail)</h3>
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Type</th>
+          <th>Order #</th>
+          <th>Method</th>
+          <th>Reference / Note</th>
+          <th>Recorded By</th>
+          <th style="text-align: right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in transactions %}
+        <tr>
+          <td style="color: #4b5563;">{{ txn.transaction_at|date:"M d, Y H:i" }}</td>
+          <td>
+            {% if txn.transaction_type == 'PAYMENT' %}
+              <span class="badge-payment">Payment</span>
+            {% else %}
+              <span class="badge-refund">Refund</span>
+            {% endif %}
+          </td>
+          <td><a href="{% url 'order_detail' txn.order_id %}" style="font-weight: 600; color: #2563eb; text-decoration: none;">Order #{{ txn.order_id }}</a></td>
+          <td>{{ txn.get_payment_method_display }}</td>
+          <td style="color: #6b7280;">{{ txn.reference|default:txn.note|default:"—" }}</td>
+          <td style="color: #6b7280; font-size: 12px;">{{ txn.recorded_by.username|default:"Customer / POS" }}</td>
+          <td style="text-align: right; font-weight: 700; {% if txn.transaction_type == 'REFUND' %}color: #dc2626;{% endif %}">
+            {% if txn.transaction_type == 'REFUND' and txn.amount > 0 %}-{% endif %}৳{{ txn.amount|floatformat:2 }}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; color: #9ca3af; padding: 30px;">No transactions recorded in this period.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -610,8 +610,11 @@
                                         <td>
 
                                             <div class="item-name">
-                                                {{ row.item.name }}
-                                            </div>
+                                                 {{ row.item.name }}
+                                                 {% if row.item.is_set_menu %}
+                                                     <span class="badge badge-blue" style="font-size: 8px; margin-left: 6px; vertical-align: middle;">Set Menu (Combo)</span>
+                                                 {% endif %}
+                                             </div>
 
                                             <div class="item-description">
                                                 {{ row.item.description|default:"No description" }}
@@ -755,17 +758,29 @@
 
                                         <td>
 
-                                            {% if row.has_recipe %}
+                                            {% if row.item.is_set_menu %}
 
-                                                <span class="badge badge-blue">
-                                                    Recipe Built
-                                                </span>
+                                                {% if row.has_recipe %}
+                                                    <span class="badge badge-blue">
+                                                        Components Set
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge badge-yellow">
+                                                        No Components
+                                                    </span>
+                                                {% endif %}
 
                                             {% else %}
 
-                                                <span class="badge badge-yellow">
-                                                    No Recipe
-                                                </span>
+                                                {% if row.has_recipe %}
+                                                    <span class="badge badge-blue">
+                                                        Recipe Built
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge badge-yellow">
+                                                        No Recipe
+                                                    </span>
+                                                {% endif %}
 
                                             {% endif %}
 
@@ -778,20 +793,46 @@
 
                                             <div class="action-buttons">
 
+                                                <a
+                                                    href="{% url 'menu_item_edit' row.item.id %}"
+                                                    class="action-btn"
+                                                    style="background: #f3f4f6; color: #1f2937;"
+                                                >
+                                                    Edit
+                                                </a>
 
-                                                {% if row.has_recipe %}
+                                                <form method="POST" action="{% url 'menu_item_toggle_availability' row.item.id %}" style="display:inline; margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button
+                                                        type="submit"
+                                                        class="action-btn"
+                                                        style="background: {% if row.item.is_available %}#fef2f2; color: #dc2626;{% else %}#f0fdf4; color: #16a34a;{% endif %} border: none; cursor: pointer;"
+                                                        title="Toggle customer menu visibility"
+                                                    >
+                                                        {% if row.item.is_available %}Hide{% else %}Show{% endif %}
+                                                    </button>
+                                                </form>
 
+                                                {% if row.item.is_set_menu %}
+
+                                                    <a
+                                                        href="{% url 'recipe_builder' row.item.id %}"
+                                                        class="action-btn action-build"
+                                                        style="background: #eff6ff; color: #2563eb;"
+                                                    >
+                                                        Components
+                                                    </a>
+
+                                                {% elif row.has_recipe %}
 
                                                     <a
                                                         href="{% url 'recipe_builder' row.item.id %}"
                                                         class="action-btn action-edit"
                                                     >
-                                                        Edit Recipe
+                                                        Recipe
                                                     </a>
 
-
                                                 {% else %}
-
 
                                                     <a
                                                         href="{% url 'recipe_builder' row.item.id %}"
@@ -800,9 +841,7 @@
                                                         Build Recipe
                                                     </a>
 
-
                                                 {% endif %}
-
 
                                             </div>
 

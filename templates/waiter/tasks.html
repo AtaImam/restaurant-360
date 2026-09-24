@@ -1,0 +1,90 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}Daily Tasks{% endblock %}
+
+{% block content %}
+<div class="waiter-tasks-page">
+
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+    <div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">Daily Tasks</h2>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        {{ pending_count }} pending task{{ pending_count|pluralize }} remaining today
+      </p>
+    </div>
+
+    <!-- STATUS TABS -->
+    <div style="display: flex; gap: 8px;">
+      <a href="?status=all" class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 8px 14px; font-size: 13px;">
+        All
+      </a>
+      <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 8px 14px; font-size: 13px;">
+        Pending ({{ pending_count }})
+      </a>
+      <a href="?status=completed" class="btn {% if status_filter == 'completed' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 8px 14px; font-size: 13px;">
+        Completed
+      </a>
+    </div>
+  </div>
+
+  {% if tasks %}
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    {% for task in tasks %}
+    <div class="card" style="margin-bottom: 0; padding: 16px; border: 1px solid {% if task.is_completed %}var(--border){% else %}#fed7aa{% endif %}; background: {% if task.is_completed %}#f9fafb{% else %}#ffffff{% endif %};">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+        
+        <div style="display: flex; align-items: flex-start; gap: 14px; flex: 1;">
+          <div style="font-size: 22px; line-height: 1; margin-top: 2px; color: {% if task.is_completed %}#10b981{% else %}#f97316{% endif %};">
+            {% if task.is_completed %}✓{% else %}○{% endif %}
+          </div>
+          <div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); {% if task.is_completed %}text-decoration: line-through; color: var(--text-muted);{% endif %}">
+              {{ task.title }}
+            </div>
+            {% if task.instructions %}
+            <p style="font-size: 13px; color: var(--text); margin-top: 4px;">{{ task.instructions }}</p>
+            {% endif %}
+
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+              {% if task.related_table %}
+              <span class="badge badge-info">Table {{ task.related_table.table_number }}</span>
+              {% endif %}
+              {% if task.related_order %}
+              <span class="badge badge-gray">Order #{{ task.related_order.id }}</span>
+              {% endif %}
+              {% if task.assigned_by %}
+              <span class="badge badge-gray">By {{ task.assigned_by.get_full_name|default:task.assigned_by.username }}</span>
+              {% endif %}
+              {% if task.is_completed and task.completed_at %}
+              <span class="badge badge-success">Completed at {{ task.completed_at|date:"g:i A" }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION -->
+        {% if not task.is_completed %}
+        <form method="post" action="{% url 'waiter:complete_task' task.id %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success" style="padding: 10px 18px; font-size: 13px; font-weight: 600;">
+            <span>✓ Complete</span>
+          </button>
+        </form>
+        {% else %}
+        <span class="badge badge-success" style="padding: 6px 12px; font-size: 12px;">Completed</span>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+    <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+    <p style="font-size: 15px; font-weight: 600;">No tasks found.</p>
+    <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">You have no tasks matching this filter.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

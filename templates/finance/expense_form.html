@@ -1,0 +1,153 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}{% if is_edit %}Edit Expense{% else %}Add Expense{% endif %} | Restaurant 360{% endblock %}
+{% block page_title %}Expense Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-card {
+    max-width: 800px;
+    margin: 30px auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .form-header {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 16px;
+  }
+  .form-header h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .form-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-full {
+    grid-column: span 2;
+  }
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .field-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 20px;
+  }
+  .btn-submit {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-cancel {
+    background: #ffffff;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="form-header">
+    <h2>{% if is_edit %}Edit Expense{% else %}Record New Expense{% endif %}</h2>
+    <p>Record operating costs with proper categorization and optional receipt attachment.</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="form-grid">
+      <div class="field-group form-full">
+        <label>Expense Title *</label>
+        {{ form.title }}
+      </div>
+
+      <div class="field-group">
+        <label>Category *</label>
+        {{ form.category }}
+      </div>
+
+      <div class="field-group">
+        <label>Amount (৳) *</label>
+        {{ form.amount }}
+      </div>
+
+      <div class="field-group">
+        <label>Expense Date *</label>
+        {{ form.expense_date }}
+      </div>
+
+      <div class="field-group">
+        <label>Payment Method *</label>
+        {{ form.payment_method }}
+      </div>
+
+      <div class="field-group form-full">
+        <label>Payee / Vendor Name</label>
+        {{ form.payee }}
+      </div>
+
+      <div class="field-group form-full">
+        <label>Receipt Image (Optional)</label>
+        {{ form.receipt_image }}
+      </div>
+
+      <div class="field-group form-full">
+        <label>Notes</label>
+        {{ form.notes }}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'finance:expense_list' %}" class="btn-cancel">Cancel</a>
+      <button type="submit" class="btn-submit">{% if is_edit %}Save Changes{% else %}Save Expense{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

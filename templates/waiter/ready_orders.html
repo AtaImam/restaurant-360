@@ -1,0 +1,104 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}Ready Orders{% endblock %}
+
+{% block content %}
+<div class="waiter-ready-orders-page">
+
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+    <div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">Kitchen Ready Orders</h2>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        Branch: <strong>{{ current_branch.name|default:"Main Branch" }}</strong> • {{ total_ready }} order{{ total_ready|pluralize }} waiting for delivery
+      </p>
+    </div>
+
+    {% if urgent_count > 0 %}
+    <span class="badge badge-danger" style="font-size: 13px; padding: 6px 14px;">
+      🚨 {{ urgent_count }} Urgent (&gt;5m)
+    </span>
+    {% endif %}
+  </div>
+
+  {% if ready_orders %}
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px;">
+    {% for order in ready_orders %}
+    <div class="card" style="margin-bottom: 0; padding: 16px; border: 2px solid {% if order.is_urgent %}#ef4444{% else %}#10b981{% endif %}; background: {% if order.is_urgent %}#fff1f2{% else %}#ffffff{% endif %}; display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <div>
+        <!-- TOP: Order Header & Timer -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 18px; font-weight: 800; color: var(--text-dark);">Order #{{ order.id }}</span>
+              {% if order.is_mine %}
+              <span class="badge badge-warning" style="font-size: 10px;">My Table</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 13px; font-weight: 600; color: #1f2937; margin-top: 2px;">
+              {% if order.table %}
+              🍽 Table {{ order.table.table_number }} ({{ order.table.floor.name|default:"Floor 1" }})
+              {% else %}
+              🛍 {{ order.get_order_type_display }}
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- DURATION BADGE -->
+          <span class="badge {% if order.is_urgent %}badge-danger{% else %}badge-success{% endif %}" style="font-size: 12px; padding: 5px 10px;">
+            {% if order.is_urgent %}⚠ {% endif %}{{ order.ready_duration_minutes }} min ready
+          </span>
+        </div>
+
+        <!-- ITEMS LIST -->
+        <div style="background: rgba(0,0,0,0.03); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 14px;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 6px;">Order Items</div>
+          <ul style="list-style: none; font-size: 13.5px; color: var(--text-dark);">
+            {% for item in order.items.all %}
+            <li style="padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.06); display: flex; justify-content: space-between;">
+              <span><strong>{{ item.quantity }}x</strong> {{ item.menu_item.name }}</span>
+              {% if item.unit_price %}<span style="color: var(--text-muted); font-size: 12px;">${{ item.subtotal|floatformat:2 }}</span>{% endif %}
+            </li>
+            {% if item.addons.all %}
+            <li style="padding: 0 0 4px 14px; font-size: 11px; color: var(--text-muted);">
+              + {% for addon in item.addons.all %}{{ addon.option_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- 1-TAP SERVE BUTTON (MIN 44PX) -->
+      <div style="display: flex; gap: 8px;">
+        <form method="post" action="{% url 'waiter:serve_order' order.id %}" style="margin: 0; flex: 1;">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'waiter:ready_orders' %}">
+          <button type="submit" class="btn btn-success btn-block" style="font-size: 14px; font-weight: 700;">
+            <span>✓</span>
+            <span>Mark as Served</span>
+          </button>
+        </form>
+        <a href="{% url 'bill_preview' order.id %}" class="btn btn-outline" style="min-width: 44px; padding: 0 12px;" title="View Bill">
+          <span>🧾</span>
+        </a>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
+    <div style="font-size: 40px; margin-bottom: 12px;">🎉</div>
+    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">All Caught Up!</h3>
+    <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">
+      There are currently no orders ready in the kitchen waiting to be served.
+    </p>
+    <div style="margin-top: 18px;">
+      <a href="{% url 'waiter:tables' %}" class="btn btn-secondary">Go to My Tables</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from orders.models import Order
+from guests.services import qr_feedback_url
 
 
 # ============================================================
@@ -64,6 +65,11 @@ STATUS_META = {
 # ============================================================
 
 def estimate_order_minutes(order):
+
+    from business_settings.services import resolve_settings
+    configured_estimate = resolve_settings(order.restaurant, order.branch)['prep_estimate_minutes']
+    if configured_estimate:
+        return configured_estimate
 
     lines = list(
         order.items
@@ -425,7 +431,8 @@ def order_status_api(request, order_id):
         .prefetch_related("items__menu_item__category"),
         id=order_id,
     )
-    response = JsonResponse(get_order_status_data(order))
+    response = JsonResponse({**get_order_status_data(order), "feedback_url": qr_feedback_url(request, order)})
+    response["Vary"] = "Cookie"
 
     response[
         "Cache-Control"

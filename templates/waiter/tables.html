@@ -1,0 +1,172 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}My Tables{% endblock %}
+
+{% block content %}
+<div class="waiter-tables-page">
+
+  <!-- PAGE HEADER -->
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+    <div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">My Assigned Tables</h2>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        Branch: <strong>{{ current_branch.name|default:"Main Branch" }}</strong> • {{ assigned_count }} tables officially assigned to you today
+      </p>
+    </div>
+    <div>
+      <a href="{% url 'pos_dashboard' %}" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px;">
+        <span>＋ Open POS</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- TABLE CARDS GRID -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+    {% for item in tables_data %}
+    {% with t=item.table order=item.active_order ready_order=item.ready_order %}
+    <div class="card" style="margin-bottom: 0; padding: 18px; border: 1.5px solid {% if item.state_slug == 'ready' %}#86efac{% elif t.cleaning_sessions %}#c084fc{% elif item.state_slug == 'payment_due' %}#fca5a5{% elif item.has_active_order %}#fed7aa{% else %}var(--border){% endif %}; display: flex; flex-direction: column; justify-content: space-between; background: {% if item.state_slug == 'ready' %}#f0fdf4{% elif t.cleaning_sessions %}#faf5ff{% else %}#ffffff{% endif %};">
+      
+      <!-- TOP: Table Number, Floor, Capacity & Service State Badge -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 19px; font-weight: 800; color: var(--text-dark);">Table {{ t.table_number }}</span>
+              <span class="badge badge-warning" style="font-size: 10px;">{% if item.is_assigned %}My Table{% else %}Cleaning Task{% endif %}</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+              {{ t.floor.name|default:"Floor 1" }} • {{ t.capacity }} Seats
+            </div>
+          </div>
+
+          <!-- 7-STATE SERVICE BADGE -->
+          <div>
+            {% if item.service_state == 'Ready' %}
+            <span class="badge badge-success" style="font-size: 12px; padding: 5px 10px; font-weight: 800;">⚡ Ready to Serve</span>
+            {% elif item.service_state == 'Preparing' %}
+            <span class="badge badge-warning" style="font-size: 12px; padding: 5px 10px;">🔥 Preparing</span>
+            {% elif item.service_state == 'New Order' %}
+            <span class="badge badge-info" style="font-size: 12px; padding: 5px 10px;">✨ New Order</span>
+            {% elif item.service_state == 'Dining' %}
+            <span class="badge badge-info" style="font-size: 12px; padding: 5px 10px;">🍽 Dining</span>
+            {% elif item.service_state == 'Payment Due' %}
+            <span class="badge badge-danger" style="font-size: 12px; padding: 5px 10px; font-weight: 700;">💳 Payment Due</span>
+            {% else %}
+            <span class="badge badge-gray" style="font-size: 12px; padding: 5px 10px;">Free / Available</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- QR ORDER BADGE & ATTRIBUTION -->
+        {% if item.has_active_order %}
+        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+          {% if item.is_qr %}
+          <span class="badge badge-info" style="font-size: 11px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+            📱 Customer QR Order
+          </span>
+          {% endif %}
+          {% if item.taken_by_name %}
+          <span class="badge badge-gray" style="font-size: 11px;">
+            Taken by: {{ item.taken_by_name }}
+          </span>
+          {% endif %}
+          {% if item.served_by_name %}
+          <span class="badge badge-gray" style="font-size: 11px;">
+            Served by: {{ item.served_by_name }}
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- ORDER SUMMARY BOX -->
+        <div style="background: #f9fafb; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Active Order:</span>
+            <span style="font-weight: 700; color: var(--text-dark);">#{{ order.id }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Elapsed Time:</span>
+            <span style="font-weight: 600; color: {% if item.elapsed_minutes >= 30 %}#ef4444{% else %}var(--text-dark){% endif %};">
+              {{ item.elapsed_minutes }} min ago
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <span style="color: var(--text-muted);">Outstanding Bill:</span>
+            <span style="font-weight: 800; color: {% if item.unpaid_amount > 0 %}#b91c1c{% else %}#047857{% endif %};">
+              {% if item.unpaid_amount > 0 %}
+              ${{ item.unpaid_amount|floatformat:2 }} (Unpaid)
+              {% else %}
+              Settled / Paid ✓
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        {% else %}
+        <div style="padding: 20px 0; text-align: center; color: var(--text-light); font-size: 13px;">
+          Table is available for new guests.
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- BOTTOM: ACTIONS -->
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+        
+        <!-- READY STATE: 1-TAP SERVE -->
+        {% if ready_order %}
+        <form method="post" action="{% url 'waiter:serve_order' ready_order.id %}" style="margin: 0;">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'waiter:tables' %}">
+          <button type="submit" class="btn btn-success btn-block" style="font-weight: 700; padding: 10px;">
+            <span>⚡ Serve Food to Table</span>
+          </button>
+        </form>
+        {% endif %}
+
+        {% for session in t.cleaning_sessions %}
+        <form method="post" action="{% url 'waiter:clean_table' t.id %}" style="padding: 12px; background: #faf5ff; border: 1px solid #d8b4fe; border-radius: 8px;">
+          {% csrf_token %}
+          <input type="hidden" name="session_id" value="{{ session.pk }}">
+          <strong style="color: #7e22ce;">Clean Needed</strong>
+          <p style="font-size: 12px; margin: 6px 0;">Previous service · {{ session.closed_at|date:"d M, H:i" }}. Cleaning does not block new orders.</p>
+          <button type="submit" class="btn btn-secondary btn-block">Mark as Cleaned</button>
+        </form>
+        {% endfor %}
+
+        <!-- SECONDARY BUTTONS -->
+        {% if item.has_active_order %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <!-- Add Order / POS -->
+          <a href="{% url 'pos_dashboard' %}?table_id={{ t.id }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px 6px;">
+            <span>＋ Add Order</span>
+          </a>
+          <!-- View Bill / Collect Payment -->
+          <a href="{% url 'bill_preview' order.id %}" class="btn {% if item.service_state == 'Payment Due' %}btn-danger{% else %}btn-outline{% endif %}" style="font-size: 12px; padding: 8px 6px;">
+            <span>🧾 {% if item.unpaid_amount > 0 %}Pay / Bill{% else %}View Bill{% endif %}</span>
+          </a>
+        </div>
+        {% else %}
+        <!-- AVAILABLE STATE: 1-TAP TAKE ORDER / POS -->
+        <a href="{% url 'pos_dashboard' %}?table_id={{ t.id }}" class="btn btn-primary btn-block" style="padding: 10px;">
+          <span>＋ Take Order</span>
+        </a>
+        {% endif %}
+
+      </div>
+
+    </div>
+    {% endwith %}
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-muted);">
+      <div style="font-size: 36px; margin-bottom: 12px;">🍽</div>
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">No Tables Assigned Today</h3>
+      <p style="font-size: 13px; color: var(--text-light); max-width: 420px; margin: 8px auto 16px;">
+        You currently have no tables assigned to you for today's shift. Please contact your manager or floor supervisor to assign tables.
+      </p>
+      <a href="{% url 'pos_dashboard' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <span>＋ Open POS for Any Table</span>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

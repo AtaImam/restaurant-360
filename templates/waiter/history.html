@@ -1,0 +1,102 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}Service History{% endblock %}
+
+{% block content %}
+<div class="waiter-history-page">
+
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+    <div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">Service History</h2>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        Your completed orders, service times, and delivery speeds.
+      </p>
+    </div>
+
+    <!-- PERIOD FILTER PILLS -->
+    <div style="display: flex; gap: 6px;">
+      <a href="?period=all" class="btn {% if period == 'all' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 6px 12px; font-size: 12px;">All</a>
+      <a href="?period=today" class="btn {% if period == 'today' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 6px 12px; font-size: 12px;">Today</a>
+      <a href="?period=week" class="btn {% if period == 'week' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 6px 12px; font-size: 12px;">7 Days</a>
+      <a href="?period=month" class="btn {% if period == 'month' %}btn-primary{% else %}btn-secondary{% endif %}" style="padding: 6px 12px; font-size: 12px;">30 Days</a>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px;">
+    <div class="card" style="margin-bottom: 0; padding: 14px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Served</div>
+      <div style="font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 2px;">{{ total_served }}</div>
+    </div>
+    <div class="card" style="margin-bottom: 0; padding: 14px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Avg Service Speed</div>
+      <div style="font-size: 24px; font-weight: 800; color: #10b981; margin-top: 2px;">
+        {% if avg_speed %}{{ avg_speed }}m{% else %}--{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICE ITEMS LIST -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>🍽</span>
+        <span>Orders Served by You</span>
+      </h3>
+    </div>
+
+    {% if services %}
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      {% for s in services %}
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #ffffff;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px; font-weight: 800; color: var(--text-dark);">Order #{{ s.order.id }}</span>
+            {% if s.order.table %}
+            <span class="badge badge-info">Table {{ s.order.table.table_number }}</span>
+            {% else %}
+            <span class="badge badge-gray">{{ s.order.get_order_type_display }}</span>
+            {% endif %}
+            <span class="badge badge-success">Served</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px;">
+            <span>Assigned Table Waiter: <strong>{{ s.waiter.user.get_full_name|default:s.waiter.user.username }}</strong></span>
+            {% if s.order_taken_by %}
+            <span>• Order Taken By: <strong>{{ s.order_taken_by.user.get_full_name|default:s.order_taken_by.user.username }}</strong></span>
+            {% endif %}
+            {% if s.served_by %}
+            <span>• Served By: <strong>{{ s.served_by.user.get_full_name|default:s.served_by.user.username }}</strong></span>
+            {% endif %}
+            {% if s.payment_handled_by %}
+            <span>• Payment: <strong>{{ s.payment_handled_by.get_full_name|default:s.payment_handled_by.username }}</strong></span>
+            {% endif %}
+            {% if s.closed_by %}
+            <span>• Closed: <strong>{{ s.closed_by.get_full_name|default:s.closed_by.username }}</strong></span>
+            {% endif %}
+          </div>
+          <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">
+            Assigned: {{ s.assigned_at|date:"M d, g:i A" }}
+            {% if s.served_at %}• Served: {{ s.served_at|date:"g:i A" }}{% endif %}
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-dark);">
+            {% if s.duration_minutes %}{{ s.duration_minutes }} min speed{% else %}Completed{% endif %}
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted);">
+            ${{ s.order.total_amount|floatformat:2 }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+      No service history recorded for this period.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

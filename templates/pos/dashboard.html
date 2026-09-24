@@ -1,4 +1,4 @@
-{% extends "dashboard/base_owner.html" %}
+{% extends base_template|default:"dashboard/base_owner.html" %}
 
 {% block title %}POS | Restaurant 360{% endblock %}
 {% block page_title %}Point of Sale{% endblock %}
@@ -643,6 +643,86 @@
 
 
     /* =========================
+       PAYMENT TIMING / METHOD
+    ========================== */
+
+    .payment-section {
+        border-top: 1px solid #f1f5f9;
+        padding: 12px 16px 4px;
+        background: #fcfcfd;
+    }
+
+    .payment-timing-label {
+        font-size: 9px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+    }
+
+    .timing-toggle {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .timing-opt { display: none; }
+
+    .timing-lbl {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        height: 32px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 800;
+        color: #6b7280;
+        background: #fff;
+        transition: all 0.15s;
+    }
+    .timing-lbl:hover { border-color: #f97316; color: #f97316; }
+    .timing-opt:checked + .timing-lbl {
+        border-color: #f97316;
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .pos-method-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .pos-method-grid[hidden] { display: none; }
+    .pm-opt { display: none; }
+    .pm-lbl {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 4px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 9px;
+        cursor: pointer;
+        background: #fff;
+        transition: all 0.15s;
+    }
+    .pm-lbl:hover { border-color: #f97316; }
+    .pm-opt:checked + .pm-lbl {
+        border-color: #f97316;
+        background: #fff7ed;
+    }
+    .pm-icon { font-size: 16px; }
+    .pm-name { font-size: 8px; font-weight: 700; color: #6b7280; }
+    .pm-opt:checked + .pm-lbl .pm-name { color: #ea580c; }
+
+
+    /* =========================
        TOAST
     ========================== */
 
@@ -668,6 +748,86 @@
     .pos-toast.show {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    /* POS Addon Modal */
+    .pos-addon-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pos-addon-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(3px);
+    }
+    .pos-addon-dialog {
+        position: relative;
+        background: #ffffff;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        max-height: 85vh;
+        animation: posModalFade 0.15s ease-out;
+    }
+    @keyframes posModalFade {
+        from { opacity: 0; transform: scale(0.97); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .pos-addon-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fafafa;
+    }
+    .pos-addon-group-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+    .pos-addon-group-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+    .pos-addon-opt-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-top: 6px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+    }
+    .pos-addon-opt-item:hover {
+        border-color: #f97316;
+    }
+    .pos-addon-opt-item.selected {
+        border-color: #f97316;
+        background: #fff7ed;
     }
 
 
@@ -810,12 +970,16 @@
             {% for item in menu_items %}
 
                 <article
-                    class="product-card"
+                    class="product-card {% if item.is_sold_out %}product-card-sold-out{% endif %}"
                     data-id="{{ item.id }}"
                     data-name="{{ item.name|escape }}"
                     data-price="{{ item.price }}"
                     data-category="{{ item.category.id }}"
                     data-search="{{ item.name|lower }} {{ item.category.name|lower }}"
+                    data-sold-out="{% if item.is_sold_out %}true{% else %}false{% endif %}"
+                    data-has-addons="{% if item.has_addons %}true{% else %}false{% endif %}"
+                    data-addons="{{ item.addon_groups_json|escape }}"
+                    {% if item.is_sold_out %}style="opacity: 0.6;"{% endif %}
                 >
 
                     <div class="product-image">
@@ -846,6 +1010,13 @@
 
                         <div class="product-name">
                             {{ item.name }}
+                            {% if item.is_sold_out %}
+                                <span class="badge" style="background:#fee2e2; color:#dc2626; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:4px; vertical-align:middle;">Sold Out</span>
+                            {% elif item.has_addons %}
+                                <span class="badge" style="background:#fef3c7; color:#b45309; font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; margin-left:4px; vertical-align:middle;">Options</span>
+                            {% elif item.available_portions is not None %}
+                                <span class="badge" style="background:#eff6ff; color:#2563eb; font-size:9px; font-weight:600; padding:1px 5px; border-radius:4px; margin-left:4px; vertical-align:middle;">{{ item.available_portions }} left</span>
+                            {% endif %}
                         </div>
 
                         <div class="product-footer">
@@ -854,13 +1025,25 @@
                                 ৳{{ item.price|floatformat:2 }}
                             </span>
 
-                            <button
-                                type="button"
-                                class="product-add"
-                                aria-label="Add {{ item.name }}"
-                            >
-                                +
-                            </button>
+                            {% if item.is_sold_out %}
+                                <button
+                                    type="button"
+                                    class="product-add"
+                                    disabled
+                                    style="background: #e5e7eb; color: #9ca3af; cursor: not-allowed;"
+                                    title="Sold Out"
+                                >
+                                    ✕
+                                </button>
+                            {% else %}
+                                <button
+                                    type="button"
+                                    class="product-add"
+                                    aria-label="Add {{ item.name }}"
+                                >
+                                    +
+                                </button>
+                            {% endif %}
 
                         </div>
 
@@ -930,8 +1113,8 @@
 
                 <button
                     type="button"
-                    class="type-btn active"
-                    data-type="DINE_IN"
+                    class="type-btn {% if operating_settings.allow_dine_in %}active{% endif %}"
+                    data-type="DINE_IN" {% if not operating_settings.allow_dine_in %}disabled{% endif %}
                 >
                     🍽 Dine In
                 </button>
@@ -939,8 +1122,8 @@
 
                 <button
                     type="button"
-                    class="type-btn"
-                    data-type="TAKEAWAY"
+                    class="type-btn {% if not operating_settings.allow_dine_in %}active{% endif %}"
+                    data-type="TAKEAWAY" {% if not operating_settings.allow_takeaway %}disabled{% endif %}
                 >
                     🛍 Takeaway
                 </button>
@@ -962,7 +1145,7 @@
 
                 <div
                     class="order-field"
-                    id="tableField"
+                    id="tableField" {% if not operating_settings.allow_dine_in %}style="display:none"{% endif %}
                 >
 
                     <label class="field-label">
@@ -986,8 +1169,18 @@
 
                             {% for table in tables %}
 
-                                <option value="{{ table.id }}">
-                                    Table {{ table.table_number }}
+                                <option
+                                    value="{{ table.id }}"
+                                    {% if selected_table_id and table.id|stringformat:"s" == selected_table_id|stringformat:"s" %}selected{% endif %}
+                                    data-occupied="{% if table.is_currently_occupied %}1{% else %}0{% endif %}"
+                                    data-number="{{ table.table_number }}"
+                                    data-capacity="{{ table.capacity }}"
+                                    data-orders="{{ table.active_orders_count|default:0 }}"
+                                    data-unpaid="{% if table.has_unpaid_orders %}1{% else %}0{% endif %}"
+                                    data-unpaid-balance="{{ table.unpaid_balance|default:'0.00' }}"
+                                    data-latest-order="{{ table.latest_order_id|default:'' }}"
+                                >
+                                    Table {{ table.table_number }} · {% if table.is_currently_occupied %}🔴 Occupied{% if table.active_orders_count %} ({{ table.active_orders_count }} active){% endif %}{% else %}🟢 Available ({{ table.capacity }} seats){% endif %}
                                 </option>
 
                             {% endfor %}
@@ -996,9 +1189,21 @@
 
                     </div>
 
+                    <div id="tableOccupancyNotice" style="display:none;margin-top:6px;font-size:10px;padding:6px 10px;border-radius:6px;font-weight:600;line-height:1.4;"></div>
+
                 </div>
 
 
+                {% if request.user.role == 'waiter' %}
+                <div class="order-field">
+                    <label class="field-label">Order Taken By</label>
+                    <div class="field-with-icon" style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:700; color:#111827; display:flex; align-items:center; gap:8px;">
+                        <span>👤</span>
+                        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+                    </div>
+                    <input type="hidden" id="waiterSelect" value="{{ request.user.id }}">
+                </div>
+                {% else %}
                 <div class="order-field">
 
                     <label class="field-label">
@@ -1025,6 +1230,7 @@
                     </div>
 
                 </div>
+                {% endif %}
 
             </div>
 
@@ -1079,6 +1285,11 @@
 
             </div>
 
+            <div id="appliedCouponBadge" style="display:none; margin-top:8px; padding:6px 12px; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; font-size:12px; font-weight:600; color:#065f46; justify-content:space-between; align-items:center;">
+                <span id="appliedCouponText"></span>
+                <button type="button" id="removeCouponBtn" style="background:none; border:none; cursor:pointer; color:#ef4444; font-weight:bold; font-size:14px; padding:0 4px;" title="Remove coupon">✕</button>
+            </div>
+
 
             <div class="charges-grid">
 
@@ -1110,7 +1321,7 @@
                         type="number"
                         id="serviceInput"
                         class="charge-input"
-                        value="0"
+                        value="{{ operating_settings.service_percent }}" readonly
                         min="0"
                         step="1"
                     >
@@ -1128,7 +1339,7 @@
                         type="number"
                         id="vatInput"
                         class="charge-input"
-                        value="0"
+                        value="{{ operating_settings.vat_percent }}" readonly
                         min="0"
                         step="1"
                     >
@@ -1209,6 +1420,55 @@
 
 
         <!-- =========================
+             PAYMENT SECTION
+        ========================== -->
+
+        <div class="payment-section" id="paymentSection">
+
+            <div class="payment-timing-label">Payment Timing</div>
+
+            <div class="timing-toggle">
+                <input class="timing-opt" type="radio" name="pos_timing"
+                       id="timing_later" value="PAY_LATER" {% if operating_settings.allow_pay_later %}checked{% else %}disabled{% endif %}>
+                <label class="timing-lbl" for="timing_later">⏳ Pay Later</label>
+
+                <input class="timing-opt" type="radio" name="pos_timing"
+                       id="timing_now" value="PAY_NOW" {% if not operating_settings.allow_pay_now %}disabled{% elif not operating_settings.allow_pay_later %}checked{% endif %}>
+                <label class="timing-lbl" for="timing_now">✓ Pay Now</label>
+            </div>
+
+            <!-- Payment method selector — shown when PAY_NOW -->
+            <div class="pos-method-grid" id="posMethodGrid" hidden>
+                <div>
+                    <input class="pm-opt" type="radio" name="pos_method"
+                           id="pm_cash" value="CASH" {% if operating_settings.payment_cash %}checked{% else %}disabled{% endif %}>
+                    <label class="pm-lbl" for="pm_cash">
+                        <span class="pm-icon">💵</span>
+                        <span class="pm-name">Cash</span>
+                    </label>
+                </div>
+                <div>
+                    <input class="pm-opt" type="radio" name="pos_method"
+                           id="pm_card" value="CARD" {% if not operating_settings.payment_card %}disabled{% elif not operating_settings.payment_cash %}checked{% endif %}>
+                    <label class="pm-lbl" for="pm_card">
+                        <span class="pm-icon">💳</span>
+                        <span class="pm-name">Card</span>
+                    </label>
+                </div>
+                <div>
+                    <input class="pm-opt" type="radio" name="pos_method"
+                           id="pm_mobile" value="MOBILE_BANKING" {% if not operating_settings.payment_mobile_banking %}disabled{% elif not operating_settings.payment_cash and not operating_settings.payment_card %}checked{% endif %}>
+                    <label class="pm-lbl" for="pm_mobile">
+                        <span class="pm-icon">📱</span>
+                        <span class="pm-name">Mobile</span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- =========================
              ACTIONS
         ========================== -->
 
@@ -1219,14 +1479,14 @@
                 class="action-btn draft-btn"
                 id="saveDraftBtn"
             >
-                Save Draft
+                Clear
             </button>
 
 
             <button
                 type="button"
                 class="action-btn kot-btn"
-                id="kotBtn"
+                id="kotBtn" {% if not operating_settings.allow_pay_later %}hidden{% endif %}
                 disabled
             >
                 Send KOT
@@ -1236,10 +1496,10 @@
             <button
                 type="button"
                 class="action-btn pay-btn"
-                id="billPayBtn"
+                id="billPayBtn" {% if not operating_settings.allow_pay_now %}hidden{% endif %}
                 disabled
             >
-                Bill & Pay
+                Bill &amp; Pay
             </button>
 
         </div>
@@ -1254,6 +1514,30 @@
     id="posToast"
 ></div>
 
+<!-- POS Addon Selection Modal -->
+<div id="posAddonModal" class="pos-addon-modal" style="display: none;">
+    <div class="pos-addon-backdrop" id="posAddonBackdrop"></div>
+    <div class="pos-addon-dialog">
+        <div class="pos-addon-header">
+            <div>
+                <h3 id="modalItemName" style="margin:0; font-size:16px; font-weight:800; color:#0f172a;">Item Name</h3>
+                <div id="modalItemBasePrice" style="font-size:12px; color:#f97316; font-weight:700; margin-top:2px;">৳0.00</div>
+            </div>
+            <button type="button" id="posAddonCloseBtn" style="border:none; background:transparent; font-size:20px; cursor:pointer; color:#64748b; line-height:1;">✕</button>
+        </div>
+        <div class="pos-addon-body" id="modalAddonGroups" style="overflow-y:auto; padding:16px; flex:1;">
+            <!-- Groups will be dynamically injected here -->
+        </div>
+        <div class="pos-addon-footer" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-top:1px solid #e2e8f0; background:#f8fafc;">
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; display:block;">Total Price</span>
+                <span id="modalTotalPrice" style="font-size:16px; font-weight:800; color:#0f172a;">৳0.00</span>
+            </div>
+            <button type="button" id="modalConfirmBtn" style="background:#f97316; color:#fff; border:none; border-radius:8px; padding:10px 20px; font-weight:700; cursor:pointer; font-size:13px;">Add to Order</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 
@@ -1263,7 +1547,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let cart = {};
     let selectedCategory = "all";
-    let orderType = "DINE_IN";
+    let orderType = "{% if operating_settings.allow_dine_in %}DINE_IN{% else %}TAKEAWAY{% endif %}";
     let orderSubmitting = false;
 
     const productCards = document.querySelectorAll(".product-card");
@@ -1289,10 +1573,146 @@ document.addEventListener("DOMContentLoaded", function () {
     const vatText = document.getElementById("vatText");
     const totalText = document.getElementById("totalText");
 
+    // Payment timing / method
+    const timingLater = document.getElementById("timing_later");
+    const timingNow   = document.getElementById("timing_now");
+    const posMethodGrid = document.getElementById("posMethodGrid");
+
+    function getPaymentTiming() {
+        return timingNow && timingNow.checked ? "PAY_NOW" : "PAY_LATER";
+    }
+
+    function getPaymentMethod() {
+        const checked = document.querySelector('input[name="pos_method"]:checked');
+        return checked ? checked.value : "CASH";
+    }
+
+    function onTimingChange() {
+        if (posMethodGrid) {
+            posMethodGrid.hidden = !timingNow.checked;
+        }
+    }
+
+    if (timingNow) timingNow.addEventListener("change", onTimingChange);
+    if (timingLater) timingLater.addEventListener("change", onTimingChange);
+
+    const tableOccupancyNotice = document.getElementById("tableOccupancyNotice");
+
+    function updateTableNotice() {
+        if (!tableOccupancyNotice || !tableSelect) return;
+        const selected = tableSelect.options[tableSelect.selectedIndex];
+        if (!selected || !selected.value || orderType !== "DINE_IN") {
+            tableOccupancyNotice.style.display = "none";
+            tableOccupancyNotice.innerHTML = "";
+            return;
+        }
+
+        const isOccupied = selected.dataset.occupied === "1";
+        const tableNum = selected.dataset.number;
+        const capacity = selected.dataset.capacity;
+        const orders = parseInt(selected.dataset.orders || "0", 10);
+        const hasUnpaid = selected.dataset.unpaid === "1";
+        const unpaidBalance = selected.dataset.unpaidBalance || "0.00";
+        const latestOrderId = selected.dataset.latestOrder;
+
+        tableOccupancyNotice.style.display = "block";
+        if (isOccupied) {
+            tableOccupancyNotice.style.background = "#fff7ed";
+            tableOccupancyNotice.style.color = "#9a3412";
+            tableOccupancyNotice.style.border = "1px solid #fed7aa";
+
+            let actionBtnHtml = "";
+            if (hasUnpaid && latestOrderId) {
+                actionBtnHtml = `<a href="/orders/${latestOrderId}/bill/?next=pos" style="display:inline-block;padding:3px 10px;font-size:10.5px;border-radius:5px;background:#ea580c;color:#fff;text-decoration:none;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,0.08);">Collect Payment (৳${unpaidBalance})</a>`;
+            } else if (!hasUnpaid) {
+                actionBtnHtml = `<button type="button" id="closeTableBtn_${selected.value}" style="padding:2px 8px;font-size:10px;border-radius:4px;background:#fff;border:1px solid #ea580c;color:#ea580c;cursor:pointer;font-weight:700;">Free Table</button>`;
+            }
+
+            tableOccupancyNotice.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                    <div>
+                        <strong>🔴 Occupied (${orders} active order${orders === 1 ? '' : 's'})</strong>
+                        <div style="font-size:9.5px;color:#c2410c;margin-top:1px;">New items will be added to this dining session.</div>
+                    </div>
+                    ${actionBtnHtml}
+                </div>
+            `;
+            if (!hasUnpaid) {
+                const btn = document.getElementById(`closeTableBtn_${selected.value}`);
+                if (btn) {
+                    btn.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closePosTable(selected.value, tableNum);
+                    });
+                }
+            }
+        } else {
+            tableOccupancyNotice.style.background = "#ecfdf5";
+            tableOccupancyNotice.style.color = "#065f46";
+            tableOccupancyNotice.style.border = "1px solid #a7f3d0";
+            tableOccupancyNotice.innerHTML = `
+                <div>
+                    <strong>🟢 Available (${capacity} seats)</strong>
+                    <div style="font-size:9.5px;color:#047857;margin-top:1px;">Placing this order will start a new dining session.</div>
+                </div>
+            `;
+        }
+    }
+
+    if (tableSelect) {
+        tableSelect.addEventListener("change", updateTableNotice);
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramTableId = urlParams.get("table_id");
+        if (paramTableId && tableSelect.querySelector(`option[value="${paramTableId}"]`)) {
+            tableSelect.value = paramTableId;
+            updateTableNotice();
+        } else if (tableSelect.value) {
+            updateTableNotice();
+        }
+    }
+
+    async function closePosTable(tableId, tableNum) {
+        if (!confirm(`Close dining service for Table ${tableNum} and make it available?`)) {
+            return;
+        }
+        try {
+            const resp = await fetch(`/pos/table/${tableId}/close/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                }
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                showToast(data.message || "Failed to close table service.");
+                return;
+            }
+            showToast(data.message);
+            const opt = tableSelect.querySelector(`option[value="${tableId}"]`);
+            if (opt) {
+                opt.dataset.occupied = "0";
+                opt.dataset.orders = "0";
+                opt.dataset.unpaid = "0";
+                opt.textContent = `Table ${tableNum} · 🟢 Available (${opt.dataset.capacity} seats)`;
+            }
+            updateTableNotice();
+        } catch (err) {
+            console.error(err);
+            showToast("Error closing table service.");
+        }
+    }
+
     const kotBtn = document.getElementById("kotBtn");
     const billPayBtn = document.getElementById("billPayBtn");
     const saveDraftBtn = document.getElementById("saveDraftBtn");
+    const couponCodeInput = document.getElementById("couponCode");
     const applyCouponBtn = document.getElementById("applyCouponBtn");
+    const appliedCouponBadge = document.getElementById("appliedCouponBadge");
+    const appliedCouponText = document.getElementById("appliedCouponText");
+    const removeCouponBtn = document.getElementById("removeCouponBtn");
+    let appliedCoupon = null;
 
     const posToast = document.getElementById("posToast");
 
@@ -1331,10 +1751,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function getPricing() {
 
-        const subtotal = getSubtotal();
+        const subtotal =
+            getSubtotal();
 
-        let discount =
-            Number(discountInput.value || 0);
+        let discount = appliedCoupon
+            ? Number(appliedCoupon.discount_amount || 0)
+            : Number(discountInput.value || 0);
 
         let servicePercent =
             Number(serviceInput.value || 0);
@@ -1360,27 +1782,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        const afterDiscount =
-            subtotal - discount;
-
-        const serviceCharge =
-            afterDiscount *
-            servicePercent /
-            100;
-
-        const taxableAmount =
-            afterDiscount +
-            serviceCharge;
-
-        const vat =
-            taxableAmount *
-            vatPercent /
-            100;
-
-        const grandTotal =
-            taxableAmount +
-            vat;
-
+        // Round each monetary stage to cents, matching the server pricing engine.
+        const afterDiscountCents = Math.max(0, Math.round(subtotal * 100) - Math.round(discount * 100));
+        const serviceCents = Math.round(afterDiscountCents * Math.round(servicePercent * 100) / 10000);
+        const vatCents = Math.round((afterDiscountCents + serviceCents) * Math.round(vatPercent * 100) / 10000);
+        const serviceCharge = serviceCents / 100;
+        const vat = vatCents / 100;
+        const grandTotal = (afterDiscountCents + serviceCents + vatCents) / 100;
 
         return {
             subtotal: subtotal,
@@ -1470,6 +1878,9 @@ document.addEventListener("DOMContentLoaded", function () {
             totalQuantity +=
                 Number(item.quantity);
 
+            const addonsHtml = (item.addon_names && item.addon_names.length > 0)
+                ? `<div style="font-size:11px; color:#ea580c; font-weight:600; margin-top:2px;">+ ${item.addon_names.join(', ')}</div>`
+                : '';
 
             html += `
                 <div class="cart-row">
@@ -1481,6 +1892,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="cart-name">
                                 ${item.name}
                             </div>
+                            ${addonsHtml}
 
                             <div class="cart-unit">
                                 ${money(item.price)} each
@@ -1503,7 +1915,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 type="button"
                                 class="qty-btn"
                                 data-cart-action="decrease"
-                                data-id="${item.id}"
+                                data-id="${item.key}"
                             >
                                 −
                             </button>
@@ -1516,7 +1928,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 type="button"
                                 class="qty-btn"
                                 data-cart-action="increase"
-                                data-id="${item.id}"
+                                data-id="${item.key}"
                             >
                                 +
                             </button>
@@ -1528,7 +1940,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             type="button"
                             class="remove-item"
                             data-cart-action="remove"
-                            data-id="${item.id}"
+                            data-id="${item.key}"
                         >
                             Remove
                         </button>
@@ -1555,10 +1967,223 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateTotals();
         updateButtons();
+        if (appliedCoupon) {
+            revalidateAppliedCoupon();
+        }
     }
 
 
+    /*
+     * POS ADDON MODAL LOGIC
+     */
+    const posAddonModal = document.getElementById("posAddonModal");
+    const posAddonBackdrop = document.getElementById("posAddonBackdrop");
+    const posAddonCloseBtn = document.getElementById("posAddonCloseBtn");
+    const modalItemName = document.getElementById("modalItemName");
+    const modalItemBasePrice = document.getElementById("modalItemBasePrice");
+    const modalAddonGroups = document.getElementById("modalAddonGroups");
+    const modalTotalPrice = document.getElementById("modalTotalPrice");
+    const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+
+    let currentModalItem = null;
+
+    function closePosAddonModal() {
+        if (posAddonModal) posAddonModal.style.display = "none";
+        currentModalItem = null;
+    }
+
+    if (posAddonCloseBtn) posAddonCloseBtn.addEventListener("click", closePosAddonModal);
+    if (posAddonBackdrop) posAddonBackdrop.addEventListener("click", closePosAddonModal);
+
+    function openPosAddonModal(card) {
+        const id = card.dataset.id;
+        const name = card.dataset.name;
+        const basePrice = Number(card.dataset.price);
+        let groups = [];
+        try {
+            groups = JSON.parse(card.dataset.addons || "[]");
+        } catch (e) {
+            groups = [];
+        }
+
+        currentModalItem = {
+            card: card,
+            id: id,
+            name: name,
+            basePrice: basePrice,
+            groups: groups
+        };
+
+        modalItemName.textContent = name;
+        modalItemBasePrice.textContent = money(basePrice);
+        modalTotalPrice.textContent = money(basePrice);
+
+        let groupsHtml = "";
+        groups.forEach(function (g) {
+            const isSingle = g.selection_type === "SINGLE";
+            const reqBadge = g.is_required
+                ? '<span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; padding:2px 6px; border-radius:4px;">Required</span>'
+                : '<span style="font-size:10px; font-weight:600; color:#64748b; background:#f1f5f9; padding:2px 6px; border-radius:4px;">Optional</span>';
+
+            let helpText = isSingle
+                ? (g.is_required ? "Select 1 option" : "Select up to 1 option")
+                : (g.min_selection > 0 ? `Choose at least ${g.min_selection}` : "Choose any");
+
+            groupsHtml += `
+                <div class="pos-addon-group-box" data-group-id="${g.id}">
+                    <div class="pos-addon-group-top">
+                        <span style="font-size:13px; font-weight:700; color:#0f172a;">${g.name}</span>
+                        ${reqBadge}
+                    </div>
+                    <div style="font-size:11px; color:#64748b; margin-bottom:8px;">${helpText}</div>
+            `;
+
+            if (isSingle && !g.is_required) {
+                groupsHtml += `
+                    <label class="pos-addon-opt-item selected">
+                        <span style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:#334155;">
+                            <input type="radio" name="pos_group_${g.id}" value="" data-price="0" checked style="accent-color:#f97316;">
+                            None
+                        </span>
+                        <span style="font-size:11px; color:#64748b;">+৳0.00</span>
+                    </label>
+                `;
+            }
+
+            let defaultCheckedSet = false;
+            g.options.forEach(function (opt, idx) {
+                const isSoldOut = Boolean(opt.is_sold_out);
+                let isChecked = false;
+                if (isSingle && g.is_required && !isSoldOut && !defaultCheckedSet) {
+                    isChecked = true;
+                    defaultCheckedSet = true;
+                }
+                const inputType = isSingle ? "radio" : "checkbox";
+                const inputName = isSingle ? `pos_group_${g.id}` : `pos_group_${g.id}_${opt.id}`;
+                const priceText = opt.price > 0 ? `+${money(opt.price)}` : "Free";
+                const soldBadge = isSoldOut ? '<span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; padding:1px 5px; border-radius:4px; margin-left:4px;">Sold Out</span>' : '';
+                const disabledAttr = isSoldOut ? 'disabled' : '';
+                const itemStyle = isSoldOut ? 'opacity: 0.55; cursor: not-allowed;' : '';
+                const nameStyle = isSoldOut ? 'text-decoration: line-through; color: #94a3b8;' : '';
+
+                groupsHtml += `
+                    <label class="pos-addon-opt-item ${isChecked ? 'selected' : ''}" style="${itemStyle}">
+                        <span style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:#0f172a;">
+                            <input type="${inputType}" name="${inputName}" value="${opt.id}" data-id="${opt.id}" data-name="${opt.name}" data-price="${opt.price}" class="pos-addon-input" ${isChecked ? 'checked' : ''} ${disabledAttr} style="accent-color:#f97316;">
+                            <span style="${nameStyle}">${opt.name}</span>
+                            ${soldBadge}
+                        </span>
+                        <span style="font-size:11px; font-weight:700; color:${isSoldOut ? '#94a3b8' : '#f97316'};">${priceText}</span>
+                    </label>
+                `;
+            });
+
+            groupsHtml += `</div>`;
+        });
+
+        modalAddonGroups.innerHTML = groupsHtml;
+        posAddonModal.style.display = "flex";
+
+        function updateModalPrice() {
+            let extra = 0;
+            const inputs = modalAddonGroups.querySelectorAll(".pos-addon-input, input[type='radio']");
+            inputs.forEach(function (inp) {
+                const label = inp.closest(".pos-addon-opt-item");
+                if (inp.checked) {
+                    if (label) label.classList.add("selected");
+                    extra += Number(inp.dataset.price || 0);
+                } else {
+                    if (label) label.classList.remove("selected");
+                }
+            });
+            modalTotalPrice.textContent = money(basePrice + extra);
+        }
+
+        modalAddonGroups.querySelectorAll("input").forEach(function (inp) {
+            inp.addEventListener("change", updateModalPrice);
+        });
+
+        updateModalPrice();
+    }
+
+    if (modalConfirmBtn) {
+        modalConfirmBtn.addEventListener("click", function () {
+            if (!currentModalItem) return;
+
+            const selectedOptionIds = [];
+            const selectedOptionNames = [];
+            let addonTotal = 0;
+
+            for (let i = 0; i < currentModalItem.groups.length; i++) {
+                const g = currentModalItem.groups[i];
+                const box = modalAddonGroups.querySelector(`[data-group-id="${g.id}"]`);
+                if (!box) continue;
+
+                const checkedInputs = Array.from(box.querySelectorAll(".pos-addon-input:checked"));
+                const count = checkedInputs.length;
+
+                if (g.selection_type === "SINGLE") {
+                    if (g.is_required && count === 0) {
+                        showToast(`Please select an option for "${g.name}".`);
+                        return;
+                    }
+                } else {
+                    let minReq = g.min_selection || 0;
+                    if (g.is_required && minReq < 1) minReq = 1;
+                    if (count < minReq) {
+                        showToast(`Please select at least ${minReq} option(s) for "${g.name}".`);
+                        return;
+                    }
+                    if (g.max_selection > 0 && count > g.max_selection) {
+                        showToast(`You can select at most ${g.max_selection} option(s) for "${g.name}".`);
+                        return;
+                    }
+                }
+
+                checkedInputs.forEach(function (inp) {
+                    const optId = parseInt(inp.dataset.id, 10);
+                    const optPrice = Number(inp.dataset.price || 0);
+                    const optName = inp.dataset.name;
+                    selectedOptionIds.push(optId);
+                    selectedOptionNames.push(optPrice > 0 ? `${optName} (+${money(optPrice)})` : optName);
+                    addonTotal += optPrice;
+                });
+            }
+
+            selectedOptionIds.sort(function (a, b) { return a - b; });
+            const cartKey = selectedOptionIds.length > 0
+                ? `${currentModalItem.id}:${selectedOptionIds.join(',')}`
+                : `${currentModalItem.id}`;
+
+            const unitPrice = currentModalItem.basePrice + addonTotal;
+
+            if (cart[cartKey]) {
+                cart[cartKey].quantity += 1;
+            } else {
+                cart[cartKey] = {
+                    key: cartKey,
+                    id: currentModalItem.id,
+                    name: currentModalItem.name,
+                    base_price: currentModalItem.basePrice,
+                    price: unitPrice,
+                    addon_ids: selectedOptionIds,
+                    addon_names: selectedOptionNames,
+                    quantity: 1
+                };
+            }
+
+            closePosAddonModal();
+            renderCart();
+            showToast(`${currentModalItem.name} added to order.`);
+        });
+    }
+
     function addProduct(card) {
+
+        if (card.dataset.soldOut === "true") {
+            showToast((card.dataset.name || "Item") + " is sold out.");
+            return;
+        }
 
         const id =
             card.dataset.id;
@@ -1584,17 +2209,26 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (card.dataset.hasAddons === "true") {
+            openPosAddonModal(card);
+            return;
+        }
 
-        if (cart[id]) {
+        const cartKey = `${id}`;
+        if (cart[cartKey]) {
 
-            cart[id].quantity += 1;
+            cart[cartKey].quantity += 1;
 
         } else {
 
-            cart[id] = {
+            cart[cartKey] = {
+                key: cartKey,
                 id: id,
                 name: name,
+                base_price: price,
                 price: price,
+                addon_ids: [],
+                addon_names: [],
                 quantity: 1
             };
         }
@@ -1850,6 +2484,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         tableSelect.value =
                             "";
                     }
+
+                    updateTableNotice();
                 }
             );
         }
@@ -1865,7 +2501,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             input.addEventListener(
                 "input",
-                updateTotals
+                function() {
+                    if (input === discountInput && appliedCoupon) {
+                        appliedCoupon = null;
+                        if (appliedCouponBadge) appliedCouponBadge.style.display = "none";
+                        if (couponCodeInput) couponCodeInput.value = "";
+                    }
+                    updateTotals();
+                }
             );
         }
     );
@@ -1873,22 +2516,130 @@ document.addEventListener("DOMContentLoaded", function () {
 
     applyCouponBtn.addEventListener(
         "click",
-        function () {
+        async function () {
+            const code = (couponCodeInput.value || "").trim();
+            if (!code) {
+                showToast("Please enter a coupon code.");
+                return;
+            }
+            const cartItems = Object.values(cart);
+            if (cartItems.length === 0) {
+                showToast("Add items to cart before applying coupon.");
+                return;
+            }
+            const items = cartItems.map(function(item) {
+                return {
+                    id: item.id,
+                    quantity: item.quantity,
+                    addon_ids: (item.addons || []).map(function(a) { return a.id; })
+                };
+            });
 
-            showToast(
-                "Coupon backend will be connected later."
-            );
+            try {
+                applyCouponBtn.disabled = true;
+                applyCouponBtn.textContent = "...";
+                const res = await fetch("{% url 'pos_validate_coupon' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({ coupon_code: code, items: items })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    showToast(data.message || "Invalid coupon.");
+                    return;
+                }
+                if (data.has_coupon) {
+                    appliedCoupon = {
+                        code: data.coupon_code,
+                        name: data.coupon_name,
+                        discount_amount: Number(data.discount_amount)
+                    };
+                    appliedCouponText.textContent = `${data.coupon_name} (−৳${data.discount_amount})`;
+                    appliedCouponBadge.style.display = "flex";
+                    discountInput.value = data.discount_amount;
+                    updateTotals();
+                    showToast(data.message);
+                }
+            } catch (err) {
+                showToast("Failed to validate coupon.");
+            } finally {
+                applyCouponBtn.disabled = false;
+                applyCouponBtn.textContent = "Apply";
+            }
         }
     );
+
+    if (removeCouponBtn) {
+        removeCouponBtn.addEventListener("click", function() {
+            appliedCoupon = null;
+            couponCodeInput.value = "";
+            appliedCouponBadge.style.display = "none";
+            discountInput.value = 0;
+            updateTotals();
+            showToast("Coupon removed.");
+        });
+    }
+
+    async function revalidateAppliedCoupon() {
+        if (!appliedCoupon) return;
+        const cartItems = Object.values(cart);
+        if (cartItems.length === 0) {
+            appliedCoupon = null;
+            if (appliedCouponBadge) appliedCouponBadge.style.display = "none";
+            discountInput.value = 0;
+            updateTotals();
+            return;
+        }
+        const items = cartItems.map(function(item) {
+            return {
+                id: item.id,
+                quantity: item.quantity,
+                addon_ids: (item.addons || []).map(function(a) { return a.id; })
+            };
+        });
+        try {
+            const res = await fetch("{% url 'pos_validate_coupon' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ coupon_code: appliedCoupon.code, items: items })
+            });
+            const data = await res.json();
+            if (res.ok && data.success && data.has_coupon) {
+                appliedCoupon.discount_amount = Number(data.discount_amount);
+                appliedCouponText.textContent = `${data.coupon_name} (−৳${data.discount_amount})`;
+                discountInput.value = data.discount_amount;
+                updateTotals();
+            } else {
+                appliedCoupon = null;
+                if (appliedCouponBadge) appliedCouponBadge.style.display = "none";
+                discountInput.value = 0;
+                updateTotals();
+                showToast("Coupon no longer applies to current cart.");
+            }
+        } catch (e) {}
+    }
 
 
     saveDraftBtn.addEventListener(
         "click",
         function () {
 
-            showToast(
-                "Draft order backend will be connected later."
-            );
+            if (Object.keys(cart).length === 0) {
+                showToast("Cart is already empty.");
+                return;
+            }
+
+            if (confirm("Clear all items from this order?")) {
+                cart = {};
+                renderCart();
+                showToast("Cart cleared.");
+            }
         }
     );
 
@@ -1896,15 +2647,12 @@ document.addEventListener("DOMContentLoaded", function () {
     billPayBtn.addEventListener(
         "click",
         function () {
-
-            showToast(
-                "Payment and receipt module will be connected later."
-            );
+            sendOrderToServer("PAY_NOW");
         }
     );
 
 
-    async function sendOrderToKitchen() {
+    async function sendOrderToServer(forceTiming) {
 
         if (orderSubmitting) {
             return;
@@ -1917,6 +2665,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     return {
                         id: item.id,
+                        addon_ids: item.addon_ids || [],
                         quantity: item.quantity
                     };
                 }
@@ -1957,18 +2706,50 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        // Payment timing: use forced value (from button) or from toggle.
+        const paymentTiming = forceTiming || getPaymentTiming();
+        const paymentMethod = getPaymentMethod();
 
-        orderSubmitting =
-            true;
+        if (paymentTiming === "PAY_NOW") {
+            if (!paymentMethod) {
+                showToast("Please select a payment method for Pay Now.");
+                return;
+            }
+            const methodName = {
+                "CASH": "Cash",
+                "CARD": "Card",
+                "MOBILE_BANKING": "Mobile Banking"
+            }[paymentMethod] || paymentMethod;
+            if (!confirm(`Collect & confirm payment of ${totalText.textContent} via ${methodName}?`)) {
+                return;
+            }
+        }
 
+        orderSubmitting = true;
         updateButtons();
 
-
-        kotBtn.textContent =
-            "Sending...";
+        const activeBtn = paymentTiming === "PAY_NOW" ? billPayBtn : kotBtn;
+        const origLabel = activeBtn.textContent;
+        activeBtn.textContent = "Sending...";
 
 
         try {
+
+            const payload = {
+                order_type: orderType,
+                table_id: tableId,
+                items: items,
+                coupon_code: appliedCoupon ? appliedCoupon.code : "",
+                discount_amount: appliedCoupon ? 0 : Number(discountInput.value || 0),
+                service_percent: Number(serviceInput.value || 0),
+                vat_percent: Number(vatInput.value || 0),
+                payment_timing: paymentTiming,
+            };
+
+            // Include payment method for PAY_NOW.
+            if (paymentTiming === "PAY_NOW") {
+                payload.payment_method = paymentMethod;
+            }
 
             const response =
                 await fetch(
@@ -1984,34 +2765,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 "{{ csrf_token }}"
                         },
 
-                        body:
-                            JSON.stringify(
-                                {
-                                    order_type:
-                                        orderType,
-
-                                    table_id:
-                                        tableId,
-
-                                    items:
-                                        items,
-
-                                    discount_amount:
-                                        Number(
-                                            discountInput.value || 0
-                                        ),
-
-                                    service_percent:
-                                        Number(
-                                            serviceInput.value || 0
-                                        ),
-
-                                    vat_percent:
-                                        Number(
-                                            vatInput.value || 0
-                                        )
-                                }
-                            )
+                        body: JSON.stringify(payload)
                     }
                 );
 
@@ -2034,28 +2788,44 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
+            // Update table select option if dine-in
+            if (tableId) {
+                const opt = tableSelect.querySelector(`option[value="${tableId}"]`);
+                if (opt) {
+                    opt.dataset.occupied = "1";
+                    const currentOrders = parseInt(opt.dataset.orders || "0", 10);
+                    opt.dataset.orders = (currentOrders + 1).toString();
+                    if (paymentTiming === "PAY_LATER") {
+                        opt.dataset.unpaid = "1";
+                    }
+                    opt.textContent = `Table ${opt.dataset.number} · 🔴 Occupied (${opt.dataset.orders} active)`;
+                }
+            }
+
+            // On success, navigate to the URL returned by the server (e.g. receipt for PAY_NOW).
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+                return;
+            }
+
+            // PAY_LATER: show toast and return to clean POS screen.
             showToast(
                 "Order #" +
                 data.order_id +
-                " sent to Kitchen."
+                " sent to Kitchen (KOT)."
             );
 
-
             cart = {};
+            tableSelect.value = "";
+            discountInput.value = "0";
+            serviceInput.value = serviceInput.defaultValue;
+            vatInput.value = vatInput.defaultValue;
+            if (timingLater && !timingLater.disabled) {
+                timingLater.checked = true;
+                onTimingChange();
+            }
 
-            tableSelect.value =
-                "";
-
-            discountInput.value =
-                "0";
-
-            serviceInput.value =
-                "0";
-
-            vatInput.value =
-                "0";
-
-
+            updateTableNotice();
             renderCart();
 
 
@@ -2071,14 +2841,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } finally {
 
-            orderSubmitting =
-                false;
+            orderSubmitting = false;
 
-            kotBtn.textContent =
-                "Send KOT";
+            activeBtn.textContent = origLabel;
 
             updateButtons();
         }
+    }
+
+
+    function sendOrderToKitchen() {
+        sendOrderToServer("PAY_LATER");
     }
 
 

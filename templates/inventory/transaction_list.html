@@ -1,0 +1,172 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Stock Transactions Ledger | Restaurant 360{% endblock %}
+{% block page_title %}Stock Transactions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content {
+        max-width: 1500px;
+        margin: auto;
+        padding: 30px;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 25px;
+        margin-bottom: 6px;
+    }
+    .page-header p {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+    .filter-bar {
+        padding: 16px 20px;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+    }
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 12px;
+        background: white;
+    }
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th {
+        padding: 14px 18px;
+        font-size: 11px;
+        color: #6b7280;
+        text-align: left;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .table td {
+        padding: 14px 18px;
+        font-size: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #111827;
+    }
+    .badge {
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .badge-purchase { background: #f0fdf4; color: #16a34a; }
+    .badge-consumed { background: #fef2f2; color: #dc2626; }
+    .badge-waste { background: #fff1f2; color: #e11d48; }
+    .badge-adj-in { background: #eff6ff; color: #2563eb; }
+    .badge-adj-out { background: #fefce8; color: #ca8a04; }
+    .badge-opening { background: #eff6ff; color: #1d4ed8; }
+    .badge-default { background: #f3f4f6; color: #4b5563; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div>
+            <h1>Stock Transactions Ledger</h1>
+            <p>Auditable historical log of every stock movement: purchases, consumptions, wastage, and count adjustments.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <form method="GET" class="filter-bar">
+            <label style="font-size: 12px; font-weight: 700; color: #374151;">Filter by:</label>
+            <select name="ingredient" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Ingredients</option>
+                {% for ing in ingredients %}
+                <option value="{{ ing.id }}" {% if selected_ingredient == ing.id|stringformat:"s" %}selected{% endif %}>
+                    {{ ing.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <select name="type" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Transaction Types</option>
+                {% for code, label in types %}
+                <option value="{{ code }}" {% if selected_type == code %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+
+            {% if selected_ingredient or selected_type %}
+                <a href="{% url 'stock_transaction_list' %}" style="font-size: 12px; color: #f97316; text-decoration: none; font-weight: 600;">Clear Filters</a>
+            {% endif %}
+        </form>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>DATE &amp; TIME</th>
+                    <th>INGREDIENT</th>
+                    <th>TRANSACTION TYPE</th>
+                    <th>QUANTITY</th>
+                    <th>REF / ORDER</th>
+                    <th>NOTE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td style="color: #6b7280;">{{ tx.created_at|date:"M d, Y H:i:s" }}</td>
+                    <td style="font-weight: 600;">{{ tx.ingredient.name }}</td>
+                    <td>
+                        {% if tx.transaction_type == "OPENING_BALANCE" %}
+                            <span class="badge badge-opening">Opening Balance</span>
+                        {% elif tx.transaction_type == "PURCHASE" %}
+                            <span class="badge badge-purchase">Purchase</span>
+                        {% elif tx.transaction_type == "CONSUMED" %}
+                            <span class="badge badge-consumed">Consumed</span>
+                        {% elif tx.transaction_type == "WASTE" %}
+                            <span class="badge badge-waste">Waste</span>
+                        {% elif tx.transaction_type == "ADJUSTMENT_IN" %}
+                            <span class="badge badge-adj-in">Adjustment In (+)</span>
+                        {% elif tx.transaction_type == "ADJUSTMENT_OUT" %}
+                            <span class="badge badge-adj-out">Adjustment Out (-)</span>
+                        {% else %}
+                            <span class="badge badge-default">{{ tx.get_transaction_type_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 700;">
+                        {% if tx.transaction_type == "PURCHASE" or tx.transaction_type == "ADJUSTMENT_IN" or tx.transaction_type == "OPENING_BALANCE" %}
+                            <span style="color: #16a34a;">+{{ tx.quantity }} {{ tx.ingredient.cost_unit }}</span>
+                        {% else %}
+                            <span style="color: #dc2626;">-{{ tx.quantity }} {{ tx.ingredient.cost_unit }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 11px; color: #6b7280;">{{ tx.reference_id|default:tx.order_id|default:"-" }}</td>
+                    <td style="color: #4b5563;">{{ tx.note|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">
+                        No stock transactions found matching the filter criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

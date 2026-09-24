@@ -1,0 +1,261 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="waiter-dashboard-page">
+
+  <!-- TOP WELCOME & DUTY STATUS BANNER -->
+  <div class="card" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); color: #ffffff; border: none; padding: 20px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <h2 style="font-size: 20px; font-weight: 700;">Hello, {{ waiter_user.first_name|default:waiter_user.username }}! 👋</h2>
+          <span class="role-tag" style="background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.4); color: #fb923c;">On Duty</span>
+        </div>
+        <p style="font-size: 13px; color: #9ca3af;">
+          {{ current_branch.name|default:"Main Branch" }} •
+          {% if today_shift %}
+            Shift: <strong>{{ today_shift.name }}</strong> ({{ today_shift.start_time|time:"g:i A" }} – {{ today_shift.end_time|time:"g:i A" }})
+          {% else %}
+            Standard Shift
+          {% endif %}
+        </p>
+      </div>
+
+      <!-- CHECK-IN / CHECK-OUT CONTROLS -->
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="text-align: right; margin-right: 4px;">
+          <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;">Worked Today</div>
+          <div style="font-size: 16px; font-weight: 700; color: #f97316;">{{ worked_hours_display }}</div>
+          {% if overtime_hours_display != "0h 0m" %}
+          <div style="font-size: 10px; color: #34d399;">+{{ overtime_hours_display }} OT</div>
+          {% endif %}
+        </div>
+
+        {% if not is_checked_in and not is_checked_out %}
+        <form method="post" action="{% url 'waiter:check_in' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success" style="font-size: 14px; padding: 10px 20px; font-weight: 700;">
+            <span>⏱</span>
+            <span>Clock In</span>
+          </button>
+        </form>
+        {% elif is_checked_in %}
+        <form method="post" action="{% url 'waiter:check_out' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" style="font-size: 14px; padding: 10px 20px; font-weight: 700;" onclick="return confirm('Confirm check out for today?');">
+            <span>⏹</span>
+            <span>Clock Out</span>
+          </button>
+        </form>
+        {% else %}
+        <div class="badge badge-gray" style="font-size: 12px; padding: 8px 14px; background: rgba(255,255,255,0.1); color: #d1d5db; border: 1px solid rgba(255,255,255,0.15);">
+          ✓ Checked Out Today
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- URGENT READY ALERT (IF ANY READY >= 5 MINS) -->
+  {% if urgent_ready_count > 0 %}
+  <div class="alert alert-danger" style="display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #ef4444; padding: 14px 18px; margin-bottom: 16px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 20px;">🚨</span>
+      <div>
+        <strong style="font-size: 14px;">{{ urgent_ready_count }} Order{{ urgent_ready_count|pluralize }} Ready for &gt;5 Minutes!</strong>
+        <p style="font-size: 12px; margin-top: 2px;">Kitchen is waiting for immediate table delivery.</p>
+      </div>
+    </div>
+    <a href="{% url 'waiter:ready_orders' %}" class="btn btn-danger" style="padding: 8px 14px; font-size: 12px;">View Ready</a>
+  </div>
+  {% endif %}
+
+  <!-- KPI SUMMARY CARDS (GRID: 2 on mobile, 5 on desktop) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+    <!-- Assigned Tables -->
+    <a href="{% url 'waiter:tables' %}?filter=assigned" style="text-decoration: none; color: inherit;">
+      <div class="card" style="padding: 14px; margin-bottom: 0; text-align: center; border-top: 3px solid #3b82f6;">
+        <div style="font-size: 20px; margin-bottom: 4px;">🍽</div>
+        <div style="font-size: 22px; font-weight: 800; color: #111827;">{{ assigned_tables_count }}</div>
+        <div style="font-size: 12px; font-weight: 600; color: #6b7280;">My Tables</div>
+      </div>
+    </a>
+
+    <!-- Active Orders -->
+    <a href="{% url 'waiter:tables' %}" style="text-decoration: none; color: inherit;">
+      <div class="card" style="padding: 14px; margin-bottom: 0; text-align: center; border-top: 3px solid #f97316;">
+        <div style="font-size: 20px; margin-bottom: 4px;">📝</div>
+        <div style="font-size: 22px; font-weight: 800; color: #f97316;">{{ active_orders_count }}</div>
+        <div style="font-size: 12px; font-weight: 600; color: #6b7280;">Active Orders</div>
+      </div>
+    </a>
+
+    <!-- Ready to Serve -->
+    <a href="{% url 'waiter:ready_orders' %}" style="text-decoration: none; color: inherit;">
+      <div class="card" style="padding: 14px; margin-bottom: 0; text-align: center; border-top: 3px solid #10b981; {% if ready_to_serve_count > 0 %}background: #f0fdf4;{% endif %}">
+        <div style="font-size: 20px; margin-bottom: 4px;">⚡</div>
+        <div style="font-size: 22px; font-weight: 800; color: #10b981;">{{ ready_to_serve_count }}</div>
+        <div style="font-size: 12px; font-weight: 600; color: #6b7280;">Ready to Serve</div>
+      </div>
+    </a>
+
+    <!-- Served Today -->
+    <a href="{% url 'waiter:service_history' %}?period=today" style="text-decoration: none; color: inherit;">
+      <div class="card" style="padding: 14px; margin-bottom: 0; text-align: center; border-top: 3px solid #8b5cf6;">
+        <div style="font-size: 20px; margin-bottom: 4px;">✓</div>
+        <div style="font-size: 22px; font-weight: 800; color: #8b5cf6;">{{ served_today_count }}</div>
+        <div style="font-size: 12px; font-weight: 600; color: #6b7280;">Served Today</div>
+      </div>
+    </a>
+
+    <!-- Today's Tasks -->
+    <a href="{% url 'waiter:tasks' %}" style="text-decoration: none; color: inherit;">
+      <div class="card" style="padding: 14px; margin-bottom: 0; text-align: center; border-top: 3px solid #6366f1;">
+        <div style="font-size: 20px; margin-bottom: 4px;">📋</div>
+        <div style="font-size: 22px; font-weight: 800; color: #111827;">{{ pending_tasks_count }}<span style="font-size: 14px; color: #9ca3af; font-weight: 500;">/{{ today_tasks_count }}</span></div>
+        <div style="font-size: 12px; font-weight: 600; color: #6b7280;">Pending Tasks</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+    <a href="{% url 'pos_dashboard' %}" class="btn btn-primary btn-block" style="padding: 14px; font-size: 14px;">
+      <span style="font-size: 18px;">＋</span>
+      <span>Take New Order / POS</span>
+    </a>
+    <a href="{% url 'waiter:tables' %}" class="btn btn-secondary btn-block" style="padding: 14px; font-size: 14px;">
+      <span style="font-size: 18px;">🍽</span>
+      <span>View My Tables</span>
+    </a>
+    <a href="{% url 'waiter:ready_orders' %}" class="btn btn-secondary btn-block" style="padding: 14px; font-size: 14px; position: relative;">
+      <span style="font-size: 18px;">⚡</span>
+      <span>Ready Kitchen Orders</span>
+      {% if ready_to_serve_count > 0 %}
+      <span class="badge badge-success" style="margin-left: 6px;">{{ ready_to_serve_count }}</span>
+      {% endif %}
+    </a>
+    <a href="{% url 'waiter:tasks' %}" class="btn btn-secondary btn-block" style="padding: 14px; font-size: 14px;">
+      <span style="font-size: 18px;">📋</span>
+      <span>Daily Tasks Checklist</span>
+    </a>
+  </div>
+
+  <!-- TWO COLUMN / RESPONSIVE STACK SECTION -->
+  <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+    
+    <!-- READY ORDERS CARD LIST -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>⚡</span>
+          <span>Ready to Serve ({{ ready_to_serve_count }})</span>
+        </h3>
+        <a href="{% url 'waiter:ready_orders' %}" style="font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none;">View All &rarr;</a>
+      </div>
+
+      {% if ready_orders %}
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+        {% for order in ready_orders %}
+        <div style="border: 1px solid {% if order.is_urgent %}#fca5a5{% else %}var(--border){% endif %}; background: {% if order.is_urgent %}#fff1f2{% else %}#ffffff{% endif %}; border-radius: var(--radius-sm); padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <span style="font-size: 14px; font-weight: 800; color: var(--text-dark);">Order #{{ order.id }}</span>
+                {% if order.table %}
+                <span class="badge badge-info" style="margin-left: 6px;">Table {{ order.table.table_number }}</span>
+                {% else %}
+                <span class="badge badge-gray" style="margin-left: 6px;">{{ order.get_order_type_display }}</span>
+                {% endif %}
+              </div>
+              <span class="badge {% if order.is_urgent %}badge-danger{% else %}badge-warning{% endif %}">
+                {% if order.is_urgent %}⚠ URGENT • {% endif %}{{ order.elapsed_minutes }}m ready
+              </span>
+            </div>
+
+            <!-- Items -->
+            <ul style="list-style: none; margin-bottom: 12px; font-size: 13px; color: var(--text);">
+              {% for item in order.items.all %}
+              <li style="padding: 2px 0;">• <strong>{{ item.quantity }}x</strong> {{ item.menu_item.name }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- 1-tap Serve Action -->
+          <form method="post" action="{% url 'waiter:serve_order' order.id %}" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'waiter:dashboard' %}">
+            <button type="submit" class="btn btn-success btn-block" style="padding: 10px;">
+              <span>✓</span>
+              <span>Mark Served</span>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 30px 20px; color: var(--text-muted);">
+        <div style="font-size: 32px; margin-bottom: 8px;">🎉</div>
+        <p style="font-size: 14px; font-weight: 600;">No orders waiting to be served!</p>
+        <p style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Kitchen ready orders will appear here automatically.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- TODAY'S TASKS PREVIEW -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span>📋</span>
+          <span>Today's Tasks ({{ pending_tasks_count }} pending)</span>
+        </h3>
+        <a href="{% url 'waiter:tasks' %}" style="font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none;">View All &rarr;</a>
+      </div>
+
+      {% if tasks %}
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        {% for task in tasks %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: {% if task.is_completed %}#f9fafb{% else %}#ffffff{% endif %}; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 18px; color: {% if task.is_completed %}#10b981{% else %}#f59e0b{% endif %};">
+              {% if task.is_completed %}✓{% else %}○{% endif %}
+            </span>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 600; {% if task.is_completed %}text-decoration: line-through; color: var(--text-muted);{% endif %}">
+                {{ task.title }}
+              </div>
+              {% if task.instructions %}
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">{{ task.instructions }}</div>
+              {% endif %}
+              {% if task.related_table %}
+              <span class="badge badge-gray" style="font-size: 10px; margin-top: 4px;">Table {{ task.related_table.table_number }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if not task.is_completed %}
+          <form method="post" action="{% url 'waiter:complete_task' task.id %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline" style="min-height: 38px; padding: 6px 14px; font-size: 12px;">
+              Mark Done
+            </button>
+          </form>
+          {% else %}
+          <span class="badge badge-success">Done</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px;">
+        No tasks assigned for today. Great job!
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

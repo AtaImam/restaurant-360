@@ -1,0 +1,129 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}Menu Availability — Kitchen Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>🍽</span>
+        <span>Menu Items & Availability Controls</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 3px;">
+        Instantly toggle Sold Out / Available statuses and view real-time portion estimates for <strong>{{ active_branch.name|default:"Active Branch" }}</strong>
+      </p>
+    </div>
+
+    <!-- Filter & Search -->
+    <form method="get" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <input type="hidden" name="availability" value="{{ avail_filter }}">
+      <select name="category" class="btn btn-outline" onchange="this.form.submit()" style="padding: 7px 12px; font-size: 13px;">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="search" value="{{ search }}" placeholder="Search menu items..." class="btn btn-outline" style="text-align: left; padding: 7px 12px; font-size: 13px; min-width: 180px;">
+      <button type="submit" class="btn btn-primary" style="padding: 7px 14px; font-size: 13px;">Search</button>
+      {% if search or selected_category %}
+      <a href="?availability={{ avail_filter }}" class="btn btn-outline" style="padding: 7px 12px; font-size: 13px; color: var(--text-muted);">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Availability Filter Tabs -->
+  <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; overflow-x: auto;">
+    <a href="?availability=ALL{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if avail_filter == 'ALL' %}btn-primary{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      All Items
+    </a>
+    <a href="?availability=AVAILABLE{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if avail_filter == 'AVAILABLE' %}btn-success{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      Available In Kitchen
+    </a>
+    <a href="?availability=SOLDOUT{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if avail_filter == 'SOLDOUT' %}btn-danger{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      Sold Out
+    </a>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Menu Item</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Category</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Portions Possible</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Current Status</th>
+          <th style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Toggle Availability</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in items_data %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 14px;">
+            <div style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">{{ row.item.name }}</div>
+            <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+              <span style="font-size: 11px; color: var(--text-muted);">Price: ৳{{ row.item.price }}</span>
+              {% if row.has_recipe %}
+              <span style="font-size: 11px; color: #0284c7; font-weight: 600;">📖 Recipe Linked</span>
+              {% else %}
+              <span style="font-size: 11px; color: var(--text-light);">No Recipe</span>
+              {% endif %}
+            </div>
+          </td>
+          <td style="padding: 12px 14px; color: var(--text-muted);">
+            {{ row.item.category.name|default:"Uncategorized" }}
+          </td>
+          <td style="padding: 12px 14px;">
+            {% if row.portions_possible is not None %}
+              {% if row.portions_possible == 0 %}
+              <span class="badge badge-danger" style="font-size: 11.5px;">0 Portions (Shortage)</span>
+              {% elif row.portions_possible < 5 %}
+              <span class="badge badge-warning" style="font-size: 11.5px;">{{ row.portions_possible }} Portions Left</span>
+              {% else %}
+              <span class="badge badge-success" style="font-size: 11.5px;">{{ row.portions_possible }} Portions Ready</span>
+              {% endif %}
+            {% else %}
+              <span style="color: var(--text-light); font-size: 12px;">Not Tracked</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px;">
+            {% if row.effective_available %}
+            <span class="badge badge-success" style="font-size: 12px; padding: 5px 10px;">
+              ● Available
+            </span>
+            {% else %}
+            <span class="badge badge-danger" style="font-size: 12px; padding: 5px 10px;">
+              ✕ Sold Out
+            </span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px; text-align: right;">
+            <form method="post" action="{% url 'toggle_item_availability' row.item.id %}" style="margin: 0; display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              {% if row.effective_available %}
+              <button type="submit" class="btn btn-outline" style="padding: 6px 14px; font-size: 12px; color: var(--danger); border-color: #fecaca; background: #fff5f5;" title="Click to stop taking orders for this item">
+                Mark as Sold Out
+              </button>
+              {% else %}
+              <button type="submit" class="btn btn-success" style="padding: 6px 14px; font-size: 12px;" title="Click to restore ordering for this item">
+                Restore to Available
+              </button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            <div style="font-size: 32px; margin-bottom: 8px;">🍽</div>
+            <div style="font-weight: 700; font-size: 15px; color: var(--text-dark);">No Menu Items Found</div>
+            <div style="font-size: 12.5px; margin-top: 4px;">No items match the selected category or search filter.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -840,6 +840,8 @@
         </section>
 
 
+        <p id="feedbackPrompt" hidden><a id="feedbackLink" class="menu-link" referrerpolicy="no-referrer">Rate your visit</a></p>
+
         <div class="auto-note">
 
             This page updates automatically.
@@ -951,6 +953,10 @@
 
 
     function renderStatus(data) {
+        const feedbackPrompt = document.getElementById("feedbackPrompt");
+        const feedbackLink = document.getElementById("feedbackLink");
+        feedbackPrompt.hidden = !data.feedback_url;
+        feedbackLink.href = data.feedback_url || "";
         document.getElementById("etaNote").textContent = data.eta_note;
 
         statusTitle.textContent =

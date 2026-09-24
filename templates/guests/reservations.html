@@ -1,0 +1,667 @@
+{% extends 'dashboard/base_owner.html' %}
+
+{% block title %}Reservations | Restaurant 360{% endblock %}
+{% block page_title %}Reservations{% endblock %}
+
+{% block extra_css %}
+<style>
+  .guest-page {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 28px 32px 48px;
+  }
+
+  .guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .guest-title h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
+  }
+
+  .guest-title p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .branch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 9999px;
+    color: #c2410c;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  /* Summary Cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .summary-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .summary-card:hover {
+    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .summary-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .summary-card-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .summary-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .summary-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .summary-subtext {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  /* Main Table Card */
+  .table-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+  }
+
+  .table-card-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .table-card-badge {
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .reservations-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .reservations-table th {
+    background: #f9fafb;
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+  }
+
+  .reservations-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+    font-size: 14px;
+    color: #1f2937;
+  }
+
+  .reservations-table tbody tr:hover {
+    background: #fafafa;
+  }
+
+  /* Guest Cell */
+  .guest-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .guest-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff7ed;
+    color: #ea580c;
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid #fed7aa;
+  }
+
+  .guest-name {
+    font-weight: 750;
+    color: #111827;
+  }
+
+  .phone-link {
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+
+  .phone-link:hover {
+    color: #f97316;
+    text-decoration: underline;
+  }
+
+  /* Date / Time Cell */
+  .datetime-cell {
+    white-space: nowrap;
+  }
+
+  .date-primary {
+    font-weight: 650;
+    color: #111827;
+    font-size: 13.5px;
+  }
+
+  .time-secondary {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  /* Party Size */
+  .party-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 12.5px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  /* Note Box */
+  .note-text {
+    max-width: 240px;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .note-empty {
+    color: #9ca3af;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-pending {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fef08a;
+  }
+  .status-pending .badge-dot {
+    background: #f59e0b;
+  }
+
+  .status-confirmed {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .status-confirmed .badge-dot {
+    background: #16a34a;
+  }
+
+  .status-completed {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+  .status-completed .badge-dot {
+    background: #94a3b8;
+  }
+
+  .status-cancelled {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+  .status-cancelled .badge-dot {
+    background: #dc2626;
+  }
+
+  /* Action Buttons */
+  .action-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 11px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    font-family: inherit;
+  }
+
+  .btn-confirm {
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
+  }
+  .btn-confirm:hover {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+  }
+
+  .btn-complete {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+  .btn-complete:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+  }
+
+  .btn-cancel {
+    background: #ffffff;
+    color: #dc2626;
+    border-color: #fca5a5;
+  }
+  .btn-cancel:hover {
+    background: #fef2f2;
+    border-color: #f87171;
+    color: #b91c1c;
+  }
+
+  .no-actions {
+    color: #9ca3af;
+    font-size: 13px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    padding: 56px 24px;
+    text-align: center;
+  }
+
+  .empty-state-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 17px;
+    font-weight: 750;
+    color: #111827;
+    margin: 0 0 6px 0;
+  }
+
+  .empty-state p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  /* Pagination styles */
+  .pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .pagination-info strong {
+    color: #111827;
+  }
+
+  .pagination-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .page-btn:hover:not(.disabled):not(.active) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+
+  .page-btn.active {
+    background: #f97316;
+    border-color: #f97316;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .page-btn.disabled {
+    color: #9ca3af;
+    background: #f9fafb;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 768px) {
+    .guest-page {
+      padding: 18px 16px 36px;
+    }
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guest-page">
+  <!-- Header -->
+  <div class="guest-header">
+    <div class="guest-title">
+      <h1>Reservations</h1>
+      <p>Manage dining reservations, party sizes, and table assignments</p>
+    </div>
+    <div class="branch-pill">
+      <span>📍</span>
+      <span>Branch: {{ branch.name }}</span>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <!-- Total Bookings -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #eff6ff; color: #2563eb;">📋</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Total Bookings</div>
+        <div class="summary-value">{{ page_obj.paginator.count|default:page_obj|length }}</div>
+        <div class="summary-subtext">All guest bookings</div>
+      </div>
+    </div>
+
+    <!-- Pending Action -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #fffbeb; color: #d97706;">⏳</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Pending</div>
+        <div class="summary-value" id="countPending">0</div>
+        <div class="summary-subtext">Awaiting confirmation</div>
+      </div>
+    </div>
+
+    <!-- Confirmed -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #f0fdf4; color: #16a34a;">✅</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Confirmed</div>
+        <div class="summary-value" id="countConfirmed">0</div>
+        <div class="summary-subtext">Upcoming seated guests</div>
+      </div>
+    </div>
+
+    <!-- Completed / Cancelled -->
+    <div class="summary-card">
+      <div class="summary-card-icon" style="background: #f8fafc; color: #64748b;">🏁</div>
+      <div class="summary-card-body">
+        <div class="summary-label">Completed / Cancelled</div>
+        <div class="summary-value">
+          <span id="countCompleted" style="color: #15803d;">0</span>
+          <span style="font-size: 16px; color: #9ca3af; font-weight: 500;">/</span>
+          <span id="countCancelled" style="color: #dc2626;">0</span>
+        </div>
+        <div class="summary-subtext">Concluded reservations</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reservations Table Card -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">Booking Records</div>
+      <div class="table-card-badge">{{ page_obj.paginator.count|default:page_obj|length }} Total</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="reservations-table">
+        <thead>
+          <tr>
+            <th>Guest</th>
+            <th>Phone</th>
+            <th>Date / Time</th>
+            <th>Party Size</th>
+            <th>Note</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reservation in page_obj %}
+            <tr data-status="{{ reservation.status }}">
+              <td>
+                <div class="guest-cell">
+                  <div class="guest-avatar">{{ reservation.name|make_list|first|upper }}</div>
+                  <div>
+                    <div class="guest-name">{{ reservation.name }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <a href="tel:{{ reservation.phone }}" class="phone-link">{{ reservation.phone }}</a>
+              </td>
+              <td class="datetime-cell">
+                <div class="date-primary">{{ reservation.date }}</div>
+                <div class="time-secondary">{{ reservation.time|time:'H:i' }}</div>
+              </td>
+              <td>
+                <span class="party-badge">👥 {{ reservation.party_size }} {{ reservation.party_size|pluralize:"Guest,Guests" }}</span>
+              </td>
+              <td>
+                <div class="note-text">
+                  {% if reservation.note %}
+                    {{ reservation.note }}
+                  {% else %}
+                    <span class="note-empty">—</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <span class="status-badge status-{{ reservation.status|lower }}">
+                  <span class="badge-dot"></span>
+                  {{ reservation.get_status_display }}
+                </span>
+              </td>
+              <td>
+                <form method="post" action="{% url 'guests:reservation_action' reservation.pk %}" class="action-form">
+                  {% csrf_token %}
+                  {% if reservation.status == 'PENDING' %}
+                    <button type="submit" name="action" value="confirm" class="btn-action btn-confirm" title="Confirm Reservation">Confirm</button>
+                  {% endif %}
+                  {% if reservation.status == 'CONFIRMED' %}
+                    <button type="submit" name="action" value="complete" class="btn-action btn-complete" title="Mark Completed">Complete</button>
+                  {% endif %}
+                  {% if reservation.status == 'PENDING' or reservation.status == 'CONFIRMED' %}
+                    <button type="submit" name="action" value="cancel" class="btn-action btn-cancel" title="Cancel Reservation">Cancel</button>
+                  {% endif %}
+                  {% if reservation.status == 'COMPLETED' or reservation.status == 'CANCELLED' %}
+                    <span class="no-actions">—</span>
+                  {% endif %}
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📅</div>
+                  <h3>No reservations found</h3>
+                  <p>No reservations for this branch.</p>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include 'guests/pagination.html' %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const rows = document.querySelectorAll('tr[data-status]');
+    let pending = 0, confirmed = 0, completed = 0, cancelled = 0;
+    rows.forEach(function (r) {
+      const s = r.getAttribute('data-status');
+      if (s === 'PENDING') pending++;
+      else if (s === 'CONFIRMED') confirmed++;
+      else if (s === 'COMPLETED') completed++;
+      else if (s === 'CANCELLED') cancelled++;
+    });
+    const p = document.getElementById('countPending');
+    const c = document.getElementById('countConfirmed');
+    const comp = document.getElementById('countCompleted');
+    const canc = document.getElementById('countCancelled');
+    if (p) p.textContent = pending;
+    if (c) c.textContent = confirmed;
+    if (comp) comp.textContent = completed;
+    if (canc) canc.textContent = cancelled;
+  })();
+</script>
+{% endblock %}

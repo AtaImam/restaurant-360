@@ -1,0 +1,455 @@
+{% load tz %}
+{% timezone receipt_settings.timezone %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt — Order #{{ order.id }} | {{ receipt_settings.receipt_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f5f7;
+      --white: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --light: #e5e7eb;
+      --accent: #f97316;
+      --green: #16a34a;
+      --radius: 18px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 60px;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .no-print { display: none !important; }
+      .receipt { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100% !important; }
+    }
+
+    .no-print-bar {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .no-print-bar a, .no-print-bar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .btn-outline {
+      background: var(--white);
+      border: 1px solid var(--light) !important;
+      color: var(--muted);
+    }
+    .btn-outline:hover { border-color: var(--accent) !important; color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+    }
+    .btn-primary:hover { background: #ea580c; }
+    .spacer { flex: 1; }
+
+    .receipt {
+      width: 100%;
+      max-width: 520px;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .receipt-head {
+      background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+      color: white;
+      padding: 32px 28px 24px;
+      text-align: center;
+      position: relative;
+    }
+    .receipt-head::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0; right: 0;
+      height: 20px;
+      background: var(--white);
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    .restaurant-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+    .restaurant-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 20px;
+    }
+
+    .paid-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34,197,94,0.15);
+      border: 1.5px solid rgba(34,197,94,0.4);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #4ade80;
+      letter-spacing: 0.05em;
+    }
+    .paid-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+    }
+
+    /* Order meta */
+    .order-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px dashed var(--light);
+      margin: 0 28px;
+    }
+    .meta-item {
+      padding: 16px 0;
+      text-align: center;
+      border-right: 1px dashed var(--light);
+    }
+    .meta-item:last-child { border-right: none; }
+    .meta-label { font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; }
+    .meta-value { font-size: 13px; font-weight: 700; }
+
+    /* Items */
+    .items-section { padding: 20px 28px; }
+    .items-section h3 {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-info { flex: 1; }
+    .item-name { font-size: 13px; font-weight: 600; }
+    .item-qty { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .item-price { font-size: 13px; font-weight: 700; font-family: 'Space Mono', monospace; white-space: nowrap; }
+
+    /* Totals */
+    .totals-section {
+      background: #fafafa;
+      border-top: 1px dashed var(--light);
+      padding: 16px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .total-row.prominent { color: var(--text); font-weight: 600; font-size: 13px; }
+    .total-divider { height: 1px; background: var(--light); margin: 4px 0; }
+    .total-row.grand {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+    .total-row.grand .monospace { font-family: 'Space Mono', monospace; }
+
+    /* Payment method */
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      border-top: 1px solid var(--light);
+      font-size: 12px;
+    }
+    .payment-row .label { color: var(--muted); font-weight: 600; }
+    .payment-method-badge {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1d4ed8;
+    }
+
+    /* Footer */
+    .receipt-foot {
+      text-align: center;
+      padding: 20px 28px 28px;
+      border-top: 1px dashed var(--light);
+    }
+    .receipt-foot .thank-you {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .receipt-foot .sub { font-size: 12px; color: var(--muted); }
+    .order-id-display {
+      margin-top: 14px;
+      font-size: 10px;
+      color: #d1d5db;
+      font-family: 'Space Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Action bar (hidden on print) -->
+<div class="no-print-bar no-print">
+  {% if request.GET.next %}
+  <a class="btn-outline" href="{{ request.GET.next }}">← Back</a>
+  {% elif request.user.is_authenticated %}
+  <a class="btn-outline" href="{% url 'order_detail' order.id %}">← Order Details</a>
+  <a class="btn-outline" href="{% url 'pos_dashboard' %}">POS</a>
+  {% elif order.table %}
+  <a class="btn-outline" href="{% url 'order_success' order.id %}">← Track Order</a>
+  {% else %}
+  <a class="btn-outline" href="{% url 'pos_dashboard' %}">← POS</a>
+  {% endif %}
+  <div class="spacer"></div>
+  {% if can_free_table and request.user.is_authenticated %}
+  <form method="post" action="{% url 'restaurant:table_close_service' order.table.id %}" onsubmit="return confirm('Close dining session for Table {{ order.table.table_number }} and make it available?');" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn-outline" style="color: #ea580c; border-color: #fed7aa; background: #fff7ed;">
+      Free Table {{ order.table.table_number }}
+    </button>
+  </form>
+  {% endif %}
+  <button class="btn-primary" onclick="window.print()">🖨️ Print Receipt</button>
+</div>
+
+<!-- Receipt -->
+<div class="receipt">
+
+  {% include "business_settings/receipt_branding.html" %}
+  <!-- Head -->
+  <div class="receipt-head">
+    <div class="restaurant-name">{{ receipt_settings.receipt_name }}</div>
+    <div class="restaurant-sub">
+      {% if order.table %}Table {{ order.table.table_number }}{% else %}Takeaway{% endif %}
+      &nbsp;·&nbsp;
+      Order #{{ order.id }}
+    </div>
+    <div class="paid-stamp">
+      <div class="paid-dot"></div>
+      PAID
+    </div>
+  </div>
+
+  <!-- Meta row -->
+  <div class="order-meta">
+    <div class="meta-item">
+      <div class="meta-label">Date</div>
+      <div class="meta-value">{{ order.created_at|date:"M j, Y" }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Time</div>
+      <div class="meta-value">{{ order.created_at|date:"g:i A" }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Type</div>
+      <div class="meta-value">{{ order.get_order_type_display }}</div>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="items-section">
+    <h3>Items Ordered</h3>
+    {% for item in order.items.all %}
+    <div class="item-row">
+      <div class="item-info">
+        <div class="item-name">{{ item.menu_item.name }}</div>
+        {% if item.addons.all %}
+          <div style="font-size: 11px; color: #ea580c; font-weight: 500; margin: 1px 0;">
+            {% for a in item.addons.all %}
+              + {{ a.addon_name }} (+৳{{ a.price|floatformat:2 }}){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="item-qty">
+          × {{ item.quantity }} @ ৳{{ item.price|floatformat:2 }}
+          {% if item.addons.all %}
+            <span style="color: #888;">(Unit w/ addons: ৳{{ item.unit_price_with_addons|floatformat:2 }})</span>
+          {% endif %}
+        </div>
+        {% if item.discount_amount and item.discount_amount != "0.00" %}
+          <div style="font-size: 11px; color: #ea580c; font-weight: 600; margin-top: 1px;">
+            Discount: −৳{{ item.discount_amount|floatformat:2 }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="item-price">৳{{ item.subtotal|floatformat:2 }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Totals -->
+  <div class="totals-section">
+    <div class="total-row prominent">
+      <span>Subtotal</span>
+      <span>৳{{ order.subtotal }}</span>
+    </div>
+    {% if order.discount_amount and order.discount_amount != "0.00" %}
+    <div class="total-row">
+      <span>
+        Discount
+        {% if order.coupon_code_snapshot %}
+          ({{ order.coupon_code_snapshot }})
+        {% elif order.coupon_name_snapshot %}
+          ({{ order.coupon_name_snapshot }})
+        {% endif %}
+      </span>
+      <span style="color: #ea580c;">− ৳{{ order.discount_amount }}</span>
+    </div>
+    {% endif %}
+    {% if order.service_charge and order.service_charge != "0.00" %}
+    <div class="total-row">
+      <span>Service Charge</span>
+      <span>৳{{ order.service_charge }}</span>
+    </div>
+    {% endif %}
+    {% if order.vat_amount and order.vat_amount != "0.00" %}
+    <div class="total-row">
+      <span>VAT</span>
+      <span>৳{{ order.vat_amount }}</span>
+    </div>
+    {% endif %}
+    <div class="total-divider"></div>
+    <div class="total-row grand">
+      <span>Total Paid</span>
+      <span class="monospace">৳{{ order.total_amount }}</span>
+    </div>
+  </div>
+
+  <!-- Payment method & Reference -->
+  {% if order.payment_method %}
+  <div class="payment-row">
+    <span class="label">Payment Method</span>
+    <span class="payment-method-badge">
+      {% if order.payment_method == "CASH" %}💵{% elif order.payment_method == "CARD" %}💳{% else %}📱{% endif %}
+      {{ order.get_payment_method_display }}
+    </span>
+  </div>
+  {% endif %}
+
+  {% if order.payment_reference %}
+  <div class="payment-row">
+    <span class="label">Reference / Slip #</span>
+    <span style="font-family: 'Space Mono', monospace; font-weight: 700; color: #111827; font-size: 11px;">
+      {{ order.payment_reference }}
+    </span>
+  </div>
+  {% endif %}
+
+  {% if summary and summary.has_multiple_orders %}
+  <!-- Table Session Combined Bill Breakdown -->
+  <div style="padding: 16px 28px; background: #f9fafb; border-top: 1px dashed var(--light); font-size: 12px;">
+    <div style="font-weight: 800; color: #111827; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+      <span>🍽️ Combined Table Service Bill (Table {{ summary.table.table_number }})</span>
+      <span style="font-size: 11px; background: #e5e7eb; padding: 2px 8px; border-radius: 999px; font-weight: 700;">
+        {{ summary.session_orders|length }} order{{ summary.session_orders|length|pluralize }}
+      </span>
+    </div>
+
+    <div style="margin-bottom: 8px;">
+      {% for s_order in summary.session_orders %}
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #e5e7eb; font-size: 11.5px;">
+        <div>
+          <span style="font-weight: 600;">Order #{{ s_order.id }}</span>
+          {% if s_order.id == order.id %}<span style="color: var(--accent); font-weight: 700;">(This order)</span>{% endif %}
+          <span style="color: var(--muted); font-size: 10.5px;">· {{ s_order.items.all|length }} item{{ s_order.items.all|length|pluralize }}</span>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-family: 'Space Mono', monospace; font-weight: 600;">৳{{ s_order.total_amount }}</span>
+          <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 4px; {% if s_order.payment_status == 'PAID' %}background:#dcfce7; color:#15803d;{% else %}background:#fee2e2; color:#b91c1c;{% endif %}">
+            {{ s_order.get_payment_status_display }}
+          </span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="display:flex; justify-content:space-between; color: var(--muted); margin-bottom: 2px;">
+      <span>Combined Service Total:</span>
+      <span style="font-family: 'Space Mono', monospace; font-weight: 700;">৳{{ summary.total_amount }}</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; color: var(--green); margin-bottom: 2px;">
+      <span>Total Settled / Paid:</span>
+      <span style="font-family: 'Space Mono', monospace; font-weight: 700;">৳{{ summary.paid_amount }}</span>
+    </div>
+    {% if summary.unpaid_amount > 0 %}
+    <div style="display:flex; justify-content:space-between; color: #dc2626; font-weight: 700; margin-top: 4px; padding-top: 4px; border-top: 1px solid #e5e7eb;">
+      <span>Remaining Table Balance:</span>
+      <span style="font-family: 'Space Mono', monospace; font-weight: 800;">৳{{ summary.unpaid_amount }}</span>
+    </div>
+    {% else %}
+    <div style="color: var(--green); font-weight: 700; margin-top: 4px; text-align: right;">
+      ✓ All Session Orders Fully Settled
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+{% include 'guests/bill_feedback.html' %}
+  <!-- Footer -->
+  <div class="receipt-foot">
+    <div class="thank-you">{{ receipt_settings.receipt_heading }}</div>
+    <div class="sub">{{ receipt_settings.receipt_footer|linebreaksbr }}</div>
+    <div class="order-id-display">Receipt #{{ order.id }} · {{ order.created_at|date:"Y-m-d H:i" }}</div>
+  </div>
+
+</div>
+
+</body>
+</html>
+
+{% endtimezone %}

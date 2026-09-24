@@ -1,0 +1,78 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}My Salary{% endblock %}
+
+{% block content %}
+<div class="waiter-salary-page">
+
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">My Salary</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Breakdown of your base compensation, overtime rates, and estimated current month earnings.
+    </p>
+  </div>
+
+  <!-- CURRENT MONTH ESTIMATE CARD -->
+  <div class="card" style="border-top: 4px solid var(--accent); padding: 20px;">
+    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">
+      Current Month Estimate
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 10px 0 16px;">
+      <div>
+        <div style="font-size: 28px; font-weight: 800; color: var(--accent);">
+          ${{ estimated_net|floatformat:2 }}
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Basic (${{ basic_salary|floatformat:2 }}) + Estimated Overtime (${{ estimated_ot_pay|floatformat:2 }})
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <a href="{% url 'waiter:salary_advance' %}" class="btn btn-secondary" style="font-size: 13px;">
+          <span>Request Advance</span>
+        </a>
+        <a href="{% url 'waiter:payroll_history' %}" class="btn btn-outline" style="font-size: 13px;">
+          <span>View Past Payslips</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- BREAKDOWN TABLE / CARDS -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: #f9fafb; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Basic Monthly Salary</div>
+        <div style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-top: 2px;">${{ basic_salary|floatformat:2 }}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Standard Hourly Rate</div>
+        <div style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-top: 2px;">${{ hourly_rate|floatformat:2 }}/hr</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Overtime Rate (1.5x)</div>
+        <div style="font-size: 16px; font-weight: 700; color: #059669; margin-top: 2px;">${{ overtime_rate|floatformat:2 }}/hr</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Worked Hours This Month</div>
+        <div style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-top: 2px;">{{ worked_hours_month }} hrs</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">Overtime Hours This Month</div>
+        <div style="font-size: 16px; font-weight: 700; color: #059669; margin-top: 2px;">+{{ ot_hours_month }} hrs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTICE -->
+  <div class="card" style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px;">
+    <div style="display: flex; gap: 12px;">
+      <span style="font-size: 20px;">ℹ️</span>
+      <div style="font-size: 13px; color: #1e40af;">
+        <strong>Payroll Information Note:</strong>
+        Final monthly payroll is generated and approved at the end of each pay cycle by management, accounting for exact attendance, approved leaves, bonuses, and any salary advances.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

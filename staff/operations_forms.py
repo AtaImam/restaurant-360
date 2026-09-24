@@ -1,4 +1,5 @@
 from django import forms
+from datetime import timedelta
 
 from orders.models import Order
 from restaurant.models import Table
@@ -24,6 +25,7 @@ class TableAssignmentForm(forms.Form):
         *args,
         restaurant,
         work_date,
+        branch=None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -32,7 +34,8 @@ class TableAssignmentForm(forms.Form):
             Attendance.objects
             .filter(
                 restaurant=restaurant,
-                work_date=work_date,
+                branch=branch,
+                work_date__in=[work_date - timedelta(days=1), work_date, work_date + timedelta(days=1)],
                 check_out__isnull=True,
                 employee__user__role="waiter",
                 employee__user__is_active=True,
@@ -52,6 +55,7 @@ class TableAssignmentForm(forms.Form):
             Table.objects
             .filter(
                 restaurant=restaurant,
+                branch=branch,
                 is_active=True,
             )
             .order_by("table_number")
@@ -122,6 +126,7 @@ class StaffTaskAssignmentForm(forms.Form):
         *args,
         restaurant,
         work_date,
+        branch=None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -130,7 +135,8 @@ class StaffTaskAssignmentForm(forms.Form):
             Attendance.objects
             .filter(
                 restaurant=restaurant,
-                work_date=work_date,
+                branch=branch,
+                work_date__in=[work_date - timedelta(days=1), work_date, work_date + timedelta(days=1)],
                 check_out__isnull=True,
                 employee__user__is_active=True,
                 employee__user__is_active_staff=True,
@@ -148,8 +154,8 @@ class StaffTaskAssignmentForm(forms.Form):
 
         self.fields["related_order"].queryset = (
             Order.objects
-            .filter(restaurant=restaurant)
-            .exclude(status="COMPLETED")
+            .filter(restaurant=restaurant, branch=branch)
+            .exclude(status__in=["COMPLETED", "CANCELLED"])
             .select_related("table")
             .order_by("-created_at")
         )
@@ -158,6 +164,7 @@ class StaffTaskAssignmentForm(forms.Form):
             Table.objects
             .filter(
                 restaurant=restaurant,
+                branch=branch,
                 is_active=True,
             )
             .order_by("table_number")

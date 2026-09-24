@@ -584,6 +584,92 @@
         }
 
 
+        /* ADDONS & CUSTOMIZATION */
+        .addon-group-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .addon-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .addon-group-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .addon-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .addon-badge-required {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .addon-badge-optional {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .addon-group-help {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0 0 12px;
+        }
+        .addon-options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .addon-option-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .addon-option-label:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+        }
+        .addon-option-input {
+            margin-right: 12px;
+            accent-color: #f97316;
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+        }
+        .addon-option-left {
+            display: flex;
+            align-items: center;
+        }
+        .addon-option-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .addon-option-price {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f97316;
+        }
+        .addon-option-label.is-selected {
+            border-color: #f97316;
+            background: #fff7ed;
+        }
+
         @media (
             max-width: 600px
         ) {
@@ -668,6 +754,15 @@
 
     </header>
 
+    {% if messages %}
+    <div style="max-width: 800px; margin: 15px auto 0; padding: 0 18px;">
+        {% for message in messages %}
+        <div style="padding: 12px 16px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; font-weight: 600; {% if message.tags == 'error' %}background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;{% else %}background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <main class="container">
 
@@ -719,7 +814,7 @@
                         {{ item.name }}
                     </h1>
 
-                    <div class="price">
+                    <div class="price" id="headerPrice">
                         ৳{{ item.price|floatformat:2 }}
                     </div>
 
@@ -878,6 +973,83 @@
                 {% endif %}
 
 
+                <!-- ===================================
+                     ADDONS / CUSTOMIZATIONS
+                ==================================== -->
+                {% if addon_groups %}
+                    <section class="section">
+                        <h2 class="section-title">
+                            Customizations & Addons
+                        </h2>
+                        <p class="section-subtitle">
+                            Customize your selection with your preferred additions.
+                        </p>
+
+                        {% for group in addon_groups %}
+                            <div class="addon-group-card">
+                                <div class="addon-group-header">
+                                    <h3 class="addon-group-title">{{ group.name }}</h3>
+                                    {% if group.is_required %}
+                                        <span class="addon-badge addon-badge-required">Required</span>
+                                    {% else %}
+                                        <span class="addon-badge addon-badge-optional">Optional</span>
+                                    {% endif %}
+                                </div>
+                                <p class="addon-group-help">
+                                    {% if group.selection_type == "SINGLE" %}
+                                        {% if group.is_required %}Select 1 option{% else %}Select up to 1 option{% endif %}
+                                    {% else %}
+                                        {% if group.min_selection > 0 and group.max_selection > 0 %}
+                                            Choose {{ group.min_selection }} to {{ group.max_selection }} options
+                                        {% elif group.min_selection > 0 %}
+                                            Choose at least {{ group.min_selection }} option{{ group.min_selection|pluralize }}
+                                        {% elif group.max_selection > 0 %}
+                                            Choose up to {{ group.max_selection }} option{{ group.max_selection|pluralize }}
+                                        {% else %}
+                                            Choose any options
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
+
+                                <div class="addon-options-list">
+                                    {% if group.selection_type == "SINGLE" and not group.is_required %}
+                                        <label class="addon-option-label is-selected">
+                                            <div class="addon-option-left">
+                                                <input type="radio" name="addon_group_{{ group.id }}" value="" class="addon-option-input addon-calc" form="addToCartForm" data-price="0" checked>
+                                                <span class="addon-option-name">None</span>
+                                            </div>
+                                            <span class="addon-option-price" style="color: #64748b;">+৳0.00</span>
+                                        </label>
+                                    {% endif %}
+
+                                    {% for option in group.options.all %}
+                                        <label class="addon-option-label {% if option.is_sold_out %}is-sold-out{% endif %}" {% if option.is_sold_out %}style="opacity: 0.55; cursor: not-allowed;"{% endif %}>
+                                            <div class="addon-option-left">
+                                                {% if group.selection_type == "SINGLE" %}
+                                                    <input type="radio" name="addon_group_{{ group.id }}" value="{{ option.id }}" class="addon-option-input addon-calc" form="addToCartForm" data-price="{{ option.price }}" {% if option.is_default_checked %}checked{% endif %} {% if option.is_sold_out %}disabled{% endif %}>
+                                                {% else %}
+                                                    <input type="checkbox" name="addons" value="{{ option.id }}" class="addon-option-input addon-calc" form="addToCartForm" data-price="{{ option.price }}" {% if option.is_sold_out %}disabled{% endif %}>
+                                                {% endif %}
+                                                <span class="addon-option-name" {% if option.is_sold_out %}style="text-decoration: line-through; color: #94a3b8;"{% endif %}>{{ option.name }}</span>
+                                                {% if option.is_sold_out %}
+                                                    <span style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Sold Out</span>
+                                                {% endif %}
+                                            </div>
+                                            <span class="addon-option-price" {% if option.is_sold_out %}style="color: #94a3b8;"{% endif %}>
+                                                {% if option.price > 0 %}
+                                                    +৳{{ option.price|floatformat:2 }}
+                                                {% else %}
+                                                    Free
+                                                {% endif %}
+                                            </span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </section>
+                {% endif %}
+
             </div>
 
         </article>
@@ -887,39 +1059,96 @@
 
     <div class="bottom-action">
 
-        <form
-            method="post"
-            action="{% url 'add_to_cart' restaurant.id table.id item.id %}"
-            class="add-form"
-        >
-
-            {% csrf_token %}
-
-            <input
-                type="hidden"
-                name="return_to"
-                value="detail"
-            >
+        {% if item.is_sold_out %}
 
             <button
-                type="submit"
+                type="button"
                 class="add-button"
+                disabled
+                style="background: #e5e7eb; color: #9ca3af; cursor: not-allowed;"
             >
-
                 <span>
-                    + Add to Order
+                    ✕ Sold Out (Insufficient Stock)
                 </span>
 
-                <span>
+                <span id="buttonPrice">
                     ৳{{ item.price|floatformat:2 }}
                 </span>
-
             </button>
 
-        </form>
+        {% else %}
+
+            <form
+                id="addToCartForm"
+                method="post"
+                action="{% url 'add_to_cart' restaurant.id table.id item.id %}"
+                class="add-form"
+            >
+
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="return_to"
+                    value="detail"
+                >
+
+                <button
+                    type="submit"
+                    class="add-button"
+                >
+
+                    <span>
+                        + Add to Order
+                    </span>
+
+                    <span id="buttonPrice">
+                        ৳{{ item.price|floatformat:2 }}
+                    </span>
+
+                </button>
+
+            </form>
+
+        {% endif %}
 
     </div>
 
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const basePrice = parseFloat("{{ item.price }}") || 0;
+        const buttonPriceEl = document.getElementById("buttonPrice");
+        const headerPriceEl = document.getElementById("headerPrice");
+        const inputs = document.querySelectorAll(".addon-calc");
+
+        function updatePrice() {
+            let addonTotal = 0;
+            inputs.forEach(function(input) {
+                const label = input.closest(".addon-option-label");
+                if (input.checked) {
+                    if (label) label.classList.add("is-selected");
+                    addonTotal += parseFloat(input.dataset.price || 0);
+                } else {
+                    if (label) label.classList.remove("is-selected");
+                }
+            });
+            const total = basePrice + addonTotal;
+            const formatted = "৳" + total.toFixed(2);
+            if (buttonPriceEl) {
+                buttonPriceEl.textContent = formatted;
+            }
+            if (headerPriceEl) {
+                headerPriceEl.textContent = formatted;
+            }
+        }
+
+        inputs.forEach(function(input) {
+            input.addEventListener("change", updatePrice);
+        });
+
+        updatePrice();
+    });
+    </script>
 
 </body>
 

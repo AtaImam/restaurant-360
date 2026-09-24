@@ -26,6 +26,13 @@ class User(AbstractUser):
         blank=True,
         related_name='staff_members'
     )
+    branch = models.ForeignKey(
+        'restaurant.Branch',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='staff_members'
+    )
     is_active_staff = models.BooleanField(default=True)
 
     # Fix related_name clashes with auth.User
@@ -58,7 +65,7 @@ class User(AbstractUser):
             'admin': '/admin/',
             'owner': '/dashboard/',
             'manager': '/dashboard/',
-            'waiter': '/dashboard/',
+            'waiter': '/waiter/',
             'chief': '/kitchen/',
             'kitchen_manager': '/kitchen/',
             'bar_manager': '/dashboard/',
@@ -71,7 +78,11 @@ class User(AbstractUser):
 
     def can_access_kitchen(self):
         """Check if user can access kitchen dashboard"""
-        return self.role in ['chief', 'kitchen_manager']
+        return self.role in ['admin', 'owner', 'manager', 'chief', 'chef', 'kitchen_manager'] or self.is_superuser
+
+    def can_operate_kitchen(self):
+        """Check if user has interactive kitchen operator privileges (Chief or Kitchen Manager)."""
+        return self.role in ['chief', 'chef', 'kitchen_manager']
 
     def can_manage_staff(self):
         """Check if user can manage other staff"""

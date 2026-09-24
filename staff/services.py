@@ -5,10 +5,11 @@ from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError, transaction
-from django.db.models import Sum
+from django.db import IntegrityError, models, transaction
+from django.db.models import Q, Sum
 from django.utils import timezone
 
+from .access import ensure_staff_record_access
 from .models import (
     Attendance,
     EmployeeProfile,
@@ -70,6 +71,11 @@ def get_shift_schedule(shift, now):
         ATTENDANCE_TIMEZONE,
     )
 
+    # A shift beginning shortly after midnight can be checked into the prior evening.
+    if scheduled_start + timedelta(days=1, minutes=-60) <= now < scheduled_start + timedelta(days=1):
+        work_date += timedelta(days=1)
+        scheduled_start += timedelta(days=1)
+        scheduled_end += timedelta(days=1)
     return work_date, scheduled_start, scheduled_end
 
 
@@ -77,6 +83,7 @@ def check_in_employee(actor):
     try:
         with transaction.atomic():
             employee = get_active_employee(actor)
+            EmployeeProfile.objects.select_for_update().get(pk=employee.pk)
 
             if Attendance.objects.filter(
                 employee=employee,
@@ -93,7 +100,7 @@ def check_in_employee(actor):
                     "Ask your manager to assign an active shift."
                 )
 
-            if shift.restaurant_id != employee.user.restaurant_id:
+            if shift.restaurant_id != employee.user.restaurant_id or shift.branch_id != employee.user.branch_id:
                 raise ValidationError(
                     "Your shift does not belong to your restaurant."
                 )
@@ -101,10 +108,14 @@ def check_in_employee(actor):
             now = timezone.now()
             work_date, start, end = get_shift_schedule(shift, now)
 
-            if not start <= now < end:
+            earliest_check_in = start - timedelta(minutes=60)
+            if not earliest_check_in <= now < end:
                 raise ValidationError(
-                    "Check-in is available only during your assigned shift."
+                    "Check-in is available starting 60 minutes before your shift until shift end."
                 )
+
+            if LeaveRequest.objects.filter(employee=employee, status="approved", start_date__lte=work_date, end_date__gte=work_date).exists():
+                raise ValidationError("You cannot check in while on approved leave.")
 
             if work_date < employee.joining_date:
                 raise ValidationError(
@@ -141,7 +152,7 @@ def check_out_employee(actor):
     with transaction.atomic():
         employee = get_active_employee(actor)
 
-        attendance = Attendance.objects.filter(
+        attendance = Attendance.objects.select_for_update().filter(
             employee=employee,
             check_out__isnull=True,
         ).first()
@@ -161,7 +172,34 @@ def check_out_employee(actor):
 
         return attendance
 
-def generate_monthly_payroll(restaurant_id, payroll_month):
+
+def force_check_out_attendance(actor, attendance_id, check_out_time=None):
+    """Manager or dev user force checkout for an unclosed attendance."""
+    with transaction.atomic():
+        attendance = (
+            Attendance.objects
+            .select_for_update()
+            .select_related("employee__user", "shift")
+            .get(pk=attendance_id)
+        )
+
+        ensure_staff_record_access(actor, attendance.restaurant_id, attendance.branch_id)
+        if attendance.check_out is not None:
+            return attendance, False
+
+        now = timezone.now()
+        checkout = check_out_time or attendance.scheduled_end
+        if checkout > now:
+            checkout = now
+        if checkout < attendance.check_in:
+            checkout = attendance.check_in
+
+        attendance.check_out = checkout
+        attendance.save(update_fields=["check_out", "updated_at"])
+        return attendance, True
+
+
+def generate_monthly_payroll(restaurant_id, payroll_month, recalculate=False, branch=None):
     payroll_month = payroll_month.replace(day=1)
 
     days_in_month = calendar.monthrange(
@@ -182,63 +220,167 @@ def generate_monthly_payroll(restaurant_id, payroll_month):
         .order_by("employee_id")
     )
 
+    if branch is not None:
+        if branch.restaurant_id != restaurant_id:
+            raise ValidationError("The payroll branch belongs to another restaurant.")
+        employees = employees.filter(user__branch=branch)
     created_records = []
+    updated_records = []
     existing_records = []
 
+    local_now = timezone.localtime(timezone.now(), ATTENDANCE_TIMEZONE)
+    local_today = local_now.date()
+    eval_end_date = min(month_end, local_today)
+
     with transaction.atomic():
-        for employee in employees:
+        for employee in employees.select_for_update():
+            if employee.joining_date > month_end:
+                continue
+
             basic_salary = employee.basic_salary or Decimal("0.00")
-
-            unpaid_leaves = LeaveRequest.objects.filter(
-                employee=employee,
-                status="approved",
-                leave_type="unpaid",
-                start_date__lte=month_end,
-                end_date__gte=payroll_month,
-            )
-
-            unpaid_days = 0
-
-            for leave_request in unpaid_leaves:
-                overlap_start = max(
-                    leave_request.start_date,
-                    payroll_month,
-                )
-                overlap_end = min(
-                    leave_request.end_date,
-                    month_end,
-                )
-
-                unpaid_days += (
-                    overlap_end - overlap_start
-                ).days + 1
-
             daily_salary = (
                 basic_salary / Decimal(days_in_month)
                 if days_in_month
                 else Decimal("0.00")
             )
 
+            # Mid-month joining proration
+            effective_start = max(payroll_month, employee.joining_date)
+            pre_joining_days = max(0, (effective_start - payroll_month).days)
+
+            # Approved leaves in month
+            approved_leaves = list(
+                LeaveRequest.objects.filter(
+                    employee=employee,
+                    restaurant_id=restaurant_id,
+                    branch_id=employee.user.branch_id,
+                    status="approved",
+                    start_date__lte=month_end,
+                    end_date__gte=payroll_month,
+                )
+            )
+
+            unpaid_leave_days = 0
+            paid_leave_days = 0
+            leave_covered_dates = set()
+
+            for leave_request in approved_leaves:
+                overlap_start = max(leave_request.start_date, effective_start)
+                overlap_end = min(leave_request.end_date, month_end)
+                if overlap_start <= overlap_end:
+                    days_count = (overlap_end - overlap_start).days + 1
+                    if leave_request.leave_type == "unpaid":
+                        unpaid_leave_days += days_count
+                    else:
+                        paid_leave_days += days_count
+
+                    cur = max(leave_request.start_date, effective_start)
+                    lim = min(leave_request.end_date, eval_end_date)
+                    while cur <= lim:
+                        leave_covered_dates.add(cur)
+                        cur += timedelta(days=1)
+
             leave_deduction = (
-                daily_salary * Decimal(unpaid_days)
+                daily_salary * Decimal(unpaid_leave_days)
             ).quantize(
                 Decimal("0.01"),
                 rounding=ROUND_HALF_UP,
             )
 
-            advance_deduction = (
-                SalaryAdvance.objects
-                .filter(
+            # Attendance records
+            attended_dates = set(
+                Attendance.objects.filter(
                     employee=employee,
-                    status="approved",
-                    created_at__date__lte=month_end,
-                )
-                .aggregate(total=Sum("amount"))["total"]
-                or Decimal("0.00")
+                    restaurant_id=restaurant_id,
+                    branch_id=employee.user.branch_id,
+                    work_date__gte=effective_start,
+                    work_date__lte=eval_end_date,
+                ).values_list("work_date", flat=True)
             )
+
+            # Unexcused absences = days where employee neither attended nor had approved leave
+            unexcused_absent_days = 0
+            if eval_end_date >= effective_start:
+                cur_day = effective_start
+                while cur_day <= eval_end_date:
+                    if cur_day not in attended_dates and cur_day not in leave_covered_dates:
+                        unexcused_absent_days += 1
+                    cur_day += timedelta(days=1)
+
+            total_absent_days = unexcused_absent_days + pre_joining_days
+            attendance_deduction = (
+                daily_salary * Decimal(total_absent_days)
+            ).quantize(
+                Decimal("0.01"),
+                rounding=ROUND_HALF_UP,
+            )
+
+            existing_record = PayrollRecord.objects.select_for_update().filter(
+                employee=employee,
+                month=payroll_month,
+            ).first()
+
+            if existing_record:
+                if existing_record.branch_id != employee.user.branch_id:
+                    existing_records.append(existing_record)
+                    continue
+                if existing_record.status == "paid":
+                    existing_records.append(existing_record)
+                    continue
+                elif not recalculate:
+                    existing_records.append(existing_record)
+                    continue
+                payroll_record = existing_record
+            else:
+                payroll_record = PayrollRecord(
+                    employee=employee,
+                    month=payroll_month,
+                    restaurant_id=restaurant_id,
+                    branch_id=employee.user.branch_id,
+                    status="draft",
+                    basic_salary=basic_salary,
+                    bonus=Decimal("0.00"),
+                )
+
+            # Link & deduct unlinked approved advances created on or before month_end,
+            # or advances already linked to this payroll record
+            advances_to_deduct = list(
+                SalaryAdvance.objects.select_for_update().filter(
+                    employee=employee,
+                    restaurant_id=restaurant_id,
+                    branch_id=employee.user.branch_id,
+                    status="approved",
+                ).filter(
+                    (models.Q(payroll_record=payroll_record) if payroll_record.pk else models.Q(pk__in=[]))
+                    | models.Q(payroll_record__isnull=True, created_at__date__lte=month_end)
+                )
+            )
+
+            # Only recover whole advances that fit the earnings available. Others
+            # remain approved and unlinked for a later payroll instead of being lost.
+            bonus = payroll_record.bonus or Decimal("0.00")
+            available = max(basic_salary + bonus - attendance_deduction - leave_deduction, Decimal("0.00"))
+            recoverable = []
+            for advance in sorted(advances_to_deduct, key=lambda row: (row.created_at, row.pk)):
+                if advance.amount <= available:
+                    recoverable.append(advance)
+                    available -= advance.amount
+                elif advance.payroll_record_id == payroll_record.pk and payroll_record.pk:
+                    advance.payroll_record = None
+                    advance.save(update_fields=["payroll_record"])
+            advances_to_deduct = recoverable
+
+            advance_deduction = sum(
+                (adv.amount for adv in advances_to_deduct),
+                Decimal("0.00"),
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            bonus = payroll_record.bonus or Decimal("0.00")
 
             net_salary = max(
                 basic_salary
+                + bonus
+                - attendance_deduction
                 - leave_deduction
                 - advance_deduction,
                 Decimal("0.00"),
@@ -247,29 +389,26 @@ def generate_monthly_payroll(restaurant_id, payroll_month):
                 rounding=ROUND_HALF_UP,
             )
 
-            payroll_record, created = (
-                PayrollRecord.objects.get_or_create(
-                    employee=employee,
-                    month=payroll_month,
-                    defaults={
-                        "restaurant_id": restaurant_id,
-                        "basic_salary": basic_salary,
-                        "bonus": Decimal("0.00"),
-                        "attendance_deduction": Decimal("0.00"),
-                        "leave_deduction": leave_deduction,
-                        "advance_deduction": advance_deduction,
-                        "net_salary": net_salary,
-                        "status": "draft",
-                    },
-                )
-            )
+            payroll_record.basic_salary = basic_salary
+            payroll_record.attendance_deduction = attendance_deduction
+            payroll_record.leave_deduction = leave_deduction
+            payroll_record.advance_deduction = advance_deduction
+            payroll_record.net_salary = net_salary
+            payroll_record.restaurant_id = restaurant_id
+            payroll_record.save()
 
-            if created:
-                created_records.append(payroll_record)
+            for adv in advances_to_deduct:
+                if adv.payroll_record_id != payroll_record.pk:
+                    adv.payroll_record = payroll_record
+                    adv.save(update_fields=["payroll_record"])
+
+            if existing_record:
+                updated_records.append(payroll_record)
             else:
-                existing_records.append(payroll_record)
+                created_records.append(payroll_record)
 
     return {
         "created": created_records,
+        "updated": updated_records,
         "existing": existing_records,
     }

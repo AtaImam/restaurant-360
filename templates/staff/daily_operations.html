@@ -480,6 +480,22 @@
                   <span class="status-badge status-present">
                     Present
                   </span>
+                  <form
+                    method="post"
+                    action="{% url 'staff:attendance_force_checkout' record.pk %}"
+                    style="display: inline-block; margin-left: 6px;"
+                  >
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="daily_operations">
+                    <button
+                      type="submit"
+                      class="small-button"
+                      style="background: #ef4444; color: white; border: 0; cursor: pointer; padding: 2px 6px; font-size: 10px; font-weight: 700;"
+                      title="Force Check-out"
+                    >
+                      Check Out
+                    </button>
+                  </form>
                   {% endif %}
                 </td>
 
@@ -701,27 +717,55 @@
                 </td>
 
                 <td>
-                  {% if service.order.status == "READY" %}
-                  <form
-                    method="post"
-                    action="{% url 'staff:waiter_serve_order' service.order.pk %}"
-                  >
-                    {% csrf_token %}
-                    <input
-                      type="hidden"
-                      name="next"
-                      value="daily_operations"
+                  <div style="display: flex; gap: 6px; align-items: center;">
+                    {% if service.order.status == "READY" %}
+                    <form
+                      method="post"
+                      action="{% url 'staff:waiter_serve_order' service.order.pk %}"
+                      style="margin: 0;"
                     >
-                    <button
-                      type="submit"
-                      class="primary-button small-button"
+                      {% csrf_token %}
+                      <input
+                        type="hidden"
+                        name="next"
+                        value="daily_operations"
+                      >
+                      <button
+                        type="submit"
+                        class="primary-button small-button"
+                      >
+                        Served
+                      </button>
+                    </form>
+                    {% else %}
+                    <span class="muted">Waiting</span>
+                    {% endif %}
+
+                    {% if can_manage and service.order.status != 'SERVED' %}
+                    <form method="post" action="{% url 'staff:waiter_claim_order' service.order.pk %}">
+                      {% csrf_token %}
+                      <label>Hand over to <select name="waiter_id" required><option value="">Select waiter</option>{% for waiter in available_waiters %}{% if waiter.pk != service.waiter.user_id %}<option value="{{ waiter.pk }}">{{ waiter.get_full_name|default:waiter.username }}</option>{% endif %}{% endfor %}</select></label>
+                      <button type="submit" class="small-button">Hand Over</button>
+                    </form>
+                    {% endif %}
+                    {% if is_waiter and service.waiter.user_id != request.user.pk %}
+                    <form
+                      method="post"
+                      action="{% url 'staff:waiter_claim_order' service.order.pk %}"
+                      style="margin: 0;"
                     >
-                      Served
-                    </button>
-                  </form>
-                  {% else %}
-                  <span class="muted">Waiting</span>
-                  {% endif %}
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="daily_operations">
+                      <button
+                        type="submit"
+                        class="small-button"
+                        style="background: #0284c7; color: white; border: 0; cursor: pointer;"
+                      >
+                        Claim
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
                 </td>
               </tr>
 
@@ -739,6 +783,7 @@
     </main>
 
     <aside>
+      {% if can_manage %}
       <section class="operations-card">
         <div class="card-heading">
           <div>
@@ -839,6 +884,7 @@
           </div>
         </form>
       </section>
+      {% endif %}
 
       <section class="operations-card">
         <div class="card-heading">
@@ -854,6 +900,7 @@
             class="notification-item {% if not notification.is_read %}notification-new{% endif %}"
           >
             <strong>{{ notification.title }}</strong>
+            {% if not notification.is_read %}<form method="post" action="{% url 'staff:notification_mark_read' notification.pk %}">{% csrf_token %}<button type="submit">Mark read</button></form>{% endif %}
             <div class="muted">
               {{ notification.message }}
             </div>
@@ -871,5 +918,14 @@
       </section>
     </aside>
   </div>
+</section>
+<section style="padding:24px">
+  <h2>Orders Awaiting Waiter Assignment</h2><p>Branch: {{ branch.name|default:'Unassigned' }}</p>
+  {% for order in unassigned_orders %}
+  <form method="post" action="{% url 'staff:waiter_claim_order' order.pk %}">{% csrf_token %}
+    <a href="{% url 'order_detail' order.pk %}">Order #{{ order.pk }}</a>
+    {% if can_manage %}<label>Waiter <select name="waiter_id" required><option value="">Select waiter</option>{% for waiter in available_waiters %}<option value="{{ waiter.pk }}">{{ waiter.get_full_name|default:waiter.username }}</option>{% endfor %}</select></label>{% endif %}
+    <button type="submit">{% if can_manage %}Assign Waiter{% else %}Claim Order{% endif %}</button>
+  </form>{% empty %}<p>No orders awaiting assignment.</p>{% endfor %}
 </section>
 {% endblock %}

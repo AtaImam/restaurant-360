@@ -38,6 +38,16 @@ urlpatterns = [
         name="table_toggle",
     ),
     path(
+        "tables/<int:table_id>/close-service/",
+        management_views.table_close_service,
+        name="table_close_service",
+    ),
+    path(
+        "tables/<int:table_id>/qr/",
+        management_views.qr_view,
+        name="qr_view",
+    ),
+    path(
         "tables/<int:table_id>/qr/download/",
         management_views.qr_download,
         name="qr_download",
@@ -46,5 +56,36 @@ urlpatterns = [
         "tables/<int:table_id>/qr/print/",
         management_views.qr_print,
         name="qr_print",
+    ),
+    # ---- Branch management ----
+    path(
+        "branches/",
+        management_views.branch_list,
+        name="branch_list",
+    ),
+    path(
+        "branches/create/",
+        management_views.branch_create,
+        name="branch_create",
+    ),
+    path(
+        "branches/<int:branch_id>/edit/",
+        management_views.branch_edit,
+        name="branch_edit",
+    ),
+    path(
+        "branches/<int:branch_id>/toggle/",
+        management_views.branch_toggle,
+        name="branch_toggle",
+    ),
+    path(
+        "branches/<int:branch_id>/delete/",
+        management_views.branch_delete,
+        name="branch_delete",
+    ),
+    path(
+        "branches/switch/",
+        management_views.switch_branch,
+        name="switch_branch",
     ),
 ]

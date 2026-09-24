@@ -528,14 +528,20 @@
       <p>Organize restaurant floors and manage their tables.</p>
     </div>
 
-    <button
-      type="button"
-      class="primary-button"
-      id="openCreateFloor"
-    >
-      <span>＋</span>
-      <span>Add New Floor</span>
-    </button>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <a href="{% url 'restaurant:table_management' %}" class="secondary-button" style="text-decoration: none;">
+        <span>□</span>
+        <span>View Tables</span>
+      </a>
+      <button
+        type="button"
+        class="primary-button"
+        id="openCreateFloor"
+      >
+        <span>＋</span>
+        <span>Add New Floor</span>
+      </button>
+    </div>
   </div>
 
   <div class="floor-summary">

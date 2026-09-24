@@ -354,6 +354,8 @@ class ConsumptionAndReconciliationTests(OrderFlowFixture, TestCase):
 
     def test_advanced_transition_repairs_legacy_inventory_before_advancing(self):
         order = self.historical_order(status="READY")
+        order.payment_status = "PAID"
+        order.save(update_fields=["payment_status"])
         transition_order_status(order, "SERVED")
         self.assert_inventory(order, consumed=True)
         transition_order_status(order, "COMPLETED")

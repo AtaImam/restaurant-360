@@ -1,283 +1,921 @@
-{% extends "dashboard/base_owner.html" %}
+{% extends "kitchen/base_kitchen.html" %}
+{% load tz %}
 
-{% block title %}Kitchen Dashboard{% endblock %}
-{% block page_title %}Kitchen Display{% endblock %}
+{% block title %}Kitchen Display System (KDS){% endblock %}
 
 {% block extra_css %}
 <style>
-* {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+  /* DASHBOARD HEADER */
+  .kds-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .kds-title-wrap h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .kds-title-wrap p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .kds-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .refresh-indicator {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+
+  /* KPI METRIC CARDS ROW */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .kpi-card.kpi-new::before { background: #f59e0b; }
+  .kpi-card.kpi-accepted::before { background: #0284c7; }
+  .kpi-card.kpi-preparing::before { background: #9333ea; }
+  .kpi-card.kpi-ready::before { background: #10b981; }
+  .kpi-card.kpi-delayed::before { background: #ef4444; }
+  .kpi-card.kpi-speed::before { background: #f97316; }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 6px 0 2px;
+  }
+
+  .kpi-sub {
+    font-size: 11.5px;
+    color: var(--text-light);
+  }
+
+  .kpi-delayed .kpi-val {
+    color: #dc2626;
+  }
+
+  /* CHARTS & SUMMARY DUAL ROW */
+  .dashboard-mid-row {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  @media (max-width: 991px) {
+    .dashboard-mid-row {
+      grid-template-columns: 1fr;
     }
+  }
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f5f7;
-      color: #222;
-    }
+  /* 7-DAY TREND BAR CHART */
+  .trend-chart-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
 
-    .header {
-      background: white;
-      padding: 20px 30px;
-      border-bottom: 1px solid #ddd;
+  .trend-bars-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    height: 140px;
+    margin-top: 14px;
+    padding-top: 20px;
+    border-bottom: 1px solid var(--border);
+  }
 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
 
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+  .bar-pair {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    width: 100%;
+    max-width: 36px;
+    height: 100%;
+    justify-content: center;
+  }
 
-    .header h1 {
-      font-size: 26px;
-    }
+  .chart-bar {
+    width: 14px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s ease;
+    min-height: 4px;
+  }
 
-    .header p {
-      color: #666;
-      font-size: 14px;
-    }
+  .chart-bar.bar-recv { background: #cbd5e1; }
+  .chart-bar.bar-prep { background: #f97316; }
 
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
+  .bar-day-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 6px;
+    white-space: nowrap;
+  }
 
-    .orders-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
+  .chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    justify-content: flex-end;
+  }
 
-    .order-card {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
-    }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
 
-    .order-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+  /* LOW STOCK & URGENT PANEL */
+  .summary-panel-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
 
-      margin-bottom: 15px;
-    }
+  .summary-sub-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
 
-    .order-number {
-      font-size: 20px;
-      font-weight: bold;
-    }
+  .mini-stock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
 
-    .status {
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-    }
+  .mini-stock-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border-radius: var(--radius-sm);
+    border: 1px solid #f1f5f9;
+  }
 
-    .status-new {
-      background: #fff3cd;
-      color: #856404;
-    }
+  .progress-bar-bg {
+    width: 60px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-top: 3px;
+  }
 
-    .status-accepted {
-      background: #d1ecf1;
-      color: #0c5460;
-    }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+  }
 
-    .status-preparing {
-      background: #e2d9f3;
-      color: #4a2c72;
-    }
+  /* KDS ORDER CARDS GRID */
+  .kds-section-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-    .status-ready {
-      background: #d4edda;
-      color: #155724;
-    }
+  .kds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
 
-    .order-info {
-      margin-bottom: 15px;
-      line-height: 1.8;
-      color: #555;
-    }
+  .order-card {
+    background: #ffffff;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
 
-    .items-title {
-      font-size: 15px;
-      margin-bottom: 8px;
-    }
+  .order-card:hover {
+    box-shadow: var(--shadow-md);
+  }
 
-    .items-list {
-      list-style: none;
-      margin-bottom: 18px;
-    }
+  .order-card.delayed {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 1px #ef4444, var(--shadow);
+  }
 
-    .items-list li {
-      background: #f7f7f7;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 7px;
-    }
+  .order-card-header {
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-    .total {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
+  .order-card.delayed .order-card-header {
+    background: #fef2f2;
+    border-bottom-color: #fecaca;
+  }
 
-    .action-button {
-      width: 100%;
-      border: none;
-      background: #111;
-      color: white;
+  .order-id {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
 
-      padding: 12px;
-      border-radius: 9px;
+  .order-timer {
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    background: #e2e8f0;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
 
-      font-size: 14px;
-      font-weight: bold;
+  .order-card.delayed .order-timer {
+    background: #fee2e2;
+    color: #b91c1c;
+    animation: pulse 2s infinite;
+  }
 
-      cursor: pointer;
-    }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
 
-    .action-button:hover {
-      opacity: 0.85;
-    }
+  .order-meta-bar {
+    padding: 10px 16px;
+    background: #ffffff;
+    border-bottom: 1px dashed var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+  }
 
-    .ready-message {
-      background: #e8f5e9;
-      color: #2e7d32;
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+  }
 
-      padding: 12px;
-      border-radius: 9px;
+  .meta-tag.table { background: #e0f2fe; color: #0369a1; }
+  .meta-tag.takeaway { background: #fef3c7; color: #92400e; }
+  .meta-tag.source-qr { background: #ede9fe; color: #6d28d9; }
+  .meta-tag.source-pos { background: #dcfce7; color: #15803d; }
 
-      text-align: center;
-      font-weight: bold;
-    }
+  .order-items-list {
+    padding: 14px 16px;
+    flex: 1;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+  }
 
-    .empty {
-      background: white;
-      padding: 50px;
-      border-radius: 14px;
-      text-align: center;
-      color: #666;
-    }
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    user-select: none;
+  }
+  .item-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 
-    @media (max-width: 600px) {
-      .header {
-        padding: 18px;
-      }
+  .item-check {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
 
-      .header h1 {
-        font-size: 22px;
-      }
+  .item-info {
+    flex: 1;
+  }
 
-      .container {
-        margin-top: 20px;
-      }
+  .item-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-      .orders-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+  .item-qty {
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .item-done .item-name {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+
+  .item-addons {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .item-notes {
+    font-size: 11.5px;
+    color: #b45309;
+    background: #fffbeb;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  .order-notes-box {
+    margin: 0 16px 12px;
+    padding: 8px 12px;
+    background: #fff7ed;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    font-size: 12px;
+    color: #9a3412;
+  }
+
+  .order-card-footer {
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .status-new { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .status-accepted { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .status-preparing { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+  .status-ready { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+  .btn-kds-action {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .btn-accept { background: #0284c7; color: #ffffff; }
+  .btn-accept:hover { background: #0369a1; }
+  .btn-prepare { background: #9333ea; color: #ffffff; }
+  .btn-prepare:hover { background: #7e22ce; }
+  .btn-ready { background: #10b981; color: #ffffff; }
+  .btn-ready:hover { background: #059669; }
+
+  .empty-kds {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: #ffffff;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+  }
+  .empty-kds-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="header">
-    <div>
-      <h1>Kitchen Dashboard</h1>
-      <p>Active restaurant orders</p>
-    </div>
+<!-- DASHBOARD TOP HEADER -->
+<div class="kds-header">
+  <div class="kds-title-wrap">
+    <h1>
+      <span>{% if is_read_only %}📺{% else %}👨‍🍳{% endif %}</span>
+      <span>{% if is_read_only %}Kitchen Monitor{% else %}Kitchen Operations Dashboard{% endif %}</span>
+      {% if is_read_only %}
+      <span class="badge badge-warning" style="font-size: 12px; padding: 4px 10px; font-weight: 700;">Read-Only Monitor</span>
+      {% endif %}
+      <span class="badge badge-gray" style="font-size: 13px; padding: 4px 10px;">{{ kpi_total_active }} Live in Queue</span>
+    </h1>
+    <p>{% if is_read_only %}Live read-only monitor of kitchen queue, preparation times, and order details for {{ active_branch.name|default:"active branch" }}. Status updates are restricted to kitchen staff.{% else %}Live Kitchen Display System (KDS), preparation speed KPIs, and stock requisitions for {{ active_branch.name|default:"active branch" }}{% endif %}</p>
   </div>
 
-  <div class="container">
-    {% for message in messages %}
-    <div role="alert" class="order-card">{{ message }}</div>
-    {% endfor %}
-    {% if orders %}
+  <div class="kds-controls">
+    <div class="refresh-indicator" id="refreshTimerBox">
+      <span>🔄</span>
+      <span id="countdownText">Auto-refresh: 30s</span>
+    </div>
+    {% if not is_read_only %}
+    <a href="{% url 'kitchen_order_queue' %}" class="btn btn-outline">
+      <span>📋</span>
+      <span>Order Queue</span>
+    </a>
+    {% endif %}
+    <button type="button" class="btn btn-primary" onclick="window.location.reload();">
+      <span>Refresh</span>
+    </button>
+  </div>
+</div>
 
-    <div class="orders-grid">
-      {% for order in orders %}
+{% if not is_read_only %}
+<!-- REAL KPIS GRID -->
+<div class="kpi-grid">
+  <div class="kpi-card kpi-new">
+    <div class="kpi-label">
+      <span>New Orders</span>
+      <span>🔔</span>
+    </div>
+    <div class="kpi-val">{{ kpi_new }}</div>
+    <div class="kpi-sub">Awaiting kitchen accept</div>
+  </div>
 
-      <div class="order-card">
-        <div class="order-top">
-          <span class="order-number"> Order #{{ order.id }} </span>
+  <div class="kpi-card kpi-accepted">
+    <div class="kpi-label">
+      <span>Accepted</span>
+      <span>⏱</span>
+    </div>
+    <div class="kpi-val">{{ kpi_accepted }}</div>
+    <div class="kpi-sub">Queued to prepare</div>
+  </div>
 
-          <span class="status status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+  <div class="kpi-card kpi-preparing">
+    <div class="kpi-label">
+      <span>Preparing</span>
+      <span>🍳</span>
+    </div>
+    <div class="kpi-val">{{ kpi_preparing }}</div>
+    <div class="kpi-sub">On active cook line</div>
+  </div>
+
+  <div class="kpi-card kpi-ready">
+    <div class="kpi-label">
+      <span>Ready</span>
+      <span>✓</span>
+    </div>
+    <div class="kpi-val">{{ kpi_ready }}</div>
+    <div class="kpi-sub">Awaiting waiter pickup</div>
+  </div>
+
+  <div class="kpi-card kpi-delayed">
+    <div class="kpi-label">
+      <span>Delayed Orders</span>
+      <span>⚠️</span>
+    </div>
+    <div class="kpi-val">{{ kpi_delayed }}</div>
+    <div class="kpi-sub">> {{ operating_settings.kitchen_warning_minutes|default:15 }}m preparation time</div>
+  </div>
+
+  <div class="kpi-card kpi-speed">
+    <div class="kpi-label">
+      <span>Avg Speed</span>
+      <span>⚡</span>
+    </div>
+    <div class="kpi-val" style="font-size: 20px; line-height: 1.3;">
+      {% if avg_prep_time %}{{ avg_prep_time }}m{% else %}—{% endif %}
+      <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block;">Prep Avg</span>
+    </div>
+    <div class="kpi-sub">
+      Pickup Avg: <strong>{% if avg_pickup_time %}{{ avg_pickup_time }}m{% else %}—{% endif %}</strong>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS & SUMMARY MIDDLE ROW -->
+<div class="dashboard-mid-row">
+  <!-- 7-Day Trend Chart Card -->
+  <div class="trend-chart-card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 15px; font-weight: 700; color: var(--text-dark);">
+        📈 7-Day Kitchen Order & Preparation Trend
+      </h2>
+      <a href="{% url 'kitchen_performance' %}" style="font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600;">
+        Full Performance →
+      </a>
+    </div>
+
+    <div class="trend-bars-container">
+      {% for d in trend_data %}
+      <div class="bar-col" title="{{ d.day }}: {{ d.received }} received, {{ d.prepared }} prepared">
+        <div class="bar-pair">
+          <div class="chart-bar bar-recv" style="height: {% widthratio d.received max_trend 100 %}%;" title="Received: {{ d.received }}"></div>
+          <div class="chart-bar bar-prep" style="height: {% widthratio d.prepared max_trend 100 %}%;" title="Prepared: {{ d.prepared }}"></div>
         </div>
-
-        <div class="order-info">
-          <p>
-            <strong>Table:</strong>
-            {{ order.table.table_number }}
-          </p>
-
-          <p>
-            <strong>Order Type:</strong>
-            {{ order.get_order_type_display }}
-          </p>
-
-          <p>
-            <strong>Time:</strong>
-            {{ order.created_at|date:"h:i A" }}
-          </p>
-        </div>
-
-        <h3 class="items-title">Items</h3>
-
-        <ul class="items-list">
-          {% for item in order.items.all %}
-          <li>{{ item.menu_item.name }} × {{ item.quantity }}</li>
-          {% endfor %}
-        </ul>
-
-        <p class="total">Total: ৳{{ order.total_amount }}</p>
-
-        {% if order.status == 'NEW' %}
-
-        <form method="POST" action="{% url 'update_order_status' order.id %}">
-          {% csrf_token %}
-
-          <button type="submit" name="status" value="ACCEPTED" class="action-button">Accept Order</button>
-        </form>
-
-        {% elif order.status == 'ACCEPTED' %}
-
-        <form method="POST" action="{% url 'update_order_status' order.id %}">
-          {% csrf_token %}
-
-          <button type="submit" name="status" value="PREPARING" class="action-button">Start Preparing</button>
-        </form>
-
-        {% elif order.status == 'PREPARING' %}
-
-        <form method="POST" action="{% url 'update_order_status' order.id %}">
-          {% csrf_token %}
-
-          <button type="submit" name="status" value="READY" class="action-button">Mark as Ready</button>
-        </form>
-
-        {% elif order.status == 'READY' %}
-
-        <div class="ready-message">Food is Ready!</div>
-
-        {% endif %}
+        <div class="bar-day-label">{{ d.short_day }}</div>
       </div>
-
       {% endfor %}
     </div>
 
-    {% else %}
+    <div class="chart-legend">
+      <span><span class="legend-dot" style="background: #cbd5e1;"></span> Orders Placed</span>
+      <span><span class="legend-dot" style="background: #f97316;"></span> Prepared & Fulfilled</span>
+    </div>
+  </div>
 
-    <div class="empty">
-      <h2>No Active Orders</h2>
-      <p>New customer orders will appear here.</p>
+  <!-- Low Stock & Urgent Requisitions Panel -->
+  <div class="summary-panel-card">
+    <!-- Low-stock snippet -->
+    <div class="summary-sub-section">
+      <h3>
+        <span>⚠️ Low-Stock Summary ({{ low_stock_count }})</span>
+        <a href="{% url 'kitchen_low_stock' %}" style="font-size: 11.5px; color: var(--accent); text-decoration: none;">View All →</a>
+      </h3>
+      <div class="mini-stock-list">
+        {% for item in low_stock_summary %}
+        <div class="mini-stock-item">
+          <div>
+            <div style="font-weight: 700; color: var(--text-dark);">{{ item.ingredient.name }}</div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill {% if item.is_out %}badge-danger{% else %}badge-warning{% endif %}" style="width: {{ item.stock_percent }}%;"></div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 700; color: {% if item.is_out %}var(--danger){% else %}var(--warning){% endif %};">
+              {{ item.available_stock }} {{ item.unit }}
+            </div>
+            <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 11px; margin-top: 2px;" onclick="openQuickRequestModal('{{ item.ingredient.id }}', '{{ item.ingredient.name|escapejs }}', '{{ item.unit|escapejs }}')">
+              Request
+            </button>
+          </div>
+        </div>
+        {% empty %}
+        <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">
+          ✓ All ingredient stock levels healthy
+        </div>
+        {% endfor %}
+      </div>
     </div>
 
-    {% endif %}
+    <!-- Urgent Requisitions snippet -->
+    <div class="summary-sub-section" style="border-top: 1px solid var(--border); padding-top: 10px;">
+      <h3>
+        <span>📨 Urgent Stock Requests</span>
+        <a href="{% url 'kitchen_ingredient_requests' %}" style="font-size: 11.5px; color: var(--accent); text-decoration: none;">All ({{ pending_requests_count }}) →</a>
+      </h3>
+      <div class="mini-stock-list">
+        {% for req in urgent_requests %}
+        <div class="mini-stock-item">
+          <div>
+            <div style="font-weight: 700; color: var(--text-dark);">{{ req.ingredient.name }}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">{{ req.quantity }} {{ req.ingredient.get_base_unit_display }} • {{ req.created_at|timesince }} ago</div>
+          </div>
+          <div>
+            <span class="badge {% if req.priority == 'URGENT' %}badge-danger{% else %}badge-warning{% endif %}">
+              {{ req.get_priority_display }}
+            </span>
+          </div>
+        </div>
+        {% empty %}
+        <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">
+          No urgent requisitions pending
+        </div>
+        {% endfor %}
+      </div>
+    </div>
   </div>
+</div>
+{% endif %}
+
+<!-- LIVE KDS ORDERS GRID -->
+<div class="kds-section-title">
+  <div>
+    <span>📺 {% if is_read_only %}Current Active Orders{% else %}Live Kitchen Display Queue{% endif %}</span>
+    <span style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-left: 6px;">({% if is_read_only %}NEW, ACCEPTED, PREPARING, READY{% else %}Showing active orders{% endif %})</span>
+  </div>
+  {% if not is_read_only %}
+  <a href="{% url 'kitchen_order_queue' %}" class="btn btn-outline" style="font-size: 12px; padding: 5px 12px;">
+    Switch to Table View
+  </a>
+  {% endif %}
+</div>
+
+<div class="kds-grid" id="kdsGrid">
+  {% for order in orders %}
+  <div class="order-card {% if order.kitchen_delayed %}delayed{% endif %}" id="order-card-{{ order.id }}" data-created="{{ order.created_at|date:'c' }}">
+    
+    <!-- Top Header -->
+    <div class="order-card-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="order-id">Order #{{ order.id }}</span>
+        <span class="status-badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        {% if order.kitchen_delayed %}
+        <span class="badge badge-danger" style="font-size: 11px; font-weight: 700; gap: 4px;">⚠️ Delayed</span>
+        {% endif %}
+        <div class="order-timer" id="timer-{{ order.id }}" data-elapsed="{{ order.elapsed_seconds }}">
+          <span>⏱</span>
+          <span class="timer-text">{{ order.elapsed_minutes }}m</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta attribution bar -->
+    <div class="order-meta-bar">
+      <span class="meta-tag {% if order.order_type == 'DINE_IN' %}table{% else %}takeaway{% endif %}">
+        {% if order.order_type == 'DINE_IN' %}🪑 {{ order.location_display }}{% else %}🛍️ Takeaway{% endif %}
+      </span>
+      <span class="meta-tag {% if order.source_display == 'Customer QR' %}source-qr{% else %}source-pos{% endif %}">
+        📱 {{ order.source_display }}
+      </span>
+      <span class="meta-tag">
+        👤 Waiter: <strong>{{ order.waiter_name }}</strong>
+      </span>
+    </div>
+
+    <!-- Items List with checkboxes -->
+    <ul class="order-items-list">
+      {% for item in order.items.all %}
+      <li class="item-row {% if is_read_only %}item-row-readonly{% endif %}" {% if not is_read_only %}onclick="toggleItemDone(this)"{% endif %} style="{% if is_read_only %}cursor: default;{% endif %}">
+        {% if not is_read_only %}
+        <input type="checkbox" class="item-check" onclick="event.stopPropagation(); toggleItemDone(this.closest('.item-row'));">
+        {% endif %}
+        <div class="item-info">
+          <div class="item-name">
+            <span class="item-qty">{{ item.quantity }}×</span>
+            <span>{{ item.menu_item.name }}</span>
+          </div>
+          {% if item.addons.all %}
+          <div class="item-addons">
+            + {% for addon in item.addons.all %}{{ addon.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </div>
+          {% endif %}
+          {% if item.special_instructions %}
+          <div class="item-notes">
+            📝 {{ item.special_instructions }}
+          </div>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Order-level Special Notes -->
+    {% if order.notes %}
+    <div class="order-notes-box">
+      <strong>Order Note:</strong> {{ order.notes }}
+    </div>
+    {% endif %}
+
+    <!-- Footer Action -->
+    <div class="order-card-footer">
+      <span class="status-badge status-{{ order.status|lower }}">
+        {{ order.get_status_display }}
+      </span>
+
+      <div style="flex: 1; max-width: 170px;">
+        {% if is_kitchen_operator and order.next_status %}
+        <form method="post" action="{% url 'update_order_status' order.id %}" style="margin: 0;">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="{{ order.next_status }}">
+          <button type="submit" class="btn-kds-action {{ order.next_class }}">
+            <span>✓</span>
+            <span>{{ order.next_label }}</span>
+          </button>
+        </form>
+        {% elif order.status == 'READY' %}
+        <div style="text-align: right; font-size: 12px; font-weight: 700; color: #15803d;">
+          🔔 Ready for Pickup
+        </div>
+        {% elif is_read_only %}
+        <div style="text-align: right; font-size: 11.5px; font-weight: 600; color: var(--text-muted);">
+          <span>👁️ Read-Only</span>
+        </div>
+        {% else %}
+        <div style="text-align: right; font-size: 12px; font-weight: 700; color: #15803d;">
+          🔔 Waiter Notified
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-kds">
+    <div class="empty-kds-icon">👨‍🍳✨</div>
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Kitchen Queue is Clear!</h3>
+    <p>There are no active orders waiting to be prepared right now.</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% if not is_read_only %}
+<!-- Modal for Quick Stock Request -->
+<div class="modal-overlay" id="quickRequestModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>📨 Quick Ingredient Stock Request</span>
+      <button type="button" onclick="closeQuickRequestModal()" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+    </div>
+    <form method="post" action="{% url 'kitchen_ingredient_requests' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ingredient_id" id="quickIngId">
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Ingredient</label>
+          <input type="text" id="quickIngName" class="btn btn-outline" style="width: 100%; text-align: left;" readonly>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Quantity Needed</label>
+          <input type="number" step="0.001" min="0.001" name="quantity" class="btn btn-outline" style="width: 100%; text-align: left;" placeholder="e.g. 10.0" required>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Priority</label>
+          <select name="priority" class="btn btn-outline" style="width: 100%; text-align: left;">
+            <option value="HIGH">High</option>
+            <option value="URGENT" selected>Urgent (Service Critical)</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Reason</label>
+          <textarea name="reason" rows="2" class="btn btn-outline" style="width: 100%; text-align: left; height: auto;">Needed urgently for kitchen order fulfillment</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeQuickRequestModal()">Cancel</button>
+        <button type="submit" class="btn btn-accent">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Real-time ticking timers per order card
+  function updateTimers() {
+    document.querySelectorAll('.order-timer').forEach(el => {
+      let seconds = parseInt(el.getAttribute('data-elapsed') || '0', 10);
+      seconds += 1;
+      el.setAttribute('data-elapsed', seconds);
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const textSpan = el.querySelector('.timer-text');
+      if (textSpan) {
+        textSpan.textContent = `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+      }
+    });
+  }
+  setInterval(updateTimers, 1000);
+
+  // 30s auto-refresh countdown
+  let countdown = 30;
+  const countdownEl = document.getElementById('countdownText');
+  setInterval(() => {
+    countdown -= 1;
+    if (countdown <= 0) {
+      window.location.reload();
+    } else if (countdownEl) {
+      countdownEl.textContent = `Auto-refresh: ${countdown}s`;
+    }
+  }, 1000);
+
+  // Toggle item cross-out
+  function toggleItemDone(row) {
+    const check = row.querySelector('.item-check');
+    if (check) {
+      if (event.target !== check) {
+        check.checked = !check.checked;
+      }
+      if (check.checked) {
+        row.classList.add('item-done');
+      } else {
+        row.classList.remove('item-done');
+      }
+    }
+  }
+
+  // Quick Request Modal
+  function openQuickRequestModal(id, name, unit) {
+    document.getElementById('quickIngId').value = id;
+    document.getElementById('quickIngName').value = `${name} (${unit})`;
+    document.getElementById('quickRequestModal').classList.add('open');
+  }
+
+  function closeQuickRequestModal() {
+    document.getElementById('quickRequestModal').classList.remove('open');
+  }
+</script>
 {% endblock %}

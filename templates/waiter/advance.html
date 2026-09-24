@@ -1,0 +1,98 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}Salary Advance{% endblock %}
+
+{% block content %}
+<div class="waiter-advance-page">
+
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">Salary Advance</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Request emergency or advance funds against your monthly salary.
+    </p>
+  </div>
+
+  <!-- ADVANCE REQUEST FORM -->
+  <div class="card" style="padding: 20px;">
+    <div class="card-header" style="margin-bottom: 16px;">
+      <h3 class="card-title">
+        <span>💳</span>
+        <span>Request Salary Advance</span>
+      </h3>
+    </div>
+
+    <form method="post" action="{% url 'waiter:salary_advance' %}">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Requested Amount ($)</label>
+          <input type="number" step="0.01" min="1.00" name="amount" required placeholder="e.g. 100.00" style="width: 100%; height: var(--touch-min); padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px;">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Reason for Request</label>
+        <textarea name="reason" rows="3" required placeholder="Explain why you require a salary advance..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; resize: vertical;"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="padding: 10px 22px;">
+        <span>Submit Request</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- PAST ADVANCE REQUESTS -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>📁</span>
+        <span>Advance Request History</span>
+      </h3>
+    </div>
+
+    {% if advances %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for a in advances %}
+      <div style="padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #ffffff;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px; font-weight: 800; color: var(--text-dark);">${{ a.amount|floatformat:2 }}</span>
+              {% if a.status == 'approved' %}
+              <span class="badge badge-success">Approved</span>
+              {% elif a.status == 'rejected' %}
+              <span class="badge badge-danger">Rejected</span>
+              {% elif a.status == 'deducted' %}
+              <span class="badge badge-gray">Deducted from Payroll</span>
+              {% else %}
+              <span class="badge badge-warning">Pending Approval</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+              Requested on {{ a.created_at|date:"M d, Y" }}
+            </div>
+          </div>
+          <span style="font-size: 11px; color: var(--text-light);">{{ a.created_at|timesince }} ago</span>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text); margin-top: 8px; background: #f9fafb; padding: 8px 10px; border-radius: 6px;">
+          {{ a.reason }}
+        </p>
+
+        {% if a.review_note %}
+        <div style="margin-top: 6px; font-size: 12px; color: #9a3412; background: #fff7ed; padding: 6px 10px; border-radius: 6px; border: 1px solid #fed7aa;">
+          <strong>Review Note:</strong> {{ a.review_note }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+      No salary advance requests recorded.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

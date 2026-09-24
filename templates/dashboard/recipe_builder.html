@@ -693,18 +693,71 @@
 
 
             {% if menu_item.is_set_menu %}
-            <div class="card">
-                <div class="card-body">
-                    <p>This set menu uses the recipes of these component foods:</p>
-                    <ul>
-                        {% for row in set_components %}
-                        <li><a href="{% url 'recipe_builder' row.component_id %}">{{ row.component.name }}</a> × {{ row.quantity }}</li>
-                        {% empty %}
-                        <li>No components configured. This set cannot be ordered until components are added.</li>
-                        {% endfor %}
-                    </ul>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="builder-layout">
+                    <div>
+                        <section class="card">
+                            <div class="card-header">
+                                <h3>Set Menu Components (Combo Builder)</h3>
+                                <p>This set menu uses the recipes of these component foods. Select the food items and portion quantities that make up this combo.</p>
+                            </div>
+                            <div class="card-body">
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <thead>
+                                        <tr style="text-align: left; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--text-light);">
+                                            <th style="padding: 10px;">COMPONENT FOOD ITEM</th>
+                                            <th style="padding: 10px; width: 140px;">PORTION QTY</th>
+                                            <th style="padding: 10px; width: 80px; text-align: center;">ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="componentRows">
+                                        {% for row in component_rows %}
+                                        <tr class="component-row" style="border-bottom: 1px solid var(--border);">
+                                            <td style="padding: 10px;">
+                                                <select name="component_id" class="control" required>
+                                                    <option value="">Select food item</option>
+                                                    {% for food in available_components %}
+                                                    <option value="{{ food.id }}" {% if row.component_id == food.id %}selected{% endif %}>
+                                                        {{ food.name }} (৳{{ food.price }})
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td style="padding: 10px;">
+                                                <input type="number" name="quantity" class="control" value="{{ row.quantity }}" min="0.01" step="0.01" required>
+                                            </td>
+                                            <td style="padding: 10px; text-align: center;">
+                                                <button type="button" class="btn btn-secondary remove-component-btn" style="min-height: 36px; padding: 0 10px; color: var(--red);">✕</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <button type="button" id="addComponentBtn" class="btn btn-secondary" style="font-size: 11px;">
+                                        + Add Component
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" style="font-size: 11px;">
+                                        Save Set Menu Components
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div>
+                        <div class="summary-card">
+                            <h3>Set Menu Architecture</h3>
+                            <div class="summary-item" style="margin-top: 14px; font-size: 11px; line-height: 1.6; color: var(--text);">
+                                <p>Set menus do not define direct raw ingredients.</p>
+                                <p style="margin-top: 8px;">Stock availability, order reservations, and recipe food costs are calculated <strong>automatically</strong> from the underlying normal recipes.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </form>
             {% else %}
             <p>Ingredient quantities below make {{ recipe_yield }} portion{{ recipe_yield|pluralize }}.</p>
             <form method="POST">
@@ -1784,6 +1837,40 @@
         updateRecipeSummary();
 
 
+    })();
+    </script>
+{% else %}
+    <script>
+    (function() {
+        const addBtn = document.getElementById('addComponentBtn');
+        const tbody = document.getElementById('componentRows');
+        if (!addBtn || !tbody) return;
+
+        addBtn.addEventListener('click', function() {
+            const rows = tbody.querySelectorAll('.component-row');
+            if (rows.length === 0) return;
+            const newRow = rows[0].cloneNode(true);
+            const select = newRow.querySelector('select');
+            const input = newRow.querySelector('input[name="quantity"]');
+            if (select) select.value = '';
+            if (input) input.value = '1.00';
+            tbody.appendChild(newRow);
+        });
+
+        tbody.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.remove-component-btn');
+            if (!removeBtn) return;
+            const rows = tbody.querySelectorAll('.component-row');
+            if (rows.length > 1) {
+                removeBtn.closest('.component-row').remove();
+            } else {
+                const row = removeBtn.closest('.component-row');
+                const select = row.querySelector('select');
+                const input = row.querySelector('input[name="quantity"]');
+                if (select) select.value = '';
+                if (input) input.value = '1.00';
+            }
+        });
     })();
     </script>
 {% endif %}

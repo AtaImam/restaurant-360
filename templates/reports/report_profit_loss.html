@@ -1,0 +1,242 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Profit &amp; Loss Statement | Restaurant 360{% endblock %}
+{% block page_title %}Financial Reporting{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+    color: #111827;
+  }
+  .report-header {
+    margin-bottom: 24px;
+  }
+  .report-header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .report-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  .pnl-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  .pnl-header-bar {
+    background: #111827;
+    color: #ffffff;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pnl-header-bar h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .pnl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .pnl-table th {
+    background: #f9fafb;
+    padding: 12px 24px;
+    font-weight: 600;
+    color: #4b5563;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .pnl-table td {
+    padding: 12px 24px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .pnl-row-section {
+    background: #f9fafb;
+    font-weight: 700;
+    color: #111827;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .pnl-row-subtotal {
+    background: #f3f4f6;
+    font-weight: 700;
+    color: #111827;
+    border-top: 1px solid #d1d5db;
+    border-bottom: 2px solid #9ca3af;
+  }
+  .pnl-row-highlight {
+    background: #eff6ff;
+    font-weight: 700;
+    font-size: 16px;
+    color: #1d4ed8;
+    border-top: 2px solid #bfdbfe;
+    border-bottom: 2px solid #bfdbfe;
+  }
+  .pnl-row-final {
+    background: #f0fdf4;
+    font-weight: 800;
+    font-size: 18px;
+    color: #15803d;
+    border-top: 2px solid #86efac;
+    border-bottom: 3px double #15803d;
+  }
+  .pnl-row-final.negative {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fca5a5;
+  }
+  .text-right {
+    text-align: right;
+  }
+  .indent {
+    padding-left: 44px !important;
+  }
+  .accounting-note {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 13px;
+    color: #92400e;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-page">
+  <div class="report-header">
+    <h1>Profit &amp; Loss Statement</h1>
+    <p>Comprehensive operating financial performance for {{ restaurant.name }} ({{ date_filter.label }}).</p>
+  </div>
+
+  {% include "reports/date_filter_snippet.html" %}
+
+  <div class="pnl-card">
+    <div class="pnl-header-bar">
+      <div>
+        <h2>{{ restaurant.name }} — Statement of Operations</h2>
+        <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">Reporting Period: {{ date_filter.label }}</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 12px; color: #9ca3af;">Paid Orders Settled</div>
+        <div style="font-size: 16px; font-weight: 700;">{{ paid_orders_count }}</div>
+      </div>
+    </div>
+
+    <table class="pnl-table">
+      <thead>
+        <tr>
+          <th>Financial Line Item</th>
+          <th class="text-right" style="width: 220px;">Amount</th>
+          <th class="text-right" style="width: 140px;">% of Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- REVENUE SECTION -->
+        <tr class="pnl-row-section">
+          <td colspan="3">1. Operating Revenue</td>
+        </tr>
+        <tr>
+          <td class="indent">Gross Sales Collections</td>
+          <td class="text-right">৳{{ gross_collections|floatformat:2 }}</td>
+          <td class="text-right">—</td>
+        </tr>
+        <tr>
+          <td class="indent" style="color: #dc2626;">Less: Guest Refunds &amp; Returns</td>
+          <td class="text-right" style="color: #dc2626;">{% if refunds > 0 %}-৳{{ refunds|floatformat:2 }}{% else %}৳0.00{% endif %}</td>
+          <td class="text-right">—</td>
+        </tr>
+        <tr class="pnl-row-subtotal">
+          <td>Net Sales (Food &amp; Beverage Revenue)</td>
+          <td class="text-right">৳{{ net_sales|floatformat:2 }}</td>
+          <td class="text-right">100.0%</td>
+        </tr>
+
+        <!-- COGS SECTION -->
+        <tr class="pnl-row-section">
+          <td colspan="3">2. Cost of Goods Sold (COGS)</td>
+        </tr>
+        <tr>
+          <td class="indent">Food &amp; Ingredient Consumption (Historical Cost)</td>
+          <td class="text-right">৳{{ cogs|floatformat:2 }}</td>
+          <td class="text-right">—</td>
+        </tr>
+        <tr>
+          <td class="indent">Measurable Inventory Waste &amp; Spoilage</td>
+          <td class="text-right">৳{{ waste_loss|floatformat:2 }}</td>
+          <td class="text-right">—</td>
+        </tr>
+        <tr class="pnl-row-subtotal">
+          <td>Total Cost of Sales</td>
+          <td class="text-right">{% if total_cogs_and_waste > 0 %}-৳{{ total_cogs_and_waste|floatformat:2 }}{% else %}৳0.00{% endif %}</td>
+          <td class="text-right">—</td>
+        </tr>
+
+        <!-- GROSS PROFIT -->
+        <tr class="pnl-row-highlight">
+          <td>Gross Profit</td>
+          <td class="text-right">{% if gross_profit < 0 %}-৳{{ gross_profit|stringformat:".2f"|slice:"1:" }}{% else %}৳{{ gross_profit|floatformat:2 }}{% endif %}</td>
+          <td class="text-right">{{ gross_margin_percent }}%</td>
+        </tr>
+
+        <!-- OPERATING EXPENSES -->
+        <tr class="pnl-row-section">
+          <td colspan="3">3. Operating Expenses</td>
+        </tr>
+        <tr>
+          <td class="indent">Staff Payroll (Paid Net Salaries)</td>
+          <td class="text-right">৳{{ payroll_cost|floatformat:2 }}</td>
+          <td class="text-right">—</td>
+        </tr>
+        {% for cat_name, exp_amount in expense_category_breakdown.items %}
+        <tr>
+          <td class="indent">{{ cat_name }}</td>
+          <td class="text-right">৳{{ exp_amount|floatformat:2 }}</td>
+          <td class="text-right">—</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td class="indent" style="color: #6b7280;">General Expenses</td>
+          <td class="text-right">৳{{ operating_expenses|floatformat:2 }}</td>
+          <td class="text-right">—</td>
+        </tr>
+        {% endfor %}
+        <tr class="pnl-row-subtotal">
+          <td>Total Operating Costs</td>
+          <td class="text-right">{% if total_operating_costs > 0 %}-৳{{ total_operating_costs|floatformat:2 }}{% else %}৳0.00{% endif %}</td>
+          <td class="text-right">—</td>
+        </tr>
+
+        <!-- OPERATING PROFIT (EBIT) -->
+        <tr class="pnl-row-final {% if operating_profit < 0 %}negative{% endif %}">
+          <td>Operating Profit (Net Operating Income)</td>
+          <td class="text-right">{% if operating_profit < 0 %}-৳{{ operating_profit|stringformat:".2f"|slice:"1:" }}{% else %}৳{{ operating_profit|floatformat:2 }}{% endif %}</td>
+          <td class="text-right">{{ operating_margin_percent }}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="accounting-note">
+    <strong>Accounting Integrity Notes:</strong><br>
+    • <strong>Inventory vs. COGS:</strong> In accordance with standard restaurant accounting, bulk inventory purchases (Purchase Orders) are balance sheet additions and are NOT added to the P&L statement to prevent double-counting with recipe consumption.<br>
+    • <strong>Salary Advances:</strong> Advance deductions are already settled inside net salaries on paid payroll records and are not counted twice.<br>
+    • <strong>Multi-Tenant Isolation:</strong> Data reflects only transactions belonging to {{ restaurant.name }}.
+  </div>
+</div>
+{% endblock %}

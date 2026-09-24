@@ -1,27 +1,29 @@
 import csv
 from datetime import datetime, timedelta
+from decimal import Decimal, DecimalException
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count, Q, Sum
+from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
-from django.urls import reverse
 from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.views.decorators.http import require_http_methods
 from .models import (
     Attendance,
+    DailyTableAssignment,
     EmployeeProfile,
     LeaveRequest,
+    OrderStaffService,
     PayrollRecord,
     SalaryAdvance,
     Shift,
 )
 from django.utils import timezone
-from django.utils.dateparse import parse_date
+from django.utils.dateparse import parse_date as django_parse_date
 from django.contrib.auth.decorators import login_required
 
 from .forms import (
@@ -36,16 +38,23 @@ from .forms import (
 )
 
 from restaurant.models import Restaurant
+from .performance import get_employee_performance_metrics
+from .access import staff_branch, staff_queryset
 from .services import (
     ATTENDANCE_TIMEZONE,
     check_in_employee,
     check_out_employee,
+    force_check_out_attendance,
     generate_monthly_payroll,
     get_active_employee,
 )
 
-from django.contrib.auth.decorators import login_required
 
+def parse_date(value):
+    try:
+        return django_parse_date(value)
+    except (ValueError, TypeError):
+        return None
 
 User = get_user_model()
 
@@ -56,6 +65,14 @@ EMPLOYEE_ROLES = [
     "kitchen_manager",
     "bar_manager",
 ]
+
+
+def check_staff_management_access(actor):
+    if not actor.is_authenticated:
+        raise PermissionDenied("Please log in.")
+    if not (actor.is_superuser or actor.role in ["admin", "owner", "manager"]):
+        raise PermissionDenied("You do not have permission to access staff management.")
+
 
 
 @login_required
@@ -71,7 +88,7 @@ def employee_list(request):
         raise PermissionDenied("Your staff account is inactive.")
 
     employees = (
-        User.objects
+        staff_queryset(request, User)
         .filter(role__in=EMPLOYEE_ROLES, is_superuser=False)
         .select_related("restaurant", "employee_profile")
         .order_by("first_name", "last_name", "username")
@@ -139,6 +156,7 @@ def employee_create(request):
     account_form = EmployeeAccountForm(
         data=data,
         actor=request.user,
+        branch=staff_branch(request),
         prefix="account",
     )
     profile_form = EmployeeProfileForm(
@@ -154,6 +172,8 @@ def employee_create(request):
             try:
                 with transaction.atomic():
                     employee = account_form.save(commit=False)
+                    if not employee.branch_id:
+                        employee.branch = account_form.cleaned_data.get("branch") or staff_branch(request)
                     employee.is_staff = False
                     employee.is_superuser = False
                     employee.is_active = True
@@ -190,37 +210,48 @@ def employee_create(request):
 @login_required
 @require_http_methods(["GET"])
 def employee_detail(request, employee_id):
-    actor = request.user
-
-    if not actor.is_active or not actor.is_active_staff:
-        raise PermissionDenied("Your staff account is inactive.")
-
-    if not (
-        actor.is_superuser
-        or actor.role in ["admin", "owner", "manager"]
-    ):
-        raise PermissionDenied(
-            "You do not have permission to view employee details."
-        )
+    check_staff_management_access(request.user)
 
     employees = (
-        User.objects
+        staff_queryset(request, User)
         .filter(role__in=EMPLOYEE_ROLES, is_superuser=False)
-        .select_related("restaurant", "employee_profile")
+        .select_related("restaurant", "employee_profile", "employee_profile__shift")
     )
 
-    if not (actor.is_superuser or actor.role == "admin"):
-        if not actor.restaurant_id:
-            raise PermissionDenied(
-                "Your account is not assigned to a restaurant."
-            )
-
+    if request.user.restaurant_id and not (request.user.is_superuser or request.user.role == "admin"):
         employees = employees.filter(
-            restaurant_id=actor.restaurant_id
+            restaurant_id=request.user.restaurant_id
         )
 
     employee = get_object_or_404(employees, pk=employee_id)
     profile = getattr(employee, "employee_profile", None)
+
+    attendance_history = []
+    payrolls = []
+    table_assignments = []
+    performance = None
+    service_history = []
+
+    if profile is not None:
+        attendance_history = (
+            staff_queryset(request, Attendance)
+            .filter(employee=profile)
+            .select_related("shift")
+            .order_by("-work_date", "-check_in")[:10]
+        )
+        payrolls = (
+            staff_queryset(request, PayrollRecord)
+            .filter(employee=profile)
+            .order_by("-month")[:6]
+        )
+        table_assignments = (
+            staff_queryset(request, DailyTableAssignment)
+            .filter(waiter=profile)
+            .select_related("table")
+            .order_by("-work_date", "-assigned_at")[:5]
+        )
+        performance = get_employee_performance_metrics(profile, branch=staff_branch(request))
+        service_history = Paginator(staff_queryset(request, OrderStaffService).filter(waiter=profile).select_related("order__table", "order__table_session").order_by("-assigned_at"), 20).get_page(request.GET.get("service_page"))
 
     return render(
         request,
@@ -228,6 +259,11 @@ def employee_detail(request, employee_id):
         {
             "employee": employee,
             "profile": profile,
+            "attendance_history": attendance_history,
+            "payrolls": payrolls,
+            "table_assignments": table_assignments,
+            "performance": performance,
+            "service_history": service_history,
         },
     )
 
@@ -245,7 +281,7 @@ def employee_edit(request, employee_id):
     ):
         raise PermissionDenied("You cannot edit employees.")
 
-    employees = User.objects.filter(
+    employees = staff_queryset(request, User).filter(
         role__in=EMPLOYEE_ROLES,
         is_superuser=False,
     ).select_related("employee_profile")
@@ -271,6 +307,7 @@ def employee_edit(request, employee_id):
         data=data,
         instance=employee,
         actor=actor,
+        branch=staff_branch(request),
         prefix="account",
     )
     profile_form = EmployeeProfileForm(
@@ -338,7 +375,7 @@ def employee_set_status(request, employee_id):
         raise PermissionDenied("Invalid status action.")
 
     with transaction.atomic():
-        employees = User.objects.filter(
+        employees = staff_queryset(request, User).filter(
             role__in=EMPLOYEE_ROLES,
             is_superuser=False,
         )
@@ -367,6 +404,14 @@ def employee_set_status(request, employee_id):
             )
 
         active = action == "activate"
+        if not active and Attendance.objects.filter(employee__user=employee, check_out__isnull=True).exists():
+            messages.error(request, "Check out this employee before deactivating their account.")
+            return redirect("staff:employee_detail", employee_id=employee.pk)
+        if not active and OrderStaffService.objects.filter(waiter__user=employee).exclude(order__status__in=["SERVED", "COMPLETED", "CANCELLED"]).exists():
+            messages.error(request, "Hand over active order service before deactivating this employee.")
+            return redirect("staff:employee_detail", employee_id=employee.pk)
+        if not active:
+            DailyTableAssignment.objects.filter(waiter__user=employee, is_active=True).update(is_active=False, ended_at=timezone.now())
         employee.is_active = active
         employee.is_active_staff = active
         employee.save(
@@ -411,7 +456,7 @@ def shift_list(request):
     require_shift_manager(request.user)
 
     shifts = (
-        Shift.objects
+        staff_queryset(request, Shift)
         .select_related("restaurant")
         .annotate(
             assigned_count=Count(
@@ -467,12 +512,14 @@ def shift_create(request):
     form = ShiftForm(
         data=data,
         actor=request.user,
+        branch=staff_branch(request),
     )
 
     if request.method == "POST" and form.is_valid():
         try:
             with transaction.atomic():
                 shift = form.save(commit=False)
+                shift.branch = staff_branch(request)
                 shift.is_active = True
                 shift.save()
 
@@ -501,7 +548,7 @@ def shift_create(request):
 def shift_edit(request, shift_id):
     require_shift_manager(request.user)
 
-    shifts = Shift.objects.select_related("restaurant")
+    shifts = staff_queryset(request, Shift).select_related("restaurant")
 
     if not (
         request.user.is_superuser
@@ -517,6 +564,7 @@ def shift_edit(request, shift_id):
         request.POST if request.method == "POST" else None,
         instance=shift,
         actor=request.user,
+        branch=staff_branch(request),
     )
 
     if request.method == "POST" and form.is_valid():
@@ -552,7 +600,7 @@ def shift_edit(request, shift_id):
 def shift_set_status(request, shift_id):
     require_shift_manager(request.user)
 
-    shifts = Shift.objects.select_related("restaurant")
+    shifts = staff_queryset(request, Shift).select_related("restaurant")
 
     if not (
         request.user.is_superuser
@@ -604,7 +652,7 @@ def employee_assign_shift(request, employee_id):
     actor = request.user
     require_shift_manager(actor)
 
-    employees = User.objects.filter(
+    employees = staff_queryset(request, User).filter(
         role__in=EMPLOYEE_ROLES,
         is_superuser=False,
     ).select_related("employee_profile", "restaurant")
@@ -688,7 +736,7 @@ def attendance_export_csv(request):
     if report_from > report_to:
         report_from, report_to = report_to, report_from
 
-    employees = EmployeeProfile.objects.filter(
+    employees = staff_queryset(request, EmployeeProfile).filter(
         user__role__in=EMPLOYEE_ROLES,
         user__is_superuser=False,
         user__is_active=True,
@@ -706,7 +754,7 @@ def attendance_export_csv(request):
         )
 
     records = (
-        Attendance.objects
+        staff_queryset(request, Attendance)
         .filter(
             work_date__range=(report_from, report_to),
             employee__in=employees,
@@ -865,7 +913,7 @@ def attendance_list(request):
     )
 
     employees = (
-        EmployeeProfile.objects
+        staff_queryset(request, EmployeeProfile)
         .filter(
             user__role__in=EMPLOYEE_ROLES,
             user__is_superuser=False,
@@ -897,7 +945,7 @@ def attendance_list(request):
     total_staff = employees.count()
 
     records = (
-        Attendance.objects
+        staff_queryset(request, Attendance)
         .filter(
             work_date=selected_date,
             employee__in=employees,
@@ -916,38 +964,19 @@ def attendance_list(request):
         check_out__isnull=True
     ).count()
 
-    late_count = 0
+    late_count = sum(1 for r in records if r.is_late)
 
-    for record in records:
-        late_after = record.scheduled_start + timedelta(
-            minutes=record.grace_minutes
-        )
-
-        record.arrival_status = (
-            "Late"
-            if record.check_in > late_after
-            else "On time"
-        )
-
-        if record.arrival_status == "Late":
-            late_count += 1
-
-        effective_checkout = record.check_out or local_now
-
-        total_minutes = max(
-            0,
-            int(
-                (
-                    effective_checkout - record.check_in
-                ).total_seconds()
-                // 60
-            ),
-        )
-
-        hours, minutes = divmod(total_minutes, 60)
-        record.worked_time = f"{hours}h {minutes}m"
-
-    absent_count = max(total_staff - checked_in, 0)
+    # Approved leaves for selected date (must not appear as unexcused absence)
+    approved_leaves = list(
+        staff_queryset(request, LeaveRequest).filter(
+            employee__in=employees,
+            status="approved",
+            start_date__lte=selected_date,
+            end_date__gte=selected_date,
+        ).select_related("employee__user")
+    )
+    on_leave_count = len(approved_leaves)
+    absent_count = max(total_staff - checked_in - on_leave_count, 0)
 
     selected_employee = request.GET.get(
         "employee",
@@ -967,31 +996,6 @@ def attendance_list(request):
 
     paginator = Paginator(records, 25)
     page_obj = paginator.get_page(request.GET.get("page"))
-    for record in page_obj:
-        late_after = record.scheduled_start + timedelta(
-            minutes=record.grace_minutes
-        )
-
-        record.arrival_status = (
-            "Late"
-            if record.check_in > late_after
-            else "On time"
-        )
-
-        effective_checkout = record.check_out or local_now
-
-        total_minutes = max(
-            0,
-            int(
-                (
-                    effective_checkout - record.check_in
-                ).total_seconds()
-                // 60
-            ),
-        )
-
-        hours, minutes = divmod(total_minutes, 60)
-        record.worked_time = f"{hours}h {minutes}m"
 
     today = local_now.date()
     yesterday = today - timedelta(days=1)
@@ -1020,7 +1024,7 @@ def attendance_list(request):
     ).strip()
 
     report_records = (
-        Attendance.objects
+        staff_queryset(request, Attendance)
         .filter(
             work_date__range=(report_from, report_to),
             employee__in=employees,
@@ -1047,39 +1051,8 @@ def attendance_list(request):
 
     report_records = list(report_records)
 
-    report_late_count = 0
-    report_total_minutes = 0
-
-    for record in report_records:
-        late_after = record.scheduled_start + timedelta(
-            minutes=record.grace_minutes
-        )
-
-        record.arrival_status = (
-            "Late"
-            if record.check_in > late_after
-            else "On time"
-        )
-
-        if record.arrival_status == "Late":
-            report_late_count += 1
-
-        effective_checkout = record.check_out or local_now
-
-        worked_minutes = max(
-            0,
-            int(
-                (
-                    effective_checkout - record.check_in
-                ).total_seconds()
-                // 60
-            ),
-        )
-
-        report_total_minutes += worked_minutes
-
-        hours, minutes = divmod(worked_minutes, 60)
-        record.worked_time = f"{hours}h {minutes}m"
+    report_late_count = sum(1 for r in report_records if r.is_late)
+    report_total_minutes = sum(r.worked_minutes for r in report_records)
 
     report_hours, report_minutes = divmod(
         report_total_minutes,
@@ -1108,6 +1081,8 @@ def attendance_list(request):
             "still_working": still_working,
             "late_count": late_count,
             "absent_count": absent_count,
+            "on_leave_count": on_leave_count,
+            "approved_leaves": approved_leaves,
             "report_page_obj": report_page_obj,
             "report_from": report_from,
             "report_to": report_to,
@@ -1126,8 +1101,44 @@ def attendance_list(request):
         },
     )
 
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_force_checkout(request, attendance_id):
+    check_staff_management_access(request.user)
+
+    get_object_or_404(staff_queryset(request, Attendance), pk=attendance_id)
+    try:
+        attendance, changed = force_check_out_attendance(
+            actor=request.user,
+            attendance_id=attendance_id,
+        )
+    except Attendance.DoesNotExist:
+        messages.error(request, "Attendance record not found.")
+    except Exception as error:
+        messages.error(request, str(error))
+    else:
+        if changed:
+            emp_name = (
+                attendance.employee.user.get_full_name()
+                or attendance.employee.employee_id
+            )
+            messages.success(
+                request,
+                f"Attendance for {emp_name} checked out successfully.",
+            )
+        else:
+            messages.info(request, "This record is already checked out.")
+
+    next_url = request.POST.get("next", "").strip()
+    if next_url == "daily_operations":
+        return redirect("staff:daily_operations")
+    return redirect("staff:attendance_list")
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def salary_advance_list(request):
     if not (
         request.user.is_superuser
@@ -1143,6 +1154,7 @@ def salary_advance_list(request):
     form = SalaryAdvanceForm(
         request.POST if request.method == "POST" else None,
         actor=request.user,
+        branch=staff_branch(request),
     )
 
     if request.method == "POST" and form.is_valid():
@@ -1160,14 +1172,14 @@ def salary_advance_list(request):
         return redirect("staff:salary_advance_list")
 
     advances = (
-        SalaryAdvance.objects
+        staff_queryset(request, SalaryAdvance)
         .select_related(
             "employee",
             "employee__user",
             "restaurant",
             "reviewed_by",
         )
-        .order_by("-created_at")
+        .order_by(Case(When(status="pending", then=Value(0)), default=Value(1), output_field=IntegerField()), "-created_at", "-pk")
     )
 
     if not (request.user.is_superuser or request.user.role == "admin"):
@@ -1233,6 +1245,7 @@ def salary_advance_list(request):
 
 @login_required
 @require_http_methods(["POST"])
+@transaction.atomic
 def salary_advance_review(request, advance_id):
     if not (
         request.user.is_superuser
@@ -1246,7 +1259,7 @@ def salary_advance_review(request, advance_id):
         raise PermissionDenied("Your staff account is inactive.")
 
     salary_advance = get_object_or_404(
-        SalaryAdvance.objects.select_related(
+        staff_queryset(request, SalaryAdvance).select_related(
             "employee",
             "employee__user",
         ),
@@ -1273,6 +1286,8 @@ def salary_advance_review(request, advance_id):
         )
         return redirect("staff:salary_advance_list")
 
+    EmployeeProfile.objects.select_for_update().get(pk=salary_advance.employee_id)
+    salary_advance = staff_queryset(request, SalaryAdvance).select_for_update().get(pk=advance_id)
     if salary_advance.status != "pending":
         messages.error(
             request,
@@ -1324,7 +1339,7 @@ def payroll_list(request):
     if not request.user.is_active or not request.user.is_active_staff:
         raise PermissionDenied("Your staff account is inactive.")
 
-    restaurants = Restaurant.objects.order_by("name", "pk")
+    restaurants = Restaurant.objects.filter(pk=request.user.restaurant_id).order_by("name", "pk")
 
     selected_restaurant_id = (
         request.POST.get("restaurant")
@@ -1385,20 +1400,24 @@ def payroll_list(request):
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
 
-        if action == "generate":
+        if action in ["generate", "recalculate"]:
             result = generate_monthly_payroll(
                 selected_restaurant_id,
                 selected_month,
+                recalculate=(action == "recalculate"),
+                branch=staff_branch(request),
             )
 
             created_count = len(result["created"])
+            updated_count = len(result.get("updated", []))
             existing_count = len(result["existing"])
 
             messages.success(
                 request,
                 (
-                    f"{created_count} payroll record(s) created. "
-                    f"{existing_count} existing record(s) skipped."
+                    f"{created_count} payroll record(s) created, "
+                    f"{updated_count} draft record(s) recalculated. "
+                    f"{existing_count} paid/unchanged record(s) skipped."
                 ),
             )
 
@@ -1411,7 +1430,7 @@ def payroll_list(request):
         messages.error(request, "Invalid payroll action.")
 
     payroll_records = (
-        PayrollRecord.objects
+        staff_queryset(request, PayrollRecord)
         .filter(
             restaurant_id=selected_restaurant_id,
             month=selected_month,
@@ -1471,20 +1490,12 @@ def payroll_list(request):
 
 @login_required
 @require_http_methods(["POST"])
+@transaction.atomic
 def payroll_mark_paid(request, payroll_id):
-    if not (
-        request.user.is_superuser
-        or request.user.role in ["admin", "owner", "manager"]
-    ):
-        raise PermissionDenied(
-            "You do not have permission to update payroll."
-        )
-
-    if not request.user.is_active or not request.user.is_active_staff:
-        raise PermissionDenied("Your staff account is inactive.")
+    check_staff_management_access(request.user)
 
     payroll_record = get_object_or_404(
-        PayrollRecord.objects.select_related(
+        staff_queryset(request, PayrollRecord).select_for_update().select_related(
             "employee",
             "employee__user",
         ),
@@ -1493,9 +1504,8 @@ def payroll_mark_paid(request, payroll_id):
 
     if not (request.user.is_superuser or request.user.role == "admin"):
         if (
-            not request.user.restaurant_id
-            or payroll_record.restaurant_id
-            != request.user.restaurant_id
+            request.user.restaurant_id
+            and payroll_record.restaurant_id != request.user.restaurant_id
         ):
             raise PermissionDenied(
                 "You can only update payroll for your restaurant."
@@ -1507,6 +1517,14 @@ def payroll_mark_paid(request, payroll_id):
             "This payroll record is already marked as paid.",
         )
     else:
+        advances = list(payroll_record.salary_advances.select_for_update().filter(status="approved"))
+        recovered = sum((advance.amount for advance in advances), Decimal("0.00"))
+        capacity = max(payroll_record.basic_salary + payroll_record.bonus - payroll_record.attendance_deduction - payroll_record.leave_deduction, Decimal("0.00"))
+        if (recovered != payroll_record.advance_deduction or recovered > capacity
+                or any(a.employee_id != payroll_record.employee_id or a.branch_id != payroll_record.branch_id or a.restaurant_id != payroll_record.restaurant_id for a in advances)
+                or payroll_record.net_salary != payroll_record.calculate_net_salary()):
+            messages.error(request, "Payroll deductions are inconsistent. Recalculate the draft before payment.")
+            return redirect("staff:payroll_detail", payroll_id=payroll_id)
         payroll_record.status = "paid"
         payroll_record.paid_at = timezone.now()
         payroll_record.save(
@@ -1517,9 +1535,15 @@ def payroll_mark_paid(request, payroll_id):
             ]
         )
 
+        # Finalize advances linked to this payroll record
+        payroll_record.salary_advances.filter(status="approved").update(
+            status="deducted",
+            updated_at=timezone.now(),
+        )
+
         messages.success(
             request,
-            "Payroll marked as paid successfully.",
+            "Payroll marked as paid successfully and advance deductions finalized.",
         )
 
     return redirect(
@@ -1527,8 +1551,93 @@ def payroll_mark_paid(request, payroll_id):
         f"?restaurant={payroll_record.restaurant_id}"
         f"&month={payroll_record.month:%Y-%m}"
     )
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
+def payroll_detail(request, payroll_id):
+    check_staff_management_access(request.user)
+
+    payroll_record = get_object_or_404(
+        staff_queryset(request, PayrollRecord).select_for_update().select_related(
+            "employee",
+            "employee__user",
+            "restaurant",
+        ),
+        pk=payroll_id,
+    )
+
+    if request.method == "POST" and payroll_record.status == "draft":
+        bonus_val = request.POST.get("bonus", "").strip()
+        note_val = request.POST.get("note", "").strip()
+        try:
+            bonus = Decimal(bonus_val or "0.00")
+            if not bonus.is_finite() or bonus < 0 or bonus > Decimal("9999999999.99") or bonus != bonus.quantize(Decimal("0.01")):
+                raise ValueError
+            payroll_record.bonus = bonus
+            payroll_record.note = note_val
+            payroll_record.net_salary = payroll_record.calculate_net_salary()
+            if payroll_record.net_salary > Decimal("9999999999.99"):
+                raise ValueError
+            payroll_record.save(
+                update_fields=["bonus", "note", "net_salary", "updated_at"]
+            )
+            messages.success(
+                request,
+                "Payroll adjustment saved successfully.",
+            )
+        except (ValueError, TypeError, DecimalException):
+            messages.error(
+                request,
+                "Please enter a valid non-negative bonus amount.",
+            )
+        return redirect("staff:payroll_detail", payroll_id=payroll_id)
+
+    import calendar
+    days_in_month = calendar.monthrange(
+        payroll_record.month.year,
+        payroll_record.month.month,
+    )[1]
+    month_end = payroll_record.month.replace(day=days_in_month)
+    effective_start = max(payroll_record.month, payroll_record.employee.joining_date)
+    pre_joining_days = max(0, (effective_start - payroll_record.month).days)
+
+    attendance_records = staff_queryset(request, Attendance).filter(
+        employee=payroll_record.employee,
+        work_date__gte=effective_start,
+        work_date__lte=month_end,
+    ).order_by("work_date")
+    attended_days = attendance_records.count()
+
+    leaves = staff_queryset(request, LeaveRequest).filter(
+        employee=payroll_record.employee,
+        status="approved",
+        start_date__lte=month_end,
+        end_date__gte=payroll_record.month,
+    )
+
+    advances = staff_queryset(request, SalaryAdvance).filter(
+        payroll_record=payroll_record
+    ).order_by("-created_at")
+
+    return render(
+        request,
+        "staff/payroll_detail.html",
+        {
+            "payroll": payroll_record,
+            "days_in_month": days_in_month,
+            "effective_start": effective_start,
+            "pre_joining_days": pre_joining_days,
+            "attended_days": attended_days,
+            "attendance_records": attendance_records,
+            "leaves": leaves,
+            "advances": advances,
+        },
+    )
+@login_required
+@require_http_methods(["GET", "POST"])
+@transaction.atomic
 def staff_leave_create(request):
     if not (
         request.user.is_superuser
@@ -1554,6 +1663,7 @@ def staff_leave_create(request):
     form = StaffLeaveRequestForm(
         request.POST if request.method == "POST" else None,
         actor=request.user,
+        branch=staff_branch(request),
     )
 
     if request.method == "POST" and form.is_valid():
@@ -1597,7 +1707,7 @@ def leave_list(request):
         raise PermissionDenied("Your staff account is inactive.")
 
     leave_requests = (
-        LeaveRequest.objects
+        staff_queryset(request, LeaveRequest)
         .select_related(
             "employee",
             "employee__user",
@@ -1671,6 +1781,7 @@ def leave_list(request):
 
 @login_required
 @require_http_methods(["POST"])
+@transaction.atomic
 def leave_review(request, leave_id):
     if not (
         request.user.is_superuser
@@ -1684,7 +1795,7 @@ def leave_review(request, leave_id):
         raise PermissionDenied("Your staff account is inactive.")
 
     leave_request = get_object_or_404(
-        LeaveRequest.objects.select_related(
+        staff_queryset(request, LeaveRequest).select_for_update().select_related(
             "employee",
             "employee__user",
         ),
@@ -1708,6 +1819,13 @@ def leave_review(request, leave_id):
         messages.error(request, "Invalid leave review action.")
         return redirect("staff:leave_list")
 
+    EmployeeProfile.objects.select_for_update().get(pk=leave_request.employee_id)
+    if action == "approve" and (
+        LeaveRequest.objects.filter(employee=leave_request.employee, status="approved", start_date__lte=leave_request.end_date, end_date__gte=leave_request.start_date).exclude(pk=leave_request.pk).exists()
+        or Attendance.objects.filter(employee=leave_request.employee, work_date__range=(leave_request.start_date, leave_request.end_date)).exists()
+    ):
+        messages.error(request, "Leave overlaps approved leave or recorded attendance.")
+        return redirect("staff:leave_list")
     if leave_request.status != "pending":
         messages.error(
             request,
@@ -1747,6 +1865,7 @@ def leave_review(request, leave_id):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def my_leave(request):
     employee = None
     profile_error = ""
@@ -1795,7 +1914,7 @@ def my_leave(request):
 
     if employee is not None:
         leave_requests = (
-            LeaveRequest.objects
+            staff_queryset(request, LeaveRequest)
             .filter(employee=employee)
             .select_related(
                 "restaurant",
@@ -1853,7 +1972,7 @@ def my_attendance(request):
     )
 
     employees = (
-        EmployeeProfile.objects
+        staff_queryset(request, EmployeeProfile)
         .select_related("user", "shift", "user__restaurant")
         .filter(
             user__is_active=True,
@@ -1903,7 +2022,7 @@ def my_attendance(request):
     )
 
     today_records = (
-        Attendance.objects
+        staff_queryset(request, Attendance)
         .filter(
             employee__in=employees,
             work_date=local_today,
@@ -1938,7 +2057,7 @@ def my_attendance(request):
     )
 
     recent_records = (
-        Attendance.objects
+        staff_queryset(request, Attendance)
         .filter(employee__in=employees)
         .select_related(
             "employee__user",
@@ -1948,27 +2067,12 @@ def my_attendance(request):
         .order_by("-check_in")[:8]
     )
 
-    for record in recent_records:
-        if record.check_out:
-            total_minutes = max(
-                0,
-                int(
-                    (
-                        record.check_out - record.check_in
-                    ).total_seconds() // 60
-                ),
-            )
-            hours, minutes = divmod(total_minutes, 60)
-            record.worked_time = f"{hours}h {minutes}m"
-        else:
-            record.worked_time = "In progress"
-
     open_attendance = None
     page_obj = None
 
     if employee is not None:
         records = (
-            Attendance.objects
+            staff_queryset(request, Attendance)
             .filter(employee=employee)
             .select_related("shift")
             .order_by("-work_date", "-pk")
@@ -1982,36 +2086,6 @@ def my_attendance(request):
         page_obj = paginator.get_page(
             request.GET.get("page")
         )
-
-        for record in page_obj:
-            delay_seconds = (
-                record.check_in - record.scheduled_start
-            ).total_seconds()
-
-            record.arrival_status = (
-                "Late"
-                if delay_seconds > record.grace_minutes * 60
-                else "On time"
-            )
-
-            if record.check_out is not None:
-                total_minutes = max(
-                    0,
-                    int(
-                        (
-                            record.check_out - record.check_in
-                        ).total_seconds() // 60
-                    ),
-                )
-                hours, minutes = divmod(
-                    total_minutes,
-                    60,
-                )
-                record.worked_time = (
-                    f"{hours}h {minutes}m"
-                )
-            else:
-                record.worked_time = "In progress"
 
     show_owner_hub = (
         can_manage_team
@@ -2062,3 +2136,22 @@ def attendance_action(request):
             messages.error(request, error)
 
     return redirect("staff:my_attendance")
+
+@login_required
+@require_http_methods(["POST"])
+@transaction.atomic
+def leave_cancel(request, leave_id):
+    leave = get_object_or_404(staff_queryset(request, LeaveRequest).select_for_update(), pk=leave_id)
+    if leave.employee.user_id != request.user.pk and request.user.role not in {"owner", "admin", "manager"}:
+        raise PermissionDenied("This leave request does not belong to you.")
+    EmployeeProfile.objects.select_for_update().get(pk=leave.employee_id)
+    today = timezone.localtime(timezone.now(), ATTENDANCE_TIMEZONE).date()
+    if leave.status not in {"pending", "approved"} or (leave.status == "approved" and leave.start_date <= today):
+        messages.error(request, "Only pending requests or future approved leave can be cancelled.")
+    else:
+        leave.status = "cancelled"
+        leave.reviewed_by = request.user
+        leave.reviewed_at = timezone.now()
+        leave.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
+        messages.success(request, "Leave cancelled.")
+    return redirect("staff:leave_list" if request.user.role in {"owner", "admin", "manager"} else "staff:my_leave")

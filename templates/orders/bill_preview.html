@@ -1,0 +1,633 @@
+{% load tz %}
+{% timezone receipt_settings.timezone %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill — Order #{{ order.id }} | {{ receipt_settings.receipt_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f10;
+      --surface: #1a1a1c;
+      --surface2: #242426;
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f1f3;
+      --muted: #8a8a90;
+      --accent: #f97316;
+      --accent-glow: rgba(249,115,22,0.18);
+      --green: #22c55e;
+      --green-glow: rgba(34,197,94,0.15);
+      --radius: 20px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 60px;
+    }
+
+    .page-header {
+      width: 100%;
+      max-width: 620px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 18px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .header-info { flex: 1; }
+    .header-info .restaurant { font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+    .header-info h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
+
+    .order-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 620px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .card-head {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-head .icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+    .card-head h2 { font-size: 14px; font-weight: 700; }
+
+    /* Items */
+    .item-list { padding: 8px 0; }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-name { font-size: 13px; font-weight: 600; }
+    .item-qty { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .item-price { font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+    /* Totals */
+    .totals { padding: 16px 22px; display: flex; flex-direction: column; gap: 9px; }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .total-row.prominent { color: var(--text); font-weight: 600; }
+    .total-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+    .total-row.grand {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* Payment method */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 16px 22px 22px;
+    }
+    .method-option { display: none; }
+    .method-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 10px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface2);
+    }
+    .method-label:hover { border-color: var(--accent); }
+    .method-option:checked + .method-label {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
+    }
+    .method-icon { font-size: 24px; }
+    .method-name { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .method-option:checked + .method-label .method-name { color: var(--accent); }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 22px 18px;
+    }
+    .info-box {
+      background: var(--surface2);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .info-box .label { font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+    .info-box .value { font-size: 13px; font-weight: 600; }
+
+    /* Error */
+    .error-box {
+      width: 100%;
+      max-width: 620px;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #fca5a5;
+      margin-bottom: 16px;
+    }
+
+    /* Action buttons */
+    .actions {
+      width: 100%;
+      max-width: 620px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pay-btn {
+      width: 100%;
+      height: 54px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      box-shadow: 0 8px 24px rgba(249,115,22,0.3);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pay-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 32px rgba(249,115,22,0.4);
+    }
+    .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .secondary-link {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px;
+      transition: color 0.2s;
+    }
+    .secondary-link:hover { color: var(--text); }
+
+    /* Payment status badge */
+    .paid-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-glow);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .unpaid-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #ef4444;
+    }
+    .ref-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .ref-input:focus { border-color: var(--accent); }
+
+    @media (max-width: 500px) {
+      .method-grid { grid-template-columns: repeat(3, 1fr); gap: 7px; }
+      .method-label { padding: 12px 6px; }
+      .method-icon { font-size: 20px; }
+      .method-name { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Page Header -->
+<div class="page-header">
+  {% if request.GET.next %}
+  <a class="back-btn" href="{{ request.GET.next }}" title="Back">←</a>
+  {% elif order.table %}
+  <a class="back-btn" href="{% url 'customer_menu' order.restaurant.id order.table.id %}" title="Back">←</a>
+  {% else %}
+  <a class="back-btn" href="{% url 'pos_dashboard' %}" title="Back">←</a>
+  {% endif %}
+  <div class="header-info">
+    <div class="restaurant">{{ receipt_settings.receipt_name }}</div>
+    <h1>{% if order.status == 'SERVED' %}Collect Payment{% else %}Bill &amp; Payment{% endif %}</h1>
+  </div>
+  <div class="order-badge">#{{ order.id }}</div>
+</div>
+
+{% include "business_settings/receipt_branding.html" %}
+<!-- Error -->
+{% if error %}
+<div class="error-box">⚠️ {{ error }}</div>
+{% endif %}
+
+<!-- Table Dining Session Overview (When multiple orders exist in this session) -->
+{% if summary and summary.has_multiple_orders %}
+<div class="card" style="border: 1px solid rgba(249,115,22,0.35); background: rgba(249,115,22,0.04);">
+  <div class="card-head" style="border-bottom: 1px solid rgba(249,115,22,0.18);">
+    <div class="icon" style="background: rgba(249,115,22,0.18);">🍽️</div>
+    <div>
+      <h2 style="color: #fb923c;">Table {{ summary.table.table_number }} · Active Dining Service</h2>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">{% if summary.session %}Session #{{ summary.session.id }} · {% endif %}{{ summary.session_orders|length }} order{{ summary.session_orders|length|pluralize }} in this dining session</div>
+    </div>
+  </div>
+  <div class="item-list">
+    {% for sess_order in summary.session_orders %}
+    <div class="item-row" style="{% if sess_order.id == order.id %}background: rgba(255,255,255,0.03);{% endif %}">
+      <div>
+        <div class="item-name" style="display:flex; align-items:center; gap:8px;">
+          <span>Order #{{ sess_order.id }}</span>
+          {% if sess_order.id == order.id %}<span style="font-size:9px; background:var(--surface2); padding:2px 6px; border-radius:4px; color:var(--accent);">Viewing</span>{% endif %}
+          <span style="font-size:11px; color:var(--muted);">({{ sess_order.get_status_display }})</span>
+        </div>
+        <div class="item-qty">
+          {{ sess_order.items.count }} item{{ sess_order.items.count|pluralize }} · {{ sess_order.created_at|date:"h:i A" }}
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div class="item-price">৳{{ sess_order.total_amount }}</div>
+        <div style="margin-top: 4px;">
+          {% if sess_order.payment_status == "PAID" %}
+          <span class="paid-badge" style="font-size: 10px; padding: 2px 8px;">✓ Paid</span>
+          {% else %}
+          <span class="unpaid-badge">Unpaid</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="totals" style="background: rgba(0,0,0,0.25); border-top: 1px solid var(--border);">
+    <div class="total-row">
+      <span>Total Session Bill</span>
+      <span>৳{{ summary.total_amount }}</span>
+    </div>
+    <div class="total-row" style="color: var(--green);">
+      <span>Already Paid</span>
+      <span>৳{{ summary.paid_amount }}</span>
+    </div>
+    <div class="total-divider"></div>
+    <div class="total-row grand" style="color: {% if summary.unpaid_amount > 0 %}#f87171{% else %}var(--green){% endif %};">
+      <span>Combined Outstanding Balance</span>
+      <span>৳{{ summary.unpaid_amount }}</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Order Items Card -->
+<div class="card">
+  <div class="card-head">
+    <div class="icon">🧾</div>
+    <h2>Order #{{ order.id }} Summary</h2>
+  </div>
+  <div class="item-list">
+    {% for item in order.items.all %}
+    <div class="item-row">
+      <div>
+        <div class="item-name">{{ item.menu_item.name }}</div>
+        {% if item.addons.all %}
+          <div style="font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 2px;">
+            {% for a in item.addons.all %}
+              + {{ a.addon_name }} (+৳{{ a.price|floatformat:2 }}){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="item-qty">
+          × {{ item.quantity }} @ ৳{{ item.price|floatformat:2 }}
+          {% if item.addons.all %}
+            <span style="color: var(--muted);">(w/ addons: ৳{{ item.unit_price_with_addons|floatformat:2 }})</span>
+          {% endif %}
+        </div>
+        {% if item.discount_amount and item.discount_amount != "0.00" %}
+          <div style="font-size: 11px; color: #f97316; font-weight: 600; margin-top: 2px;">
+            Discount: −৳{{ item.discount_amount|floatformat:2 }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="item-price">৳{{ item.subtotal|floatformat:2 }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Totals Card -->
+<div class="card">
+  <div class="card-head">
+    <div class="icon">💰</div>
+    <h2>Order #{{ order.id }} Bill Breakdown</h2>
+  </div>
+  <div class="totals">
+    <div class="total-row prominent">
+      <span>Subtotal</span>
+      <span>৳{{ order.subtotal }}</span>
+    </div>
+    {% if order.discount_amount and order.discount_amount != "0.00" %}
+    <div class="total-row">
+      <span>
+        Discount
+        {% if order.coupon_code_snapshot %}
+          ({{ order.coupon_code_snapshot }})
+        {% elif order.coupon_name_snapshot %}
+          ({{ order.coupon_name_snapshot }})
+        {% endif %}
+      </span>
+      <span style="color: #f97316;">− ৳{{ order.discount_amount }}</span>
+    </div>
+    {% endif %}
+    {% if order.service_charge and order.service_charge != "0.00" %}
+    <div class="total-row">
+      <span>Service Charge</span>
+      <span>৳{{ order.service_charge }}</span>
+    </div>
+    {% endif %}
+    {% if order.vat_amount and order.vat_amount != "0.00" %}
+    <div class="total-row">
+      <span>VAT</span>
+      <span>৳{{ order.vat_amount }}</span>
+    </div>
+    {% endif %}
+    <div class="total-divider"></div>
+    <div class="total-row grand">
+      <span>Total</span>
+      <span>৳{{ order.total_amount }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Order info -->
+<div class="card">
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="label">Order Type</div>
+      <div class="value">{{ order.get_order_type_display }}</div>
+    </div>
+    <div class="info-box">
+      <div class="label">Table</div>
+      <div class="value">
+        {% if order.table %}Table {{ order.table.table_number }}{% else %}Takeaway{% endif %}
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="label">Order #</div>
+      <div class="value">#{{ order.id }}</div>
+    </div>
+    <div class="info-box">
+      <div class="label">Status</div>
+      <div class="value">
+        {% if order.payment_status == "PAID" %}
+          <span class="paid-badge">✓ Paid</span>
+        {% else %}
+          Unpaid
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if order.payment_status == "PAID" and summary.unpaid_amount == 0 %}
+<!-- Already paid — show receipt link -->
+<div class="actions">
+  <a class="pay-btn" href="{% url 'order_receipt' order.id %}" style="text-decoration:none;">
+    🧾 View Receipt
+  </a>
+  <a class="secondary-link" href="{% url 'order_success' order.id %}">Track Order Status →</a>
+</div>
+
+{% else %}
+<!-- Payment form -->
+<form method="POST" id="paymentForm">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+
+  {% if summary and summary.unpaid_orders|length > 1 %}
+  <!-- Settlement Scope Selector -->
+  <div class="card" style="padding: 16px 20px;">
+    <div style="font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+      <span>⚖️</span> Settlement Scope
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer;">
+        <input type="radio" name="settle_scope" value="TABLE" id="scope_table" checked style="margin-top: 2px; accent-color: var(--accent);">
+        <div>
+          <strong>Settle Full Table Balance · ৳{{ summary.unpaid_amount }}</strong>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">Settle all {{ summary.unpaid_orders|length }} unpaid orders for Table {{ summary.table.table_number }} at once.</div>
+        </div>
+      </label>
+      <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer;">
+        <input type="radio" name="settle_scope" value="ORDER" id="scope_order" style="margin-top: 2px; accent-color: var(--accent);">
+        <div>
+          <strong>Pay Only Order #{{ order.id }} · ৳{{ order.total_amount }}</strong>
+          <div style="font-size: 11px; color: #f87171; margin-top: 2px;">Remaining unpaid orders (৳{{ summary.unpaid_amount|floatformat:2 }}) stay open. Table cannot be freed.</div>
+        </div>
+      </label>
+    </div>
+  </div>
+  {% else %}
+  <input type="hidden" name="settle_scope" value="ORDER">
+  {% endif %}
+
+  <!-- Payment Method Card -->
+  <div class="card">
+    <div class="card-head">
+      <div class="icon">💳</div>
+      <h2>Select Payment Method</h2>
+    </div>
+    <div class="method-grid">
+      {% for value, label in payment_method_choices %}
+      <div>
+        <input class="method-option" type="radio" name="payment_method"
+               id="method_{{ value }}" value="{{ value }}"
+               {% if forloop.first %}checked{% endif %}>
+        <label class="method-label" for="method_{{ value }}">
+          <span class="method-icon">
+            {% if value == "CASH" %}💵
+            {% elif value == "CARD" %}💳
+            {% else %}📱{% endif %}
+          </span>
+          <span class="method-name">{{ label }}</span>
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Payment Reference (optional) -->
+  <div class="card" style="padding: 16px 20px;">
+    <label for="payment_reference" style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
+      Payment Reference / Slip # <span style="font-weight: 400; color: var(--muted);">(Optional for Card / Mobile Banking)</span>
+    </label>
+    <input type="text" id="payment_reference" name="payment_reference" class="ref-input" placeholder="e.g. Card Auth Code / bKash or Nagad TrxID / Slip #" value="{{ order.payment_reference }}">
+  </div>
+
+  {% if order.table and order.table.is_occupied %}
+  <div id="closeTableContainer" style="margin-bottom: 16px; padding: 12px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; display: flex; align-items: center; gap: 12px;">
+    <input type="checkbox" id="close_table" name="close_table" value="1" style="width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;" checked>
+    <label for="close_table" style="font-size: 13px; color: var(--text); cursor: pointer; user-select: none;">
+      <strong id="closeTableLabel">Free Table {{ order.table.table_number }}</strong>
+      <div id="closeTableSub" style="font-size: 11px; color: var(--muted); margin-top: 2px;">Close dining session once payment is recorded. Uncheck if guest is staying.</div>
+    </label>
+  </div>
+  {% endif %}
+
+  <div class="actions">
+    <button type="submit" class="pay-btn" id="confirmPayBtn">
+      ✓ Payment Received · ৳{% if summary and summary.unpaid_orders|length > 1 %}{{ summary.unpaid_amount }}{% else %}{{ order.total_amount }}{% endif %}
+    </button>
+    {% if order.status == 'SERVED' %}
+    <a class="secondary-link" href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'order_detail' order.id %}{% endif %}">
+      ← Return to Order Details
+    </a>
+    {% else %}
+    <a class="secondary-link" href="{% url 'order_success' order.id %}">
+      Pay Later — Track order instead →
+    </a>
+    {% endif %}
+  </div>
+</form>
+
+<script>
+  const scopeTable = document.getElementById('scope_table');
+  const scopeOrder = document.getElementById('scope_order');
+  const confirmBtn = document.getElementById('confirmPayBtn');
+  const closeTableCheckbox = document.getElementById('close_table');
+  const closeTableSub = document.getElementById('closeTableSub');
+
+  const orderAmount = '{{ order.total_amount }}';
+  const tableUnpaidAmount = '{{ summary.unpaid_amount|default:order.total_amount }}';
+  const multipleUnpaid = {% if summary and summary.unpaid_orders|length > 1 %}true{% else %}false{% endif %};
+
+  function updatePayState() {
+    if (!confirmBtn) return;
+    const isTableScope = scopeTable && scopeTable.checked;
+    const amount = isTableScope ? tableUnpaidAmount : orderAmount;
+    confirmBtn.textContent = `✓ Payment Received · ৳${amount}`;
+
+    if (closeTableCheckbox) {
+      if (!isTableScope && multipleUnpaid) {
+        closeTableCheckbox.checked = false;
+        closeTableCheckbox.disabled = true;
+        if (closeTableSub) {
+          closeTableSub.textContent = 'Disabled: Table cannot be freed while other orders remain unpaid.';
+          closeTableSub.style.color = '#f87171';
+        }
+      } else {
+        closeTableCheckbox.disabled = false;
+        if (closeTableSub) {
+          closeTableSub.textContent = 'Close dining session once payment is recorded. Uncheck if guest is staying.';
+          closeTableSub.style.color = 'var(--muted)';
+        }
+      }
+    }
+  }
+
+  if (scopeTable) scopeTable.addEventListener('change', updatePayState);
+  if (scopeOrder) scopeOrder.addEventListener('change', updatePayState);
+
+  document.getElementById('paymentForm').addEventListener('submit', function() {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Processing…';
+  });
+</script>
+{% endif %}
+
+<div style="padding:20px;text-align:center">{{ receipt_settings.receipt_heading }}<p>{{ receipt_settings.receipt_footer|linebreaksbr }}</p></div>
+{% include 'guests/bill_feedback.html' %}
+</body>
+</html>
+
+{% endtimezone %}

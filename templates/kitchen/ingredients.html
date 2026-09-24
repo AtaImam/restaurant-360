@@ -1,0 +1,205 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}Ingredients & Stock Levels — Kitchen Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>🧅</span>
+        <span>Ingredients & Stock Levels</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 3px;">
+        Monitor ingredient quantities, stock health percentages, and submit replenishments for <strong>{{ active_branch.name|default:"Active Branch" }}</strong>
+      </p>
+    </div>
+
+    <!-- Actions & Search -->
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <form method="get" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <select name="category" class="btn btn-outline" onchange="this.form.submit()" style="padding: 7px 12px; font-size: 13px;">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" name="search" value="{{ search }}" placeholder="Search by name or SKU..." class="btn btn-outline" style="text-align: left; padding: 7px 12px; font-size: 13px; min-width: 180px;">
+        <button type="submit" class="btn btn-primary" style="padding: 7px 14px; font-size: 13px;">Search</button>
+        {% if search or selected_category %}
+        <a href="?status={{ status_filter }}" class="btn btn-outline" style="padding: 7px 12px; font-size: 13px; color: var(--text-muted);">Clear</a>
+        {% endif %}
+      </form>
+      <button type="button" class="btn btn-accent" style="padding: 7px 14px; font-size: 13px;" onclick="openRequestModal(null, null, '10.0', '')">
+        <span>+</span>
+        <span>Request Stock</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Status Filter Pills -->
+  <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; overflow-x: auto;">
+    <a href="?status=ALL{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if status_filter == 'ALL' %}btn-primary{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      All Stock
+    </a>
+    <a href="?status=CRITICAL{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if status_filter == 'CRITICAL' %}btn-danger{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      Critical / Out of Stock
+    </a>
+    <a href="?status=LOW{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if status_filter == 'LOW' %}btn-primary{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      Low Stock
+    </a>
+    <a href="?status=HEALTHY{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="btn {% if status_filter == 'HEALTHY' %}btn-success{% else %}btn-outline{% endif %}" style="padding: 6px 14px; font-size: 12.5px;">
+      Adequate / Healthy
+    </a>
+  </div>
+
+  <!-- Ingredients Table -->
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Ingredient</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Category</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Available Stock</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Min Alert Level</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase; min-width: 140px;">Stock Health %</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Status</th>
+          <th style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in ingredients_data %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 14px;">
+            <div style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">{{ row.ingredient.name }}</div>
+            <div style="font-size: 11px; color: var(--text-light); margin-top: 1px;">SKU: {{ row.ingredient.sku }}</div>
+          </td>
+          <td style="padding: 12px 14px; color: var(--text-muted);">
+            {{ row.ingredient.category.name|default:"Uncategorized" }}
+          </td>
+          <td style="padding: 12px 14px; font-weight: 700;">
+            {% if row.status_level == 'CRITICAL' %}
+            <span style="color: var(--danger);">{{ row.available_stock }} {{ row.ingredient.get_base_unit_display }}</span>
+            {% elif row.status_level == 'LOW' %}
+            <span style="color: #b45309;">{{ row.available_stock }} {{ row.ingredient.get_base_unit_display }}</span>
+            {% else %}
+            <span style="color: var(--success);">{{ row.available_stock }} {{ row.ingredient.get_base_unit_display }}</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px; color: var(--text-muted);">
+            {{ row.min_stock_alert }} {{ row.ingredient.get_base_unit_display }}
+          </td>
+          <td style="padding: 12px 14px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="flex: 1; background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; min-width: 70px;">
+                <div style="height: 100%; border-radius: 4px; width: {{ row.stock_percent }}%; background: {% if row.status_level == 'CRITICAL' %}#ef4444{% elif row.status_level == 'LOW' %}#f59e0b{% else %}#10b981{% endif %};"></div>
+              </div>
+              <span style="font-size: 11.5px; font-weight: 700; width: 34px; text-align: right; color: var(--text-dark);">
+                {{ row.stock_percent }}%
+              </span>
+            </div>
+          </td>
+          <td style="padding: 12px 14px;">
+            <span class="badge {{ row.badge_class }}" style="font-size: 11.5px;">
+              {{ row.status_label }}
+            </span>
+          </td>
+          <td style="padding: 12px 14px; text-align: right;">
+            <button type="button" class="btn {% if row.status_level != 'HEALTHY' %}btn-accent{% else %}btn-outline{% endif %}" style="padding: 5px 12px; font-size: 12px;" onclick="openRequestModal('{{ row.ingredient.id }}', '{{ row.ingredient.name|escapejs }}', '{{ row.suggested_qty }}', '{{ row.ingredient.get_base_unit_display|escapejs }}')">
+              ⚡ Request Stock
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            <div style="font-size: 32px; margin-bottom: 8px;">🧅</div>
+            <div style="font-weight: 700; font-size: 15px; color: var(--text-dark);">No Ingredients Found</div>
+            <div style="font-size: 12.5px; margin-top: 4px;">No ingredients match the active filter or query.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Stock Request Modal -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>📨 Request Ingredient Stock</span>
+      <button type="button" onclick="closeRequestModal()" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+    </div>
+    <form method="post" action="{% url 'kitchen_ingredient_requests' %}">
+      {% csrf_token %}
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Ingredient</label>
+          <select name="ingredient_id" id="modalIngredientSelect" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+            <option value="">Select ingredient...</option>
+            {% for row in ingredients_data %}
+            <option value="{{ row.ingredient.id }}">{{ row.ingredient.name }} ({{ row.ingredient.get_base_unit_display }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Requested Quantity</label>
+          <input type="number" step="0.001" min="0.001" name="quantity" id="modalQuantityInput" class="btn btn-outline" style="width: 100%; text-align: left;" placeholder="e.g. 10.0" required>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Priority</label>
+          <select name="priority" id="modalPriority" class="btn btn-outline" style="width: 100%; text-align: left;">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM" selected>Medium</option>
+            <option value="HIGH">High</option>
+            <option value="URGENT">Urgent (Immediate Service Blocked)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Needed By Date (Optional)</label>
+          <input type="date" name="needed_date" class="btn btn-outline" style="width: 100%; text-align: left;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 700; margin-bottom: 4px;">Reason / Notes (Optional)</label>
+          <textarea name="reason" id="modalReason" rows="2" class="btn btn-outline" style="width: 100%; text-align: left; height: auto;" placeholder="e.g. Kitchen prep restock"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeRequestModal()">Cancel</button>
+        <button type="submit" class="btn btn-accent">Submit Stock Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openRequestModal(ingId, ingName, suggestedQty, unit) {
+    const modal = document.getElementById('requestModal');
+    const select = document.getElementById('modalIngredientSelect');
+    const qtyInput = document.getElementById('modalQuantityInput');
+    const prioritySelect = document.getElementById('modalPriority');
+    const reasonInput = document.getElementById('modalReason');
+
+    if (ingId && select) {
+      select.value = ingId;
+    }
+    if (suggestedQty && qtyInput) {
+      qtyInput.value = suggestedQty;
+    }
+    modal.classList.add('open');
+  }
+
+  function closeRequestModal() {
+    document.getElementById('requestModal').classList.remove('open');
+  }
+</script>
+{% endblock %}

@@ -151,7 +151,22 @@
       <div class="cart-item">
         <h3>{{ item.name }}</h3>
 
-        <p class="price">৳{{ item.price }} each</p>
+        {% if item.addon_names %}
+          <p style="font-size: 13px; color: #f97316; font-weight: 600; margin-bottom: 6px;">
+            + {{ item.addon_names|join:", " }}
+          </p>
+        {% endif %}
+
+        <p class="price">
+          {% if item.unit_price %}
+            ৳{{ item.unit_price|floatformat:2 }} each
+            {% if item.addons_total %}
+              <span style="font-size: 12px; color: #888;">(Base ৳{{ item.price|floatformat:2 }} + Addons ৳{{ item.addons_total|floatformat:2 }})</span>
+            {% endif %}
+          {% else %}
+            ৳{{ item.price }} each
+          {% endif %}
+        </p>
 
         <div class="quantity-row">
           <a

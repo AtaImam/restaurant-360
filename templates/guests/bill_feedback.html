@@ -1,0 +1,9 @@
+{% if feedback_url %}
+<section style="padding:20px;text-align:center;break-inside:avoid">
+  <h3>How was your experience?</h3>
+  <img src="data:image/png;base64,{{ feedback_qr }}" width="140" height="140" alt="Scan to leave anonymous feedback for order {{ order.pk }}">
+  <p><a href="{{ feedback_url }}" referrerpolicy="same-origin">Rate your visit</a></p>
+  <p style="font-size:11px;overflow-wrap:anywhere">{{ feedback_url }}</p>
+  <p style="font-size:12px">One anonymous response for Order #{{ order.pk }}. Available after the order is served or completed.</p>
+</section>
+{% endif %}

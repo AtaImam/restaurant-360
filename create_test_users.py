@@ -15,6 +15,26 @@ restaurant, _ = Restaurant.objects.get_or_create(
 )
 
 # Create test users with different roles
+admin_user, admin_created = User.objects.get_or_create(
+    username='admin',
+    defaults={
+        'email': 'admin@test.com',
+        'first_name': 'Admin',
+        'last_name': 'User',
+        'role': 'admin',
+        'restaurant': restaurant,
+        'is_staff': True,
+        'is_superuser': True,
+        'is_active': True,
+    }
+)
+if admin_created:
+    admin_user.set_password('admin123')
+    admin_user.save()
+    print('✓ Created admin: admin (password: admin123)')
+else:
+    print('✓ admin already exists: admin')
+
 test_users = [
     ('owner', 'owner@test.com', 'Owner', 'User'),
     ('manager', 'manager@test.com', 'Manager', 'User'),

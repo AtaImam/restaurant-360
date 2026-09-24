@@ -1,0 +1,117 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}My Attendance{% endblock %}
+
+{% block content %}
+<div class="waiter-attendance-page">
+
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">My Attendance</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Track check-in/out, daily worked hours, and overtime records.
+    </p>
+  </div>
+
+  <!-- TODAY'S ATTENDANCE STATUS CARD -->
+  <div class="card" style="padding: 20px; border-top: 4px solid {% if is_checked_in %}#10b981{% elif is_checked_out %}#6b7280{% else %}#f59e0b{% endif %};">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+      
+      <div>
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">
+          Today's Status • {% if today_record and today_record.work_date %}{{ today_record.work_date|date:"D, M d, Y" }}{% else %}Today{% endif %}
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+          {% if is_checked_in %}
+          <span class="badge badge-success" style="font-size: 14px; padding: 6px 14px;">● Currently Checked In</span>
+          {% elif is_checked_out %}
+          <span class="badge badge-gray" style="font-size: 14px; padding: 6px 14px;">✓ Checked Out</span>
+          {% else %}
+          <span class="badge badge-warning" style="font-size: 14px; padding: 6px 14px;">○ Not Checked In</span>
+          {% endif %}
+        </div>
+
+        <div style="margin-top: 10px; font-size: 13px; color: var(--text-muted);">
+          {% if today_record %}
+            {% if today_record.check_in %}Check In: <strong>{{ today_record.check_in|date:"g:i A" }}</strong>{% endif %}
+            {% if today_record.check_out %} • Check Out: <strong>{{ today_record.check_out|date:"g:i A" }}</strong>{% endif %}
+          {% else %}
+            You haven't checked in for today yet.
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- WORKED HOURS & ACTION -->
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div style="text-align: right;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Worked Hours</div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--accent);">{{ worked_hours_str }}</div>
+          {% if overtime_hours_str != "0h 0m" %}
+          <div style="font-size: 11px; color: #059669; font-weight: 600;">+{{ overtime_hours_str }} Overtime</div>
+          {% endif %}
+        </div>
+
+        {% if not is_checked_in and not is_checked_out %}
+        <form method="post" action="{% url 'waiter:check_in' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success" style="padding: 12px 24px; font-size: 15px; font-weight: 700;">
+            <span>⏱ Clock In</span>
+          </button>
+        </form>
+        {% elif is_checked_in %}
+        <form method="post" action="{% url 'waiter:check_out' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" style="padding: 12px 24px; font-size: 15px; font-weight: 700;" onclick="return confirm('Confirm check out for today?');">
+            <span>⏹ Clock Out</span>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ATTENDANCE HISTORY LIST (MOBILE FRIENDLY) -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>📜</span>
+        <span>Attendance History (Past 30 Days)</span>
+      </h3>
+    </div>
+
+    {% if history %}
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      {% for rec in history %}
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #ffffff;">
+        <div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-dark);">
+            {{ rec.work_date|date:"D, M d, Y" }}
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            In: {% if rec.check_in %}{{ rec.check_in|date:"g:i A" }}{% else %}—{% endif %} •
+            Out: {% if rec.check_out %}{{ rec.check_out|date:"g:i A" }}{% else %}—{% endif %} •
+            Shift: {{ rec.shift.name|default:"Standard" }}
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-dark);">
+            {{ rec.worked_time|default:"—" }}
+          </div>
+          <div style="font-size: 11px; color: {% if rec.overtime_minutes > 0 %}#059669{% else %}var(--text-light){% endif %}; font-weight: 600;">
+            {% if rec.overtime_minutes > 0 %}+{{ rec.overtime_minutes }}m OT{% else %}Regular{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+      No attendance records found yet.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

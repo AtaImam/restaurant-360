@@ -20,7 +20,11 @@ from orders.test_flow import OrderFlowFixture
 class TrackingClientTests(OrderFlowFixture, TestCase):
     def test_polling_renders_database_states_retries_errors_and_never_advances_from_time(self):
         order = self.create_order()
-        Order.objects.filter(pk=order.pk).update(created_at=timezone.now() - timedelta(hours=2))
+        Order.objects.filter(pk=order.pk).update(
+            created_at=timezone.now() - timedelta(hours=2),
+            payment_status="PAID",
+        )
+        order.refresh_from_db()
         page = self.client.get(reverse("order_success", args=[order.pk])).content.decode()
         script = re.findall(r"<script>(.*?)</script>", page, flags=re.S)[-1]
         endpoint = reverse("order_status_api", args=[order.pk])

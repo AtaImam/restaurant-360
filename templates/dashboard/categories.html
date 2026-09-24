@@ -213,9 +213,14 @@
                     <p>Create and manage menu categories for your restaurant.</p>
                 </div>
 
-                <a href="{% url 'category_create' %}" class="btn-primary">
-                    + Add Category
-                </a>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="{% url 'menu_item_list' %}" class="btn-primary" style="background: white; border: 1px solid var(--border); color: var(--text-dark);">
+                        View Menu Items
+                    </a>
+                    <a href="{% url 'category_create' %}" class="btn-primary">
+                        + Add Category
+                    </a>
+                </div>
 
             </div>
 

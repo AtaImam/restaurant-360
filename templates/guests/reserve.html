@@ -1,0 +1,33 @@
+{% extends 'guests/base.html' %}
+
+{% block title %}Reserve a Table | {{ table.restaurant.name }}{% endblock %}
+
+{% block content %}
+<h1>Reserve a Table</h1>
+<div class="branch-meta">
+  <span>📍</span>
+  <span>{{ table.restaurant.name }} · {{ table.branch.name }}</span>
+</div>
+
+{% if submitted %}
+  <div class="success">
+    ✓ Your reservation request has been received. The restaurant will confirm availability.
+  </div>
+  <p style="text-align: center; color: #71717a; margin-top: 8px;">
+    We will review your booking and update you soon.
+  </p>
+{% else %}
+  <p>Send a reservation request. Your table is confirmed when the restaurant accepts it.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Request Reservation</button>
+  </form>
+{% endif %}
+
+<div style="margin-top: 20px; text-align: center;">
+  <a href="{% url 'customer_menu' table.restaurant_id table.pk %}" class="btn-secondary">
+    ← Back to Menu
+  </a>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 {% extends "dashboard/base_owner.html" %}
 
-{% block title %}Advance Salaries | Restaurant 360{% endblock %}
+{% block title %}Salary Advances | Restaurant 360{% endblock %}
 {% block page_title %}Staff Management{% endblock %}
 
 {% block extra_css %}
@@ -95,7 +95,7 @@
 
   .advance-layout {
     display: grid;
-    grid-template-columns: minmax(300px, 0.7fr) minmax(650px, 1.6fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 22px;
     align-items: start;
   }
@@ -324,6 +324,10 @@
     background: #dc2626;
   }
 
+  .manual-advance summary { cursor: pointer; font-weight: 700; color: #6b7280; }
+  .manual-advance .advance-form { max-width: 640px; }
+  .approve-button, .reject-button { min-height: 40px; font-size: 13px; padding: 8px 16px; }
+
   .advance-empty {
     padding: 38px 20px !important;
     color: #6b7280;
@@ -352,8 +356,8 @@
 {% block content %}
 <section class="advance-page">
   <header class="advance-header">
-    <h1>Advance Salaries</h1>
-    <p>Create, review and track employee salary advances.</p>
+    <h1>Salary Advances</h1>
+    <p>Review pending requests and track salary advance history.</p>
   </header>
 
   {% include "staff/_team_tabs.html" %}
@@ -389,63 +393,7 @@
   <div class="advance-layout">
     <section class="advance-card">
       <div class="advance-card-header">
-        <h2>New Salary Advance</h2>
-        <p>Create an advance request for an employee.</p>
-      </div>
-
-      <form method="post" class="advance-form">
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-        <div class="advance-form-error">
-          {% for error in form.non_field_errors %}
-            <div>{{ error }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="advance-field">
-          <label for="{{ form.employee.id_for_label }}">
-            Employee
-          </label>
-          {{ form.employee }}
-
-          {% for error in form.employee.errors %}
-          <div class="advance-error">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <div class="advance-field">
-          <label for="{{ form.amount.id_for_label }}">
-            Advance Amount
-          </label>
-          {{ form.amount }}
-
-          {% for error in form.amount.errors %}
-          <div class="advance-error">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <div class="advance-field">
-          <label for="{{ form.reason.id_for_label }}">
-            Reason
-          </label>
-          {{ form.reason }}
-
-          {% for error in form.reason.errors %}
-          <div class="advance-error">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <button type="submit" class="advance-submit">
-          Create Advance Request
-        </button>
-      </form>
-    </section>
-
-    <section class="advance-card">
-      <div class="advance-card-header">
-        <h2>Salary Advance Records</h2>
+        <h2>Requests &amp; History</h2>
         <p>{{ page_obj.paginator.count }} record(s) found.</p>
       </div>
 
@@ -587,7 +535,68 @@
           </tbody>
         </table>
       </div>
+      {% if page_obj.has_other_pages %}
+      <nav class="advance-toolbar" aria-label="Salary advance pages">
+        {% if page_obj.has_previous %}<a class="advance-filter-button" href="?page={{ page_obj.previous_page_number }}&amp;search={{ search|urlencode }}&amp;status={{ status_filter|urlencode }}">Previous</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="advance-filter-button" href="?page={{ page_obj.next_page_number }}&amp;search={{ search|urlencode }}&amp;status={{ status_filter|urlencode }}">Next</a>{% endif %}
+      </nav>
+      {% endif %}
     </section>
+    <details class="advance-card manual-advance"{% if form.errors %} open{% endif %}>
+      <summary class="advance-card-header">Create Manual Advance</summary>
+      <p style="padding: 0 22px; color: #6b7280;">Record an advance on behalf of an employee. It will be submitted for review.</p>
+
+      <form method="post" class="advance-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="advance-form-error">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="advance-field">
+          <label for="{{ form.employee.id_for_label }}">
+            Employee
+          </label>
+          {{ form.employee }}
+
+          {% for error in form.employee.errors %}
+          <div class="advance-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="advance-field">
+          <label for="{{ form.amount.id_for_label }}">
+            Advance Amount
+          </label>
+          {{ form.amount }}
+
+          {% for error in form.amount.errors %}
+          <div class="advance-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="advance-field">
+          <label for="{{ form.reason.id_for_label }}">
+            Reason
+          </label>
+          {{ form.reason }}
+
+          {% for error in form.reason.errors %}
+          <div class="advance-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="advance-submit">
+          Create Manual Advance
+        </button>
+      </form>
+    </details>
+
   </div>
 </section>
 {% endblock %}

@@ -1,0 +1,108 @@
+{% extends "kitchen/base_kitchen.html" %}
+
+{% block title %}Kitchen Order History — Kitchen Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">
+        <span>📜</span>
+        <span>Kitchen Order History</span>
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 3px;">
+        Review previous kitchen tickets, fulfillment times, and staff attribution for <strong>{{ active_branch.name|default:"Active Branch" }}</strong>
+      </p>
+    </div>
+
+    <!-- Filter & Search -->
+    <form method="get" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <select name="period" class="btn btn-outline" onchange="this.form.submit()" style="padding: 7px 12px; font-size: 13px;">
+        <option value="today" {% if period == 'today' %}selected{% endif %}>Today's Orders</option>
+        <option value="yesterday" {% if period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+        <option value="week" {% if period == 'week' %}selected{% endif %}>Last 7 Days</option>
+      </select>
+      <input type="text" name="search" value="{{ search }}" placeholder="Order # or Table..." class="btn btn-outline" style="text-align: left; padding: 7px 12px; font-size: 13px; min-width: 180px;">
+      <button type="submit" class="btn btn-primary" style="padding: 7px 14px; font-size: 13px;">Search</button>
+      {% if search %}
+      <a href="?period={{ period }}" class="btn btn-outline" style="padding: 7px 12px; font-size: 13px; color: var(--text-muted);">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Ticket #</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Created</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Type / Destination</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Ordered Items</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Assigned Waiter</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Prep Duration</th>
+          <th style="padding: 12px 14px; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Final Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 14px;">
+            <div style="font-weight: 800; color: var(--text-dark); font-size: 14px;">#{{ o.id }}</div>
+            <div style="font-size: 11px; color: var(--text-light); text-transform: uppercase;">{{ o.order_source|default:"POS" }}</div>
+          </td>
+          <td style="padding: 12px 14px; color: var(--text-muted); font-size: 12px;">
+            {{ o.created_at|date:"M d, g:i A" }}
+          </td>
+          <td style="padding: 12px 14px;">
+            {% if o.order_type == 'DINE_IN' and o.table %}
+            <span class="badge badge-primary" style="font-size: 11.5px;">🪑 Table {{ o.table.table_number }}</span>
+            {% if o.table.floor %}
+            <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">{{ o.table.floor.name }}</div>
+            {% endif %}
+            {% else %}
+            <span class="badge badge-gray" style="font-size: 11.5px;">🛍️ Takeaway</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px;">
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              {% for item in o.items.all %}
+              <div style="font-size: 12.5px;">
+                <strong style="color: var(--text-dark);">{{ item.quantity }}×</strong> {{ item.menu_item.name }}
+              </div>
+              {% endfor %}
+            </div>
+          </td>
+          <td style="padding: 12px 14px; font-size: 12.5px;">
+            {% if o.staff_service and o.staff_service.waiter %}
+            <span style="font-weight: 600; color: var(--text-dark);">{{ o.staff_service.waiter.user.get_full_name|default:o.staff_service.waiter.user.username }}</span>
+            {% else %}
+            <span style="color: var(--text-light);">Unassigned</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px; font-family: monospace; font-size: 13px;">
+            {% if o.prep_time_minutes is not None %}
+            <span style="font-weight: 700; color: var(--text-dark);">{{ o.prep_time_minutes }}m</span>
+            {% else %}
+            <span style="color: var(--text-light);">—</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 14px;">
+            <span class="badge {% if o.status == 'COMPLETED' or o.status == 'SERVED' or o.status == 'READY' %}badge-success{% elif o.status == 'CANCELLED' %}badge-danger{% else %}badge-gray{% endif %}" style="font-size: 11.5px;">
+              {{ o.get_status_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-muted);">
+            <div style="font-size: 36px; margin-bottom: 8px;">📜</div>
+            <div style="font-weight: 700; font-size: 15px; color: var(--text-dark);">No Order History Found</div>
+            <div style="font-size: 12.5px; margin-top: 4px;">No tickets recorded for the selected time period.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "waiter/base_waiter.html" %}
+
+{% block title %}My Shift{% endblock %}
+
+{% block content %}
+<div class="waiter-shift-page">
+
+  <div style="margin-bottom: 16px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-dark);">My Shift & Schedule</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">
+      Branch: <strong>{{ current_branch.name|default:"Main Branch" }}</strong>
+    </p>
+  </div>
+
+  <!-- CURRENT / TODAY'S SHIFT CARD -->
+  <div class="card" style="border-left: 4px solid var(--accent); padding: 20px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent); letter-spacing: 0.5px;">Today's Assigned Shift</div>
+        {% if current_shift %}
+        <h3 style="font-size: 20px; font-weight: 800; color: var(--text-dark); margin: 4px 0 6px;">{{ current_shift.name }}</h3>
+        <div style="font-size: 14px; color: var(--text);">
+          ⏰ <strong>{{ current_shift.start_time|time:"g:i A" }}</strong> – <strong>{{ current_shift.end_time|time:"g:i A" }}</strong>
+          <span style="color: var(--text-light); margin: 0 6px;">•</span>
+          <span class="badge badge-info">Active</span>
+        </div>
+        {% else %}
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-muted); margin-top: 4px;">Standard Restaurant Shift</h3>
+        <p style="font-size: 13px; color: var(--text-light);">No custom shift assigned. Following standard branch hours.</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <a href="{% url 'waiter:attendance' %}" class="btn btn-primary" style="padding: 10px 18px;">
+          <span>⏱ View Attendance</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT SHIFT ATTENDANCE LOG -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span>📅</span>
+        <span>Recent Shift Attendance History</span>
+      </h3>
+    </div>
+
+    {% if shift_history %}
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      {% for att in shift_history %}
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #ffffff;">
+        <div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-dark);">
+            {{ att.work_date|date:"D, M d, Y" }}
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            Shift: {{ att.shift.name|default:"Standard" }}
+            {% if att.check_in %}• In: {{ att.check_in|date:"g:i A" }}{% endif %}
+            {% if att.check_out %}• Out: {{ att.check_out|date:"g:i A" }}{% endif %}
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-dark);">
+            {{ att.worked_time|default:"—" }}
+          </div>
+          {% if att.overtime_minutes and att.overtime_minutes > 0 %}
+          <div style="font-size: 11px; color: #059669; font-weight: 600;">+{{ att.overtime_minutes }}m OT</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+      No past shift attendance history recorded.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

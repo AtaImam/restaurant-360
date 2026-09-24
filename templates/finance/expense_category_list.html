@@ -1,0 +1,146 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Expense Categories | Restaurant 360{% endblock %}
+{% block page_title %}Expense Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cat-page {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+    color: #111827;
+  }
+  .cat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .cat-header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .btn-primary-custom {
+    background: #2563eb;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .cat-table-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .table-custom th {
+    background: #f9fafb;
+    padding: 12px 18px;
+    font-weight: 600;
+    color: #4b5563;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+  }
+  .table-custom td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .badge-active {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .badge-inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .btn-sm-action {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cat-page">
+  <div class="cat-header">
+    <div>
+      <h1>Expense Categories</h1>
+      <p style="margin: 0; color: #6b7280; font-size: 14px;">Define categories to track utilities, rent, packaging, marketing, and repairs.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="{% url 'finance:expense_list' %}" class="btn-sm-action" style="padding: 10px 16px;">Back to Expenses</a>
+      <a href="{% url 'finance:category_create' %}" class="btn-primary-custom">+ Add Category</a>
+    </div>
+  </div>
+
+  <div class="cat-table-card">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Total Expenses Logged</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td style="font-weight: 600; color: #111827;">{{ cat.name }}</td>
+          <td style="color: #6b7280;">{{ cat.description|default:"—" }}</td>
+          <td>
+            {% if cat.is_active %}
+              <span class="badge-active">Active</span>
+            {% else %}
+              <span class="badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td style="font-weight: 600;">{{ cat.expenses.count }}</td>
+          <td style="text-align: right;">
+            <a href="{% url 'finance:category_edit' cat.id %}" class="btn-sm-action">Edit</a>
+            {% if not cat.expenses.exists %}
+            <form method="post" action="{% url 'finance:category_delete' cat.id %}" style="display: inline;" onsubmit="return confirm('Delete category?');">
+              {% csrf_token %}
+              <button type="submit" class="btn-sm-action" style="color: #dc2626; border-color: #fecaca; background: #fff5f5; cursor: pointer;">Delete</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">
+            No categories defined yet. Click "+ Add Category" to create your first category.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

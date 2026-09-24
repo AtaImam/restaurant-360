@@ -1,0 +1,404 @@
+{% extends "dashboard/base_owner.html" %}
+
+{% block title %}Coupons &amp; Offers | Restaurant 360{% endblock %}
+{% block page_title %}Coupons &amp; Offers{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 30px;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0 0 4px;
+  }
+  .page-header p {
+    color: #6b7280;
+    font-size: 13px;
+    margin: 0;
+  }
+  .btn-primary {
+    background: #f97316;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 9px;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.18s ease;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background: #ea580c;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .metric-card .value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+  }
+  .filter-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-form {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    min-width: 240px;
+  }
+  .filter-select {
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    background: #fff;
+  }
+  .btn-filter {
+    background: #111827;
+    color: #fff;
+    padding: 0 16px;
+    height: 38px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-reset {
+    color: #6b7280;
+    font-size: 13px;
+    text-decoration: none;
+    padding: 0 10px;
+  }
+  .table-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+  }
+  .data-table th {
+    background: #f9fafb;
+    padding: 12px 18px;
+    font-weight: 700;
+    color: #4b5563;
+    border-bottom: 1px solid #e5e7eb;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .data-table td {
+    padding: 16px 18px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #1f2937;
+    vertical-align: middle;
+  }
+  .data-table tr:hover {
+    background: #fbfbfb;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-code {
+    background: #f3f4f6;
+    color: #1f2937;
+    font-family: monospace;
+    font-size: 12px;
+    border: 1px solid #e5e7eb;
+  }
+  .badge-auto {
+    background: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+  }
+  .badge-active {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .badge-inactive {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  .badge-scope {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+  .action-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid transparent;
+  }
+  .action-edit {
+    background: #f3f4f6;
+    color: #1f2937;
+    border-color: #d1d5db;
+  }
+  .action-edit:hover {
+    background: #e5e7eb;
+  }
+  .action-delete {
+    background: #fff;
+    color: #dc2626;
+    border-color: #fca5a5;
+    cursor: pointer;
+  }
+  .action-delete:hover {
+    background: #fee2e2;
+  }
+  .action-toggle {
+    background: #fff;
+    color: #4b5563;
+    border-color: #d1d5db;
+    cursor: pointer;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  {% if messages %}
+    <div style="margin-bottom: 18px;">
+      {% for message in messages %}
+        <div style="padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 8px; {% if message.tags == 'error' %}background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;{% else %}background: #dcfce7; color: #15803d; border: 1px solid #86efac;{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="page-header">
+    <div>
+      <h1>Coupons &amp; Offers</h1>
+      <p>Configure percentage &amp; fixed discounts, coupon codes, automatic promotions, and item scopes for {{ restaurant.name }}.</p>
+    </div>
+    <a href="{% url 'coupon_create' %}" class="btn-primary">
+      <span>+ Create Coupon / Offer</span>
+    </a>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="title">Total Coupons &amp; Offers</div>
+      <div class="value">{{ total_coupons }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Supported Channels</div>
+      <div class="value" style="font-size: 15px; font-weight: 600; color: #4b5563; margin-top: 4px;">
+        QR Ordering &amp; POS Checkout
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Branch Scope</div>
+      <div class="value" style="font-size: 16px; color: #1f2937;">{{ restaurant.name }}</div>
+    </div>
+  </div>
+
+  <div class="filter-card">
+    <form method="GET" class="filter-form">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name or code..." class="search-input">
+      <select name="status" class="filter-select">
+        <option value="">All Statuses</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+        <option value="automatic" {% if status_filter == 'automatic' %}selected{% endif %}>Automatic Offers</option>
+        <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+      </select>
+      <button type="submit" class="btn-filter">Filter</button>
+      {% if q or status_filter %}
+        <a href="{% url 'coupon_list' %}" class="btn-reset">Reset</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-card">
+    {% if coupons %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Offer / Coupon</th>
+            <th>Type &amp; Discount</th>
+            <th>Applicability</th>
+            <th>Rules &amp; Constraints</th>
+            <th>Usage</th>
+            <th>Status</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in coupons %}
+            <tr>
+              <td>
+                <div style="font-weight: 700; font-size: 14px; color: #111827;">{{ c.name }}</div>
+                <div style="margin-top: 4px; display: flex; gap: 6px; align-items: center;">
+                  {% if c.code %}
+                    <span class="badge badge-code">{{ c.code }}</span>
+                  {% endif %}
+                  {% if c.is_automatic %}
+                    <span class="badge badge-auto">⚡ Automatic</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div style="font-weight: 800; font-size: 15px; color: #ea580c;">
+                  {% if c.discount_type == 'PERCENTAGE' %}
+                    {{ c.discount_value }}% OFF
+                  {% else %}
+                    ৳{{ c.discount_value }} OFF
+                  {% endif %}
+                </div>
+                {% if c.max_discount_amount %}
+                  <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                    Cap: ৳{{ c.max_discount_amount }}
+                  </div>
+                {% endif %}
+              </td>
+              <td>
+                {% if c.applicability == 'WHOLE_ORDER' %}
+                  <span class="badge badge-scope">Whole Order</span>
+                {% elif c.applicability == 'CATEGORY' %}
+                  <span class="badge badge-scope">{{ c.applicable_categories.count }} Categor{{ c.applicable_categories.count|pluralize:"y,ies" }}</span>
+                {% else %}
+                  <span class="badge badge-scope">{{ c.applicable_items.count }} Item{{ c.applicable_items.count|pluralize }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="font-size: 12px; color: #374151;">
+                  {% if c.min_order_amount > 0 %}
+                    <div>Min Order: ৳{{ c.min_order_amount }}</div>
+                  {% else %}
+                    <div>No min order</div>
+                  {% endif %}
+                  {% if c.start_datetime or c.end_datetime %}
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                      {% if c.start_datetime %}{{ c.start_datetime|date:"M d, H:i" }}{% else %}Start{% endif %}
+                      →
+                      {% if c.end_datetime %}{{ c.end_datetime|date:"M d, H:i" }}{% else %}Open{% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div style="font-weight: 700; color: #111827;">
+                  {{ c.times_used }}
+                  {% if c.usage_limit %}
+                    <span style="font-weight: 500; color: #6b7280;">/ {{ c.usage_limit }}</span>
+                  {% else %}
+                    <span style="font-weight: 500; color: #6b7280;">(∞)</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                {% if c.is_active %}
+                  <span class="badge badge-active">Active</span>
+                {% else %}
+                  <span class="badge badge-inactive">Inactive</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 6px;">
+                  <form method="POST" action="{% url 'coupon_toggle' c.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn action-toggle" title="Toggle active status">
+                      {% if c.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                  </form>
+                  <a href="{% url 'coupon_edit' c.id %}" class="action-btn action-edit">Edit</a>
+                  <form method="POST" action="{% url 'coupon_delete' c.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete coupon \'{{ c.name }}\'?');">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn action-delete">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <h3>No coupons or offers found</h3>
+        <p>Create promotions and coupon codes to boost restaurant sales.</p>
+        <a href="{% url 'coupon_create' %}" class="btn-primary" style="margin-top: 14px;">+ Create First Offer</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
